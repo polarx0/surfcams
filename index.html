@@ -6,441 +6,228 @@
 <title>Grande Porto Surf Cams</title>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 <style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #111;
-  color: #eee;
-}
-
-header {
-  padding: 10px 12px;
-  background: #1b1b1b;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-header b {
-  display: inline-block;
-  margin-right: 8px;
-}
-
-button {
-  margin: 4px 4px 4px 0;
-  padding: 7px 10px;
-  cursor: pointer;
-  border-radius: 6px;
-  border: 0;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  padding: 8px;
-}
-
-.cam {
-  background: #222;
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.cam h2 {
-  margin: 0;
-  padding: 8px 10px;
-  font-size: 14px;
-  line-height: 1.2;
-}
-
-video {
-  width: 100%;
-  background: #000;
-  display: block;
-}
-
-.bad {
-  padding: 12px;
-  color: #ffb3b3;
-}
-
-a {
-  color: #8ecbff;
-}
-
-#offlineCams {
-  display: none;
-}
-
-.offline-list {
-  padding: 0 12px 20px;
-}
-
-.offline-item {
-  padding: 8px 10px;
-  background: #222;
-  margin-bottom: 6px;
-  border-radius: 8px;
-}
-
-@media (max-width: 600px) {
-  header {
-    padding: 8px;
-  }
-
-  .grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
-    padding: 6px;
-  }
-
-  .cam h2 {
-    font-size: 11px;
-    padding: 6px 7px;
-  }
-
-  button {
-    font-size: 12px;
-    padding: 6px 8px;
-  }
+body { margin:0; font-family:Arial,sans-serif; background:#111; color:#eee; }
+header { padding:10px 12px; background:#1b1b1b; position:sticky; top:0; z-index:10; }
+button { margin:4px; padding:7px 10px; cursor:pointer; border-radius:6px; border:0; }
+.grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; padding:8px; }
+.cam { background:#222; border-radius:10px; overflow:hidden; }
+.cam h2 { margin:0; padding:8px 10px; font-size:14px; line-height:1.2; }
+video { width:100%; background:#000; display:block; }
+.cam-footer { display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding:7px 10px 9px; font-size:12px; }
+a { color:#8ecbff; }
+.bad { padding:12px; color:#ffb3b3; }
+#offlineCams { display:none; }
+.offline-list { padding:0 12px 20px; }
+.offline-item { padding:8px 10px; background:#222; margin-bottom:6px; border-radius:8px; }
+@media (max-width:600px) {
+  .grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; padding:6px; }
+  .cam h2 { font-size:11px; padding:6px 7px; }
+  .cam-footer { font-size:10px; padding:6px 7px 8px; gap:4px; }
+  button { font-size:11px; padding:5px 7px; }
 }
 </style>
 </head>
 <body>
 
 <header>
-  <b>Grande Porto Surf Cams</b>
+  <b>Grande Porto Surf Cams</b><br>
+  <span>streams generated: 08:52:39</span><br>
   <button onclick="window.location.reload()">Refresh Page</button>
   <button onclick="window.open('https://github.com/polarx0/surfcams/actions/workflows/update.yml', '_blank')">Regenerate</button>
-  <button onclick="toggleBlock('offlineCams', this, 'Show Offline Cameras', 'Hide Offline Cameras')">Show Offline Cameras</button>
+  <button onclick="toggleBlock('offlineCams', this, 'Show Offline', 'Hide Offline')">Show Offline</button>
 </header>
 
 <h2 style="padding-left:12px">🌊 Online Cameras</h2>
-
 <div class="grid">
 
-<div class="cam">
-  <h2>Aguçadoura HD — <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/agucadoura" target="_blank">Surftotal</a></h2>
+<div class="cam" data-name="Póvoa de Varzim">
+  <h2>Póvoa de Varzim</h2>
   <video id="video0" controls autoplay muted playsinline></video>
+  <div class="cam-footer">
+    <span>stream time: 08:52:41</span>
+    <button onclick="refreshCam('Póvoa de Varzim', 'video0')">Refresh</button>
+    <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/povoa-de-varzim" target="_blank">Surftotal</a>
+  </div>
   <script>
-    (function() {
-      const video = document.getElementById("video0");
-      const src = "https://stream.surftotal.com/portugal/agucadoura/index.m3u8?token=MTc4MTc2OTEzMy44Y2E2NjE4NjY0Nzc0MTdmYTM3Mzk4MWNjNTE0YTk1YzdlNDZjZmZjODgxZjEzYWZjNzI1NWNhNzNlZWE2NTQy&time=1781769133";
-
-      if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        video.src = src;
-      } else if (Hls.isSupported()) {
-        const hls = new Hls();
-        hls.loadSource(src);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, function() {
-          video.play().catch(() => {});
-        });
-      }
-
-      video.play().catch(() => {});
-    })();
+    initCam("video0", "https://stream.surftotal.com/portugal/ferrari/index.m3u8?token=MTc4MTc3Mjc2MS5lOGRlMmRhY2Q3YjZlOTMxZjIyOTM5ZGZlMjExMDE0OGY4Nzg0Yjg5MzczNjQwODM0MTM5MGZiYTViNGJjZmQ4&time=1781772761");
   </script>
 </div>
 
-<div class="cam">
-  <h2>Póvoa de Varzim — <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/povoa-de-varzim" target="_blank">Surftotal</a></h2>
+<div class="cam" data-name="Póvoa de Varzim - Ferrari HD">
+  <h2>Póvoa de Varzim - Ferrari HD</h2>
   <video id="video1" controls autoplay muted playsinline></video>
+  <div class="cam-footer">
+    <span>stream time: 08:52:42</span>
+    <button onclick="refreshCam('Póvoa de Varzim - Ferrari HD', 'video1')">Refresh</button>
+    <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/povoa-de-varzim-ferrari" target="_blank">Surftotal</a>
+  </div>
   <script>
-    (function() {
-      const video = document.getElementById("video1");
-      const src = "https://stream.surftotal.com/portugal/ferrari/index.m3u8?token=MTc4MTc2OTEzNS5hYzA4YTczMzI5MGZiMThmM2JjODE3NTczOTY0ZjA5Y2I5OGEzYmZkNjE5NmExYzZjNTdhZTRlNTczZTVkMjhj&time=1781769135";
-
-      if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        video.src = src;
-      } else if (Hls.isSupported()) {
-        const hls = new Hls();
-        hls.loadSource(src);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, function() {
-          video.play().catch(() => {});
-        });
-      }
-
-      video.play().catch(() => {});
-    })();
+    initCam("video1", "https://stream.surftotal.com/portugal/ferrari/index.m3u8?token=MTc4MTc3Mjc2Mi5jY2MxYjkyM2QzZDEzMTUxZDA5MmMyMTUwNWI2ODRjZDE1YzE1ZjUyNzBhYmIzN2RiNmVjNmQ1ZDQ0OTg0YTYw&time=1781772762");
   </script>
 </div>
 
-<div class="cam">
-  <h2>Póvoa de Varzim - Ferrari HD — <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/povoa-de-varzim-ferrari" target="_blank">Surftotal</a></h2>
+<div class="cam" data-name="Mindelo">
+  <h2>Mindelo</h2>
   <video id="video2" controls autoplay muted playsinline></video>
+  <div class="cam-footer">
+    <span>stream time: 08:52:45</span>
+    <button onclick="refreshCam('Mindelo', 'video2')">Refresh</button>
+    <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo" target="_blank">Surftotal</a>
+  </div>
   <script>
-    (function() {
-      const video = document.getElementById("video2");
-      const src = "https://stream.surftotal.com/portugal/ferrari/index.m3u8?token=MTc4MTc2OTEzNi5jYjZhYjk3NTVkMmFlZDc1MTE5NGFkZDFjM2Q1NDgxNDIwZjQ2OGI5OTM4ZjMxODY0YTBlODQ2ZDUyYTg4NmI4&time=1781769136";
-
-      if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        video.src = src;
-      } else if (Hls.isSupported()) {
-        const hls = new Hls();
-        hls.loadSource(src);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, function() {
-          video.play().catch(() => {});
-        });
-      }
-
-      video.play().catch(() => {});
-    })();
+    initCam("video2", "https://stream.surftotal.com/portugal/mindelo/index.m3u8?token=MTc4MTc3Mjc2NS40Y2FlYTI4NWViMjYxZTAwMWZiNzVmZDZiMmY3NjJlMmY3NDkxMTEzYWZmZmY2ZTM5ZTcxZmIxYzMzNTJmMzUw&time=1781772765");
   </script>
 </div>
 
-<div class="cam">
-  <h2>Azurara HD — <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/azurara" target="_blank">Surftotal</a></h2>
+<div class="cam" data-name="Leça da Palmeira HD">
+  <h2>Leça da Palmeira HD</h2>
   <video id="video3" controls autoplay muted playsinline></video>
+  <div class="cam-footer">
+    <span>stream time: 08:52:49</span>
+    <button onclick="refreshCam('Leça da Palmeira HD', 'video3')">Refresh</button>
+    <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-da-palmeira" target="_blank">Surftotal</a>
+  </div>
   <script>
-    (function() {
-      const video = document.getElementById("video3");
-      const src = "https://stream.surftotal.com/portugal/azurara/index.m3u8?token=MTc4MTc2OTEzOC42ZjYxMGI3Y2RkMzc3YjJlMTI1MTdhOTgzMzkxOTU0ZjY5MGI0MjZkYWZiZDI5OTAxOTZjODI1ZDgwNDZiMTQx&time=1781769138";
-
-      if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        video.src = src;
-      } else if (Hls.isSupported()) {
-        const hls = new Hls();
-        hls.loadSource(src);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, function() {
-          video.play().catch(() => {});
-        });
-      }
-
-      video.play().catch(() => {});
-    })();
+    initCam("video3", "https://stream.surftotal.com/portugal/lecabardooscar/index.m3u8?token=MTc4MTc3Mjc2OS42MGI1NTQxNWVjZjI2MjEwMTZiNzRiMjgwZmRiMzdkNTA0YWE5MDI5MTZjMjQ4OWRlOTdlM2Y2MzNiYjE2ZjI5&time=1781772769");
   </script>
 </div>
 
-<div class="cam">
-  <h2>Mindelo — <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo" target="_blank">Surftotal</a></h2>
+<div class="cam" data-name="Matosinhos HD">
+  <h2>Matosinhos HD</h2>
   <video id="video4" controls autoplay muted playsinline></video>
+  <div class="cam-footer">
+    <span>stream time: 08:52:51</span>
+    <button onclick="refreshCam('Matosinhos HD', 'video4')">Refresh</button>
+    <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-hd" target="_blank">Surftotal</a>
+  </div>
   <script>
-    (function() {
-      const video = document.getElementById("video4");
-      const src = "https://stream.surftotal.com/portugal/mindelo/index.m3u8?token=MTc4MTc2OTE0MC5iZjkzZjAzNzJmYWU3NTEwY2RhYTE2NWFmYmM2ZDVhOWRkYzIxYTM5MTMzNmMxZmM1Y2JmMjdhMGZhMWY0MTYx&time=1781769140";
-
-      if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        video.src = src;
-      } else if (Hls.isSupported()) {
-        const hls = new Hls();
-        hls.loadSource(src);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, function() {
-          video.play().catch(() => {});
-        });
-      }
-
-      video.play().catch(() => {});
-    })();
+    initCam("video4", "https://stream.surftotal.com/portugal/matosinhos/index.m3u8?token=MTc4MTc3Mjc3MS42MGU0YWQ1MzhlMTYxNTQyN2RmMWI0MTJlMTU5MmM3MGZkNmE0ZmI4OTkzMzkzY2ExZjRmMTI3YzdmZjI3MTgz&time=1781772771");
   </script>
 </div>
 
-<div class="cam">
-  <h2>Mindelo meia laranja HD — <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo-meia-laranja" target="_blank">Surftotal</a></h2>
+<div class="cam" data-name="Matosinhos - Vagas Bar HD">
+  <h2>Matosinhos - Vagas Bar HD</h2>
   <video id="video5" controls autoplay muted playsinline></video>
+  <div class="cam-footer">
+    <span>stream time: 08:52:52</span>
+    <button onclick="refreshCam('Matosinhos - Vagas Bar HD', 'video5')">Refresh</button>
+    <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-vagas-bar" target="_blank">Surftotal</a>
+  </div>
   <script>
-    (function() {
-      const video = document.getElementById("video5");
-      const src = "https://stream.surftotal.com/portugal/meialaranja/index.m3u8?token=MTc4MTc2OTE0Mi5hZDNhYmFlMTI2NWMzOWQ2YTNiMzQ0NGIyZTFmMWU2Yzc3MTJhZjBhNDVmZjk2N2VkMDk0NjFiOTRhYTgwMTFm&time=1781769142";
-
-      if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        video.src = src;
-      } else if (Hls.isSupported()) {
-        const hls = new Hls();
-        hls.loadSource(src);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, function() {
-          video.play().catch(() => {});
-        });
-      }
-
-      video.play().catch(() => {});
-    })();
+    initCam("video5", "https://stream.surftotal.com/portugal/matosas1/index.m3u8?token=MTc4MTc3Mjc3Mi5jZmJjNzY0YWY3YzgwZjllM2MwODdiZWM0ZmU1ZmRhZTIzN2RiOGNhNGU0NjQwMWZlODIwZTQyMzFjODE0Y2Ez&time=1781772772");
   </script>
 </div>
 
-<div class="cam">
-  <h2>Leça da Palmeira HD — <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-da-palmeira" target="_blank">Surftotal</a></h2>
+<div class="cam" data-name="Espinho HD">
+  <h2>Espinho HD</h2>
   <video id="video6" controls autoplay muted playsinline></video>
+  <div class="cam-footer">
+    <span>stream time: 08:52:54</span>
+    <button onclick="refreshCam('Espinho HD', 'video6')">Refresh</button>
+    <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-hd" target="_blank">Surftotal</a>
+  </div>
   <script>
-    (function() {
-      const video = document.getElementById("video6");
-      const src = "https://stream.surftotal.com/portugal/lecabardooscar/index.m3u8?token=MTc4MTc2OTE0NS4wMzlmMzAzY2NkYWQ2OWM1ZDRlYmY5MGVhMDBjMGVlYjU4ODJhOTg0NjA0ZDgwMGRmODUzYzM2NjRkMjEzZDc0&time=1781769145";
-
-      if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        video.src = src;
-      } else if (Hls.isSupported()) {
-        const hls = new Hls();
-        hls.loadSource(src);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, function() {
-          video.play().catch(() => {});
-        });
-      }
-
-      video.play().catch(() => {});
-    })();
+    initCam("video6", "https://stream.surftotal.com/portugal/espinho/index.m3u8?token=MTc4MTc3Mjc3NC5iMjJhNTM0ZmMwZTQ4NzI5OTgwNDU4NjlkMjExMTdlMTJiY2JmZmUwYzZiOGI0MmRkYjNmOTA5MTNmOWM3OGMy&time=1781772774");
   </script>
 </div>
 
-<div class="cam">
-  <h2>Matosinhos HD — <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-hd" target="_blank">Surftotal</a></h2>
+<div class="cam" data-name="Espinho vista aérea HD">
+  <h2>Espinho vista aérea HD</h2>
   <video id="video7" controls autoplay muted playsinline></video>
+  <div class="cam-footer">
+    <span>stream time: 08:52:55</span>
+    <button onclick="refreshCam('Espinho vista aérea HD', 'video7')">Refresh</button>
+    <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-vista-aerea" target="_blank">Surftotal</a>
+  </div>
   <script>
-    (function() {
-      const video = document.getElementById("video7");
-      const src = "https://stream.surftotal.com/portugal/matosinhos/index.m3u8?token=MTc4MTc2OTE0Ny43NzU1YzQzYTJhNzkyYTA4ODVmYzJmMTZlYjFiMjk2MmU2MDE2NGZlMTBiMGMxZGRhNGJkODc4ZjY0NTc1Yzhk&time=1781769147";
-
-      if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        video.src = src;
-      } else if (Hls.isSupported()) {
-        const hls = new Hls();
-        hls.loadSource(src);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, function() {
-          video.play().catch(() => {});
-        });
-      }
-
-      video.play().catch(() => {});
-    })();
+    initCam("video7", "https://stream.surftotal.com/portugal/casinoespinho/index.m3u8?token=MTc4MTc3Mjc3NS45MmRhMGQyZjA3OTE2YjM1YTUzOWI0NDI0ZDk3NzQ2ZDAwOTc0ZjliZDU0OGRjODRkNTgzMTFiMjU0ZTI1MzNm&time=1781772775");
   </script>
 </div>
 
-<div class="cam">
-  <h2>Matosinhos - Vagas Bar HD — <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-vagas-bar" target="_blank">Surftotal</a></h2>
+<div class="cam" data-name="Espinho - Silvalde HD">
+  <h2>Espinho - Silvalde HD</h2>
   <video id="video8" controls autoplay muted playsinline></video>
+  <div class="cam-footer">
+    <span>stream time: 08:52:56</span>
+    <button onclick="refreshCam('Espinho - Silvalde HD', 'video8')">Refresh</button>
+    <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-silvalde" target="_blank">Surftotal</a>
+  </div>
   <script>
-    (function() {
-      const video = document.getElementById("video8");
-      const src = "https://stream.surftotal.com/portugal/matosas1/index.m3u8?token=MTc4MTc2OTE0OC5hMGFmYTdhOGUyNTA4YmY5MDY1ZGIwMTlhNzc3NWZlOTg0MzY3ZWY3MDk4NTEzYzc0ZTBhMDhkYjg1NjVlZTc0&time=1781769148";
-
-      if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        video.src = src;
-      } else if (Hls.isSupported()) {
-        const hls = new Hls();
-        hls.loadSource(src);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, function() {
-          video.play().catch(() => {});
-        });
-      }
-
-      video.play().catch(() => {});
-    })();
+    initCam("video8", "https://stream.surftotal.com/portugal/cagas/index.m3u8?token=MTc4MTc3Mjc3Ni4wMjdiZWVjMDMyM2RjZTFiNTMyYjdlNGRlZjIxNjdhOTc4ZGU4ZTAzYTM2YzlkNmYyZGM2MDZjZTZhY2Q4NjQ3&time=1781772776");
   </script>
 </div>
-
-<div class="cam">
-  <h2>Espinho HD — <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-hd" target="_blank">Surftotal</a></h2>
-  <video id="video9" controls autoplay muted playsinline></video>
-  <script>
-    (function() {
-      const video = document.getElementById("video9");
-      const src = "https://stream.surftotal.com/portugal/espinho/index.m3u8?token=MTc4MTc2OTE1MS44ZDE0Yjg4ZDNjZTZhNjVkYWY0NjdiNjcyNGUzNjQ2MDBkNTJjNzQ0YWRlNjZkODY0NGU2ZDg2ZGU3ZWZlMzVk&time=1781769151";
-
-      if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        video.src = src;
-      } else if (Hls.isSupported()) {
-        const hls = new Hls();
-        hls.loadSource(src);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, function() {
-          video.play().catch(() => {});
-        });
-      }
-
-      video.play().catch(() => {});
-    })();
-  </script>
-</div>
-
-<div class="cam">
-  <h2>Espinho vista aérea HD — <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-vista-aerea" target="_blank">Surftotal</a></h2>
-  <video id="video10" controls autoplay muted playsinline></video>
-  <script>
-    (function() {
-      const video = document.getElementById("video10");
-      const src = "https://stream.surftotal.com/portugal/casinoespinho/index.m3u8?token=MTc4MTc2OTE1Mi44ODkyMDJjZTMxYzg4MGVjNDMzZThjN2E5MDVlMGZjNDgwY2RmZDU0Y2YxMDNhNzJmOGE5Y2VkNDQxYTkwNWEy&time=1781769152";
-
-      if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        video.src = src;
-      } else if (Hls.isSupported()) {
-        const hls = new Hls();
-        hls.loadSource(src);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, function() {
-          video.play().catch(() => {});
-        });
-      }
-
-      video.play().catch(() => {});
-    })();
-  </script>
-</div>
-
-<div class="cam">
-  <h2>Espinho - Silvalde HD — <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-silvalde" target="_blank">Surftotal</a></h2>
-  <video id="video11" controls autoplay muted playsinline></video>
-  <script>
-    (function() {
-      const video = document.getElementById("video11");
-      const src = "https://stream.surftotal.com/portugal/cagas/index.m3u8?token=MTc4MTc2OTE1NC4wN2YzYTlmNWIwNjVkNzU2Zjk1NTBkYzE4YTI4ZWM4ZDBkNGRjZmRjNWMyMGJiMTk2YWU0ZDI5MDdiNjliMmM1&time=1781769154";
-
-      if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        video.src = src;
-      } else if (Hls.isSupported()) {
-        const hls = new Hls();
-        hls.loadSource(src);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, function() {
-          video.play().catch(() => {});
-        });
-      }
-
-      video.play().catch(() => {});
-    })();
-  </script>
-</div>
-
 </div>
 
 <div id="offlineCams">
 <h2 style="padding-left:12px">⚠️ Offline / unavailable</h2>
 <div class="offline-list">
-
-<div class="offline-item">
-  <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/praia-da-arvore-areal" target="_blank">Praia de Árvore - Areal HD</a>
-</div>
-
-<div class="offline-item">
-  <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/pedras-do-corgo" target="_blank">Pedras do Corgo - Melanina HD</a>
-</div>
-
-<div class="offline-item">
-  <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabo-do-mundo" target="_blank">Cabo do Mundo HD</a>
-</div>
-
-<div class="offline-item">
-  <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-lkodak-aterro" target="_blank">Leça - L'Kodak (Aterro) HD</a>
-</div>
-
-<div class="offline-item">
-  <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabedelo-do-porto" target="_blank">Cabedelo do Porto</a>
-</div>
+<div class="offline-item"><a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/agucadoura-hd" target="_blank">Aguçadoura HD</a></div>
+<div class="offline-item"><a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/azurara-hd" target="_blank">Azurara HD</a></div>
+<div class="offline-item"><a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/praia-da-arvore-areal" target="_blank">Praia de Árvore - Areal HD</a></div>
+<div class="offline-item"><a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo-meia-laranja-hd" target="_blank">Mindelo meia laranja HD</a></div>
+<div class="offline-item"><a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/pedras-do-corgo" target="_blank">Pedras do Corgo - Melanina HD</a></div>
+<div class="offline-item"><a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabo-do-mundo" target="_blank">Cabo do Mundo HD</a></div>
+<div class="offline-item"><a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-lkodak-aterro" target="_blank">Leça - L'Kodak (Aterro) HD</a></div>
+<div class="offline-item"><a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabedelo-do-porto" target="_blank">Cabedelo do Porto</a></div>
 
 </div>
 </div>
 
 <script>
+const hlsInstances = {};
+
+function initCam(videoId, src) {
+  const video = document.getElementById(videoId);
+  if (!src || !video) return;
+
+  if (hlsInstances[videoId]) {
+    hlsInstances[videoId].destroy();
+    delete hlsInstances[videoId];
+  }
+
+  video.pause();
+  video.removeAttribute("src");
+  video.load();
+
+  if (video.canPlayType("application/vnd.apple.mpegurl")) {
+    video.src = src;
+    video.play().catch(() => {});
+  } else if (Hls.isSupported()) {
+    const hls = new Hls();
+    hlsInstances[videoId] = hls;
+    hls.loadSource(src);
+    hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, function() {
+      video.play().catch(() => {});
+    });
+  }
+}
+
+async function refreshCam(name, videoId) {
+  try {
+    const response = await fetch("streams.json?t=" + Date.now(), { cache: "no-store" });
+    const data = await response.json();
+    const cam = data.streams[name];
+
+    if (!cam || !cam.stream) {
+      alert("No fresh stream for " + name);
+      return;
+    }
+
+    initCam(videoId, cam.stream);
+
+    const card = document.querySelector('[data-name="' + CSS.escape(name) + '"]');
+    if (card) {
+      const footer = card.querySelector(".cam-footer span");
+      if (footer) footer.textContent = "stream time: " + (cam.stream_time_human || "unknown");
+    }
+  } catch (e) {
+    alert("Refresh failed. Use local server, full page refresh, or Regenerate.");
+  }
+}
+
 function toggleBlock(id, button, showText, hideText) {
   const block = document.getElementById(id);
-
   if (block.style.display === "none" || block.style.display === "") {
     block.style.display = "block";
     button.textContent = hideText;
