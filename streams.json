@@ -1,30 +1,30 @@
 {
-  "generated_at": 1781817245,
-  "generated_at_human": "22:14:05",
+  "generated_at": 1781817323,
+  "generated_at_human": "22:15:23",
   "streams": {
     "Aguçadoura HD": {
       "name": "Aguçadoura HD",
       "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/agucadoura",
-      "stream": "https://stream.surftotal.com/portugal/agucadoura/index.m3u8?token=MTc4MTgxNzI0Ni5iNjVlYjY2ZmYxMDExZWU5ZGRkNThmODcxNTNhOWQxOTNlZGYyZGViNDc2MzdkZmQ1M2E1N2NlODc2YThhOTY4&time=1781817246",
+      "stream": "https://stream.surftotal.com/portugal/agucadoura/index.m3u8?token=MTc4MTgxNzMyNS4zMDI1MjY2MDY1NWRlZDQ3YmQwOGVlZWNmMzdkNGQ0NzA1OGY3NzY4ZGNiOGVhMjRhZjc5YWQ3YzM1NDg2YWYx&time=1781817325",
       "online": true,
-      "stream_time": 1781817246,
-      "stream_time_human": "22:14:06"
+      "stream_time": 1781817325,
+      "stream_time_human": "22:15:25"
     },
     "Póvoa de Varzim - Ferrari HD": {
       "name": "Póvoa de Varzim - Ferrari HD",
       "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/povoa-de-varzim-ferrari",
-      "stream": "https://stream.surftotal.com/portugal/ferrari/index.m3u8?token=MTc4MTgxNzI0OC5lMjJiM2YwNmI2MzQ0ODJiMzAxZDI0NTkzMTNjZmQ0ODhlYWU3MWJkMTMwMzYzMWVmNWJhY2JkM2M2ZmZiMTkw&time=1781817248",
+      "stream": "https://stream.surftotal.com/portugal/ferrari/index.m3u8?token=MTc4MTgxNzMyNy5mZDhiNmY1ODdmYjUyZDY2MzM1NDliMTZhMTUwNTk1YWY1OTYxZDg3YWNiZjdmNDE0N2ViM2RhZjM4Zjg4NTE2&time=1781817327",
       "online": true,
-      "stream_time": 1781817248,
-      "stream_time_human": "22:14:08"
+      "stream_time": 1781817327,
+      "stream_time_human": "22:15:27"
     },
     "Azurara HD": {
       "name": "Azurara HD",
       "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/azurara",
-      "stream": "https://stream.surftotal.com/portugal/azurara/index.m3u8?token=MTc4MTgxNzI1MC5lNWQ3M2YzNmU1NzBlODE3MjcyNjgxYTg2ZmFlZGJmY2U0NjczMjcxYWI2ZmI2ZTc1NWI2MWI1Njk1MDcyZmIw&time=1781817250",
+      "stream": "https://stream.surftotal.com/portugal/azurara/index.m3u8?token=MTc4MTgxNzMyOS4wNDFmZmE1MTk5NzY3NzhhOGRiYTgzNGE0M2M3ZDNkMzdmYzdjODM0YWZjNTA5MDM3NDc5NzYxYzRkNjYxMTY2&time=1781817329",
       "online": true,
-      "stream_time": 1781817250,
-      "stream_time_human": "22:14:10"
+      "stream_time": 1781817329,
+      "stream_time_human": "22:15:29"
     },
     "Praia de Árvore - Areal HD": {
       "name": "Praia de Árvore - Areal HD",
@@ -37,18 +37,18 @@
     "Mindelo": {
       "name": "Mindelo",
       "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo",
-      "stream": "https://stream.surftotal.com/portugal/mindelo/index.m3u8?token=MTc4MTgxNzI1NS45ZTE1NmM2MjZiMTE0ZjRjODY5N2I2NTVlOGVmMjQwZjY3ODQ2NGQzNjBjZTI1MDQ3MWJkYmUwZWFjYjYxYjdk&time=1781817255",
+      "stream": "https://stream.surftotal.com/portugal/mindelo/index.m3u8?token=MTc4MTgxNzMzMy45ZTViMzdhMmRiNGM0Y2VlZDg1ZGQzZTZkZjMyYTY4NzgxNzkyNTU0NDJiOWIxOGYzMmZhOGExZWFmOWZjOTEz&time=1781817333",
       "online": true,
-      "stream_time": 1781817255,
-      "stream_time_human": "22:14:15"
+      "stream_time": 1781817333,
+      "stream_time_human": "22:15:33"
     },
     "Mindelo meia laranja HD": {
       "name": "Mindelo meia laranja HD",
       "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo-meia-laranja",
-      "stream": "https://stream.surftotal.com/portugal/meialaranja/index.m3u8?token=MTc4MTgxNzI1Ny4xNTExM2JhMDI3ODVmZTk2YjliYjExNGJmNjRiY2I5YzUyNzI3MTIwMjA2ODcxMzUyZWNlMjQ5NGM5YmFlMjM5&time=1781817257",
+      "stream": "https://stream.surftotal.com/portugal/meialaranja/index.m3u8?token=MTc4MTgxNzMzNS4yOTdhM2E1MGM2ZDQ4YWQxZTYyM2JjMDQyZjUyZDg4M2ZhYTcyY2UzZTdjMjBkNWMxNTJmZGU1YTZkMjQwMjQ3&time=1781817335",
       "online": true,
-      "stream_time": 1781817257,
-      "stream_time_human": "22:14:17"
+      "stream_time": 1781817335,
+      "stream_time_human": "22:15:35"
     },
     "Pedras do Corgo - Melanina HD": {
       "name": "Pedras do Corgo - Melanina HD",
@@ -77,26 +77,26 @@
     "Leça da Palmeira HD": {
       "name": "Leça da Palmeira HD",
       "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-da-palmeira",
-      "stream": "https://stream.surftotal.com/portugal/lecabardooscar/index.m3u8?token=MTc4MTgxNzI2NS45MTkxODc0ZWY4ODk5ZjQ5NDI0Y2E3M2MwOTMyYWYwMzE5YTk4OWNkM2U2YzEzYzI2ODE2MmQxYzVmZWU1Njll&time=1781817265",
+      "stream": "https://stream.surftotal.com/portugal/lecabardooscar/index.m3u8?token=MTc4MTgxNzM0My5jNmFiNjIyYmU5ODVjYTA4OWY0ODM1YTlkYWNlZjZmMGFlZmMxMzVhODZmYTg4MmIwOTZjMTkyOWYxOTFlZTQx&time=1781817343",
       "online": true,
-      "stream_time": 1781817265,
-      "stream_time_human": "22:14:25"
+      "stream_time": 1781817343,
+      "stream_time_human": "22:15:43"
     },
     "Matosinhos HD": {
       "name": "Matosinhos HD",
       "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-hd",
-      "stream": "https://stream.surftotal.com/portugal/matosinhos/index.m3u8?token=MTc4MTgxNzI2Ny5mZGRkMTU3YjY1Y2U5ZWZlNGI4YTZjZjM5YTc2NWQzNDkzOTNhZDgxYjQ3ZDJlM2Q4MWE4YTdmMjVhMDZmMTJl&time=1781817267",
+      "stream": "https://stream.surftotal.com/portugal/matosinhos/index.m3u8?token=MTc4MTgxNzM0NS44MjY4MjcwYTUzNmU5ZjAyNWExMTRiYjg4ZDkxNjM4MGMzNjc0MDk4NmI2MTczZTFiNDQ0YzZmMGUzMjM2MzM1&time=1781817345",
       "online": true,
-      "stream_time": 1781817267,
-      "stream_time_human": "22:14:27"
+      "stream_time": 1781817345,
+      "stream_time_human": "22:15:45"
     },
     "Matosinhos - Vagas Bar HD": {
       "name": "Matosinhos - Vagas Bar HD",
       "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-vagas-bar",
-      "stream": "https://stream.surftotal.com/portugal/matosas1/index.m3u8?token=MTc4MTgxNzI2OS5lOWJmNWQ3ZDJhMzFjMjZiNTEyMDc4ZGNhYTM2ZDZjNDRjNDlmOGI1Y2YwYTkyMDExYzQ2NDdkYjc1ZGM5ZmE4&time=1781817269",
+      "stream": "https://stream.surftotal.com/portugal/matosas1/index.m3u8?token=MTc4MTgxNzM0Ny5lOGUzOTJlNmQyODQ2ODM4YzMwNmQ3ZjQ0NWUxMWY2ZGFiMzMyYWMzZTBjNDg3YzllMzRiYzFjNDAyNDc1ZmI3&time=1781817347",
       "online": true,
-      "stream_time": 1781817269,
-      "stream_time_human": "22:14:29"
+      "stream_time": 1781817347,
+      "stream_time_human": "22:15:47"
     },
     "Cabedelo do Porto": {
       "name": "Cabedelo do Porto",
@@ -109,26 +109,26 @@
     "Espinho HD": {
       "name": "Espinho HD",
       "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-hd",
-      "stream": "https://stream.surftotal.com/portugal/espinho/index.m3u8?token=MTc4MTgxNzI3My40MmIyNjhiNGMxNDZhNjFjNTY5ZjdhYjRkM2IxZjAwNjFiZjQ0M2Y3NWFhN2Q1MmYxZTU5ODA0OTY4MmIzMzQ3&time=1781817273",
+      "stream": "https://stream.surftotal.com/portugal/espinho/index.m3u8?token=MTc4MTgxNzM1MS45NDA4YTMwYjY2MzNkMWJjYzdjZDUyYTQwM2Y0MzAyYmE3MzI3YmEzYWI4NWFjZTg4NDBmNjE5YTlmZTI4YmVk&time=1781817351",
       "online": true,
-      "stream_time": 1781817273,
-      "stream_time_human": "22:14:33"
+      "stream_time": 1781817351,
+      "stream_time_human": "22:15:51"
     },
     "Espinho vista aérea HD": {
       "name": "Espinho vista aérea HD",
       "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-vista-aerea",
-      "stream": "https://stream.surftotal.com/portugal/casinoespinho/index.m3u8?token=MTc4MTgxNzI3NS4yNGI5ZTFkYTA3NmM3M2Y5ODM2YWJjMTk5NGViOWVkZjhmYjFjNDI4MmQ1MDA0MTIwNmQ3ZGZjNmQ1MGY0MWRh&time=1781817275",
+      "stream": "https://stream.surftotal.com/portugal/casinoespinho/index.m3u8?token=MTc4MTgxNzM1NC5hMTNiYzc3ZTc4ZDU3NTRkODdjYmE5NzgyZTlhYzNhOWIyMGNkNTJlNzgyOGRkODZmZjRhOTA2ZjAyYmEyODBk&time=1781817354",
       "online": true,
-      "stream_time": 1781817275,
-      "stream_time_human": "22:14:35"
+      "stream_time": 1781817354,
+      "stream_time_human": "22:15:54"
     },
     "Espinho - Silvalde HD": {
       "name": "Espinho - Silvalde HD",
       "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-silvalde",
-      "stream": "https://stream.surftotal.com/portugal/cagas/index.m3u8?token=MTc4MTgxNzI3Ny4zZmEzNTVjNjQ5MTdhZjg3NDRkMzJhN2U3NDZmMzYzNWNlN2FmMmFjODE0MTViMThiYWU5NDhjOTE3YWQwNjg4&time=1781817277",
+      "stream": "https://stream.surftotal.com/portugal/cagas/index.m3u8?token=MTc4MTgxNzM1Ni5kMTRlN2QxNGQ3YWJiM2M3ZDIzMmIzNTU5YTMwOWFhZTlhZjczZjkyOWI0YjdmMDJlMzJkZmFkMmJkN2FkNDBj&time=1781817356",
       "online": true,
-      "stream_time": 1781817277,
-      "stream_time_human": "22:14:37"
+      "stream_time": 1781817356,
+      "stream_time_human": "22:15:56"
     }
   }
 }
