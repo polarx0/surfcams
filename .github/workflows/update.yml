@@ -31,4 +31,5 @@ jobs:
           git config user.email github-actions@github.com
           git add index.html streams.json
           git commit -m "Update cams" || exit 0
+          git pull --rebase origin main
           git push
