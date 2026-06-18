@@ -11,6 +11,7 @@ GITHUB_WORKFLOW_URL = "https://github.com/polarx0/surfcams/actions/workflows/upd
 
 CAMS = {
     "Aguçadoura HD": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/agucadoura-hd",
+    "Póvoa de Varzim": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/povoa-de-varzim",
     "Póvoa de Varzim - Ferrari HD": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/povoa-de-varzim-ferrari",
     "Azurara HD": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/azurara-hd",
     "Praia de Árvore - Areal HD": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/praia-da-arvore-areal",
@@ -38,7 +39,11 @@ def fmt_ts(ts):
 
 def find_m3u8(page_url):
     try:
-        html = requests.get(page_url, headers={**HEADERS, "Referer": page_url}, timeout=20).text
+        html = requests.get(
+            page_url,
+            headers={**HEADERS, "Referer": page_url},
+            timeout=20,
+        ).text
         matches = re.findall(r'https?://[^"\']+?\.m3u8[^"\']*', html)
         return matches[0].replace("\\/", "/") if matches else None
     except Exception as e:
@@ -58,15 +63,13 @@ def render_cam(name, idx, data):
     return f"""
 <div class="cam" data-name="{name}">
   <h2>{name}</h2>
-  <video id="video{idx}" controls autoplay muted playsinline></video>
+  <video id="video{idx}" controls muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span>stream time: {fmt_ts(data["stream_time"])}</span>
+    <button onclick="initCam('video{idx}', {json.dumps(data["stream"])})">Play</button>
     <button onclick="refreshCam({json.dumps(name)}, 'video{idx}')">Refresh</button>
     <a href="{data["page"]}" target="_blank">Surftotal</a>
   </div>
-  <script>
-    initCam("video{idx}", {json.dumps(data["stream"])});
-  </script>
 </div>
 """
 
@@ -155,8 +158,28 @@ async function refreshCam(name, videoId) {
       if (footer) footer.textContent = "stream time: " + (cam.stream_time_human || "unknown");
     }
   } catch (e) {
-    alert("Refresh failed. Use full page refresh or Regenerate.");
+    alert("Refresh failed. Try Refresh Page or Regenerate.");
   }
+}
+
+function playAll() {
+  document.querySelectorAll(".cam").forEach(card => {
+    const button = Array.from(card.querySelectorAll("button")).find(b => b.textContent === "Play");
+    if (button) button.click();
+  });
+}
+
+function stopAll() {
+  document.querySelectorAll("video").forEach(video => {
+    video.pause();
+    video.removeAttribute("src");
+    video.load();
+  });
+
+  Object.keys(hlsInstances).forEach(id => {
+    hlsInstances[id].destroy();
+    delete hlsInstances[id];
+  });
 }
 
 function toggleBlock(id, button, showText, hideText) {
@@ -187,7 +210,7 @@ button {{ margin:4px; padding:7px 10px; cursor:pointer; border-radius:6px; borde
 .grid {{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; padding:8px; }}
 .cam {{ background:#222; border-radius:10px; overflow:hidden; }}
 .cam h2 {{ margin:0; padding:8px 10px; font-size:14px; line-height:1.2; }}
-video {{ width:100%; background:#000; display:block; }}
+video {{ width:100%; background:#000; display:block; min-height:120px; }}
 .cam-footer {{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding:7px 10px 9px; font-size:12px; }}
 a {{ color:#8ecbff; }}
 .bad {{ padding:12px; color:#ffb3b3; }}
@@ -199,6 +222,7 @@ a {{ color:#8ecbff; }}
   .cam h2 {{ font-size:11px; padding:6px 7px; }}
   .cam-footer {{ font-size:10px; padding:6px 7px 8px; gap:4px; }}
   button {{ font-size:11px; padding:5px 7px; }}
+  video {{ min-height:90px; }}
 }}
 </style>
 </head>
@@ -206,10 +230,9 @@ a {{ color:#8ecbff; }}
 
 <header>
   <b>Grande Porto Surf Cams</b><br>
-  <span>
-  streams generated: {generated_at_human}
-  <span id="reloadTimer"></span>
-  </span><br>
+  <span>streams generated: {generated_at_human}</span><br>
+  <button onclick="playAll()">Play All</button>
+  <button onclick="stopAll()">Stop All</button>
   <button onclick="window.location.reload()">Refresh Page</button>
   <button onclick="window.open('{GITHUB_WORKFLOW_URL}', '_blank')">Regenerate</button>
   <button onclick="toggleBlock('offlineCams', this, 'Show Offline', 'Hide Offline')">Show Offline</button>
@@ -239,36 +262,11 @@ html += """
 </div>
 </div>
 
-<script>
-let seconds = 240;
-
-function updateTimer() {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-
-    const el = document.getElementById("reloadTimer");
-    if (el) {
-        el.textContent =
-            ` | refresh in ${m}:${String(s).padStart(2, "0")}`;
-    }
-
-    if (seconds <= 0) {
-        location.reload();
-    }
-
-    seconds--;
-}
-
-updateTimer();
-setInterval(updateTimer, 1000);
-</script>
-
 </body>
 </html>
 """
 
 Path("cams.html").write_text(html, encoding="utf-8")
-
 print("Generated: cams.html")
 print("Generated: streams.json")
 print(f"Online: {len(online_names)}")
