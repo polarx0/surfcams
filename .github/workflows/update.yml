@@ -2,7 +2,7 @@ name: Update Surf Cams
 
 on:
   schedule:
-    - cron: "7 * * * *" 
+    - cron: "47 * * * *" 
   workflow_dispatch:
 
 permissions:
