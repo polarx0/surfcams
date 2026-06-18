@@ -10,16 +10,15 @@ HEADERS = {"User-Agent": "Mozilla/5.0"}
 GITHUB_WORKFLOW_URL = "https://github.com/polarx0/surfcams/actions/workflows/update.yml"
 
 CAMS = {
-    "Aguçadoura HD": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/agucadoura-hd",
-    "Póvoa de Varzim": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/povoa-de-varzim",
+    "Aguçadoura HD": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/agucadoura",
     "Póvoa de Varzim - Ferrari HD": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/povoa-de-varzim-ferrari",
-    "Azurara HD": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/azurara-hd",
+    "Azurara HD": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/azurara",
     "Praia de Árvore - Areal HD": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/praia-da-arvore-areal",
     "Mindelo": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo",
-    "Mindelo meia laranja HD": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo-meia-laranja-hd",
+    "Mindelo meia laranja HD": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo-meia-laranja",
     "Pedras do Corgo - Melanina HD": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/pedras-do-corgo",
-    "Cabo do Mundo HD": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabo-do-mundo",
-    "Leça - L'Kodak (Aterro) HD": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-lkodak-aterro",
+    "Cabo do Mundo HD": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabo-do-mundo-hd",
+    "Leça - L'Kodak (Aterro) HD": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-kodak-aterro",
     "Leça da Palmeira HD": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-da-palmeira",
     "Matosinhos HD": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-hd",
     "Matosinhos - Vagas Bar HD": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-vagas-bar",
@@ -60,14 +59,23 @@ def stream_time_ts(stream_url):
         return None
 
 def render_cam(name, idx, data):
+    stream_json = json.dumps(data["stream"])
+    name_json = json.dumps(name)
     return f"""
-<div class="cam" data-name="{name}">
+<div class="cam" data-name={name_json}>
   <h2>{name}</h2>
-  <video id="video{idx}" controls muted playsinline preload="none"></video>
+  <video
+    id="video{idx}"
+    controls
+    muted
+    playsinline
+    preload="none"
+    data-stream={stream_json}
+  ></video>
   <div class="cam-footer">
     <span>stream time: {fmt_ts(data["stream_time"])}</span>
-    <button onclick="initCam('video{idx}', {json.dumps(data["stream"])})">Play</button>
-    <button onclick="refreshCam({json.dumps(name)}, 'video{idx}')">Refresh</button>
+    <button onclick="playCam('video{idx}')">Play</button>
+    <button onclick="refreshCam({name_json}, 'video{idx}')">Refresh</button>
     <a href="{data["page"]}" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -112,23 +120,37 @@ js = """
 <script>
 const hlsInstances = {};
 
-function initCam(videoId, src) {
+function destroyCam(videoId) {
   const video = document.getElementById(videoId);
-  if (!src || !video) return;
 
   if (hlsInstances[videoId]) {
     hlsInstances[videoId].destroy();
     delete hlsInstances[videoId];
   }
 
-  video.pause();
-  video.removeAttribute("src");
-  video.load();
+  if (video) {
+    video.pause();
+    video.removeAttribute("src");
+    video.load();
+  }
+}
+
+function initCam(videoId, src) {
+  const video = document.getElementById(videoId);
+  if (!video || !src) return;
+
+  destroyCam(videoId);
+
+  video.dataset.stream = src;
+  video.muted = true;
 
   if (video.canPlayType("application/vnd.apple.mpegurl")) {
     video.src = src;
     video.play().catch(() => {});
-  } else if (Hls.isSupported()) {
+    return;
+  }
+
+  if (window.Hls && Hls.isSupported()) {
     const hls = new Hls();
     hlsInstances[videoId] = hls;
     hls.loadSource(src);
@@ -136,7 +158,35 @@ function initCam(videoId, src) {
     hls.on(Hls.Events.MANIFEST_PARSED, function() {
       video.play().catch(() => {});
     });
+    return;
   }
+
+  alert("HLS is not supported in this browser");
+}
+
+function playCam(videoId) {
+  const video = document.getElementById(videoId);
+  if (!video) return;
+
+  const src = video.dataset.stream;
+  if (!src) {
+    alert("No stream URL for this camera");
+    return;
+  }
+
+  initCam(videoId, src);
+}
+
+function playAll() {
+  document.querySelectorAll("video[data-stream]").forEach(video => {
+    playCam(video.id);
+  });
+}
+
+function stopAll() {
+  document.querySelectorAll("video").forEach(video => {
+    destroyCam(video.id);
+  });
 }
 
 async function refreshCam(name, videoId) {
@@ -150,6 +200,11 @@ async function refreshCam(name, videoId) {
       return;
     }
 
+    const video = document.getElementById(videoId);
+    if (video) {
+      video.dataset.stream = cam.stream;
+    }
+
     initCam(videoId, cam.stream);
 
     const card = document.querySelector('[data-name="' + CSS.escape(name) + '"]');
@@ -160,26 +215,6 @@ async function refreshCam(name, videoId) {
   } catch (e) {
     alert("Refresh failed. Try Refresh Page or Regenerate.");
   }
-}
-
-function playAll() {
-  document.querySelectorAll(".cam").forEach(card => {
-    const button = Array.from(card.querySelectorAll("button")).find(b => b.textContent === "Play");
-    if (button) button.click();
-  });
-}
-
-function stopAll() {
-  document.querySelectorAll("video").forEach(video => {
-    video.pause();
-    video.removeAttribute("src");
-    video.load();
-  });
-
-  Object.keys(hlsInstances).forEach(id => {
-    hlsInstances[id].destroy();
-    delete hlsInstances[id];
-  });
 }
 
 function toggleBlock(id, button, showText, hideText) {
