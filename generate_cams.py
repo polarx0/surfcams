@@ -217,6 +217,40 @@ async function refreshCam(name, videoId) {
   }
 }
 
+function updateTimers() {
+  const generatedAt = Number(document.body.dataset.generatedAt || "0");
+  const autoStopSeconds = Number(document.body.datasetAutoStopSeconds || document.body.dataset.autoStopSeconds || "240");
+  const now = Math.floor(Date.now() / 1000);
+
+  const age = Math.max(0, now - generatedAt);
+  const ageMin = Math.floor(age / 60);
+  const ageSec = age % 60;
+
+  const ageEl = document.getElementById("streamAge");
+  if (ageEl) {
+    ageEl.textContent = ` | age ${ageMin}:${String(ageSec).padStart(2, "0")}`;
+  }
+
+  const left = Math.max(0, autoStopSeconds - age);
+  const leftMin = Math.floor(left / 60);
+  const leftSec = left % 60;
+
+  const stopEl = document.getElementById("autoStopTimer");
+  if (stopEl) {
+    stopEl.textContent = ` | auto-stop in ${leftMin}:${String(leftSec).padStart(2, "0")}`;
+  }
+
+  if (age >= autoStopSeconds) {
+    stopAll();
+    if (stopEl) {
+      stopEl.textContent = " | auto-stopped";
+    }
+    return;
+  }
+
+  setTimeout(updateTimers, 1000);
+}
+
 function toggleBlock(id, button, showText, hideText) {
   const block = document.getElementById(id);
   if (block.style.display === "none" || block.style.display === "") {
@@ -227,6 +261,8 @@ function toggleBlock(id, button, showText, hideText) {
     button.textContent = showText;
   }
 }
+
+window.addEventListener("load", updateTimers);
 </script>
 """
 
@@ -261,11 +297,15 @@ a {{ color:#8ecbff; }}
 }}
 </style>
 </head>
-<body>
+<body data-generated-at="{generated_at}" data-auto-stop-seconds="240">
 
 <header>
   <b>Grande Porto Surf Cams</b><br>
-  <span>streams generated: {generated_at_human}</span><br>
+  <span>
+    streams generated: {generated_at_human}
+    <span id="streamAge"></span>
+    <span id="autoStopTimer"></span>
+  </span><br>
   <button onclick="playAll()">Play All</button>
   <button onclick="stopAll()">Stop All</button>
   <button onclick="window.location.reload()">Refresh Page</button>
