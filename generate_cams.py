@@ -206,7 +206,10 @@ a {{ color:#8ecbff; }}
 
 <header>
   <b>Grande Porto Surf Cams</b><br>
-  <span>streams generated: {generated_at_human}</span><br>
+  <span>
+  streams generated: {generated_at_human}
+  <span id="reloadTimer"></span>
+  </span><br>
   <button onclick="window.location.reload()">Refresh Page</button>
   <button onclick="window.open('{GITHUB_WORKFLOW_URL}', '_blank')">Regenerate</button>
   <button onclick="toggleBlock('offlineCams', this, 'Show Offline', 'Hide Offline')">Show Offline</button>
@@ -235,6 +238,30 @@ for name in offline_names:
 html += """
 </div>
 </div>
+
+<script>
+let seconds = 240;
+
+function updateTimer() {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+
+    const el = document.getElementById("reloadTimer");
+    if (el) {
+        el.textContent =
+            ` | refresh in ${m}:${String(s).padStart(2, "0")}`;
+    }
+
+    if (seconds <= 0) {
+        location.reload();
+    }
+
+    seconds--;
+}
+
+updateTimer();
+setInterval(updateTimer, 1000);
+</script>
 
 </body>
 </html>
