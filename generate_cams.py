@@ -8,70 +8,22 @@ HEADERS = {"User-Agent": "Mozilla/5.0"}
 WORKER_URL = "https://surfcams.polarx0.workers.dev"
 
 CAMS = {
-    "Aguçadoura HD": {
-        "key": "agucadoura",
-        "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/agucadoura",
-    },
-    "Póvoa de Varzim - Ferrari HD": {
-        "key": "ferrari",
-        "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/povoa-de-varzim-ferrari",
-    },
-    "Azurara HD": {
-        "key": "azurara",
-        "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/azurara",
-    },
-    "Praia de Árvore - Areal HD": {
-        "key": "arvore",
-        "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/praia-da-arvore-areal",
-    },
-    "Mindelo": {
-        "key": "mindelo",
-        "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo",
-    },
-    "Mindelo meia laranja HD": {
-        "key": "mindelo_meia_laranja",
-        "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo-meia-laranja",
-    },
-    "Pedras do Corgo - Melanina HD": {
-        "key": "pedras",
-        "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/pedras-do-corgo",
-    },
-    "Cabo do Mundo HD": {
-        "key": "cabo",
-        "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabo-do-mundo-hd",
-    },
-    "Leça - L'Kodak (Aterro) HD": {
-        "key": "leca_aterro",
-        "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-kodak-aterro",
-    },
-    "Leça da Palmeira HD": {
-        "key": "leca",
-        "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-da-palmeira",
-    },
-    "Matosinhos HD": {
-        "key": "matosinhos",
-        "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-hd",
-    },
-    "Matosinhos - Vagas Bar HD": {
-        "key": "vagas",
-        "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-vagas-bar",
-    },
-    "Cabedelo do Porto": {
-        "key": "cabedelo",
-        "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabedelo-do-porto",
-    },
-    "Espinho HD": {
-        "key": "espinho",
-        "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-hd",
-    },
-    "Espinho vista aérea HD": {
-        "key": "espinho_aerea",
-        "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-vista-aerea",
-    },
-    "Espinho - Silvalde HD": {
-        "key": "silvalde",
-        "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-silvalde",
-    },
+    "Aguçadoura HD": {"key": "agucadoura", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/agucadoura"},
+    "Póvoa de Varzim - Ferrari HD": {"key": "ferrari", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/povoa-de-varzim-ferrari"},
+    "Azurara HD": {"key": "azurara", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/azurara"},
+    "Praia de Árvore - Areal HD": {"key": "arvore", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/praia-da-arvore-areal"},
+    "Mindelo": {"key": "mindelo", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo"},
+    "Mindelo meia laranja HD": {"key": "mindelo_meia_laranja", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo-meia-laranja"},
+    "Pedras do Corgo - Melanina HD": {"key": "pedras", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/pedras-do-corgo"},
+    "Cabo do Mundo HD": {"key": "cabo", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabo-do-mundo-hd"},
+    "Leça - L'Kodak (Aterro) HD": {"key": "leca_aterro", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-kodak-aterro"},
+    "Leça da Palmeira HD": {"key": "leca", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-da-palmeira"},
+    "Matosinhos HD": {"key": "matosinhos", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-hd"},
+    "Matosinhos - Vagas Bar HD": {"key": "vagas", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-vagas-bar"},
+    "Cabedelo do Porto": {"key": "cabedelo", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabedelo-do-porto"},
+    "Espinho HD": {"key": "espinho", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-hd"},
+    "Espinho vista aérea HD": {"key": "espinho_aerea", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-vista-aerea"},
+    "Espinho - Silvalde HD": {"key": "silvalde", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-silvalde"},
 }
 
 def now_human():
@@ -79,11 +31,7 @@ def now_human():
 
 def find_m3u8(page_url):
     try:
-        html = requests.get(
-            page_url,
-            headers={**HEADERS, "Referer": page_url},
-            timeout=20,
-        ).text
+        html = requests.get(page_url, headers={**HEADERS, "Referer": page_url}, timeout=20).text
         matches = re.findall(r'https?://[^"\']+?\.m3u8[^"\']*', html)
         return matches[0].replace("\\/", "/") if matches else None
     except Exception as e:
@@ -91,11 +39,8 @@ def find_m3u8(page_url):
         return None
 
 def render_cam(name, idx, data):
-    name_json = json.dumps(name)
-    key_json = json.dumps(data["key"])
-
     return f"""
-<div class="cam" data-name={name_json} data-key={key_json}>
+<div class="cam" data-name={json.dumps(name)} data-key={json.dumps(data["key"])}>
   <h2>{name}</h2>
   <video id="video{idx}" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
@@ -107,11 +52,7 @@ def render_cam(name, idx, data):
 """
 
 def render_offline(name, data):
-    return f"""
-<div class="offline-item">
-  <a href="{data["page"]}" target="_blank">{name}</a>
-</div>
-"""
+    return f'<div class="offline-item"><a href="{data["page"]}" target="_blank">{name}</a></div>\n'
 
 online_names = []
 offline_names = []
@@ -132,12 +73,34 @@ js = f"""
 const WORKER_URL = {json.dumps(WORKER_URL)};
 const hlsInstances = {{}};
 const tokenTimers = {{}};
+const tokenAges = {{}};
 const TOKEN_LIFETIME_SECONDS = 300;
 const AUTO_REFRESH_SECONDS = 270;
 
 function fmtTime(ts) {{
   if (!ts) return "unknown";
   return new Date(ts * 1000).toLocaleTimeString();
+}}
+
+function formatDuration(seconds) {{
+  const min = Math.floor(seconds / 60);
+  const sec = seconds % 60;
+  return min + "m " + String(sec).padStart(2, "0") + "s";
+}}
+
+function updateOldestTokenAge() {{
+  const values = Object.values(tokenAges);
+  const el = document.getElementById("oldest-token-age");
+
+  if (!el) return;
+
+  if (!values.length) {{
+    el.textContent = "oldest token age: loading";
+    return;
+  }}
+
+  const oldest = Math.max(...values);
+  el.textContent = "oldest token age: " + formatDuration(oldest);
 }}
 
 function destroyCam(videoId) {{
@@ -152,6 +115,9 @@ function destroyCam(videoId) {{
     clearInterval(tokenTimers[videoId]);
     delete tokenTimers[videoId];
   }}
+
+  delete tokenAges[videoId];
+  updateOldestTokenAge();
 
   if (video) {{
     video.pause();
@@ -204,15 +170,13 @@ function updateTokenInfo(videoId, generatedAt) {{
     const age = Math.max(0, now - generatedAt);
     const left = Math.max(0, TOKEN_LIFETIME_SECONDS - age);
 
-    const ageMin = Math.floor(age / 60);
-    const ageSec = age % 60;
-    const leftMin = Math.floor(left / 60);
-    const leftSec = left % 60;
+    tokenAges[videoId] = age;
+    updateOldestTokenAge();
 
     el.textContent =
       "token fetched: " + fmtTime(generatedAt) +
-      " | age " + ageMin + ":" + String(ageSec).padStart(2, "0") +
-      " | refresh in " + leftMin + ":" + String(leftSec).padStart(2, "0");
+      " | age " + formatDuration(age) +
+      " | refresh in " + formatDuration(left);
   }}
 
   tick();
@@ -263,7 +227,6 @@ async function refreshCam(videoId) {{
 
 async function refreshAll() {{
   const videos = Array.from(document.querySelectorAll(".cam video"));
-
   for (const video of videos) {{
     await startOrRefreshCam(video.id);
   }}
@@ -325,8 +288,9 @@ a {{ color:#8ecbff; }}
   <b>Grande Porto Surf Cams</b><br>
   <span>
     page generated: {generated_at_human}
-    | online: {len(online_names)}
-    | offline: {len(offline_names)}
+    | 🟢 {len(online_names)} online
+    | 🔴 {len(offline_names)} offline
+    | ⏱ <span id="oldest-token-age">oldest token age: loading</span>
   </span><br>
   <button onclick="refreshAll()">Refresh All</button>
   <button onclick="stopAll()">Stop All</button>
