@@ -302,6 +302,17 @@ for name in offline_names:
     html += render_offline(name, CAMS[name])
 
 html += """
+<hr style="margin:20px 12px;border-color:#333">
+
+<div style="
+  padding:12px;
+  font-size:12px;
+  color:#999;
+  text-align:center;
+">
+  Surf camera streams and camera information are provided by
+  <a href="https://surftotal.com" target="_blank">Surftotal</a>.
+  Please visit the original website for full surf reports, forecasts and camera access.
 </div>
 
 </body>
