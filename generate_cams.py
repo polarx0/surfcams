@@ -11,7 +11,6 @@ CAMS = {
     "Moledo HD": {"key": "moledo", "page": "https://surftotal.com/camaras-report/minho/moledo"},
     "Vila Praia de Âncora HD": {"key": "ancora", "page": "https://surftotal.com/camaras-report/minho/vila-praia-de-ancora"},
     "Viana do Castelo HD": {"key": "viana_castelo", "page": "https://surftotal.com/camaras-report/minho/viana-do-castelo-hd"},
-    "Viana Pontão HD": {"key": "viana_pontao", "page": "https://surftotal.com/camaras-report/minho/viana-pontao-hd"},
     "Ofir": {"key": "ofir", "page": "https://surftotal.com/camaras-report/minho/ofir"},
 
     "Aguçadoura HD": {"key": "agucadoura", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/agucadoura"},
@@ -32,7 +31,6 @@ CAMS = {
     "Espinho - Silvalde HD": {"key": "silvalde", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-silvalde"},
 
     "Cortegaça (Vila do Surf) HD": {"key": "cortegaca_vila", "page": "https://surftotal.com/camaras-report/aveiro/cortegaca-hd"},
-    "Cortegaça Onda Pontão HD": {"key": "cortegaca_pontao", "page": "https://surftotal.com/camaras-report/aveiro/cortegaca-onda-pontao-hd"},
     "Praia da Barra Norte HD": {"key": "barra_norte", "page": "https://surftotal.com/camaras-report/aveiro/praia-da-barra-norte-hd"},
     "Mira": {"key": "mira", "page": "https://surftotal.com/camaras-report/aveiro/mira"},
     "Praia do Cabedelo (Figueira da Foz) HD": {"key": "figueira_cabedelo", "page": "https://surftotal.com/camaras-report/centro/praia-do-cabedelo-hd"},
@@ -255,16 +253,20 @@ html = f"""<!doctype html>
 body {{ margin:0; font-family:Arial,sans-serif; background:#111; color:#eee; }}
 header {{ padding:10px 12px; background:#1b1b1b; position:sticky; top:0; z-index:10; }}
 button {{ margin:4px; padding:7px 10px; cursor:pointer; border-radius:6px; border:0; }}
-.refresh-icon {{
-  padding:0 3px;
-  margin:0;
-  border:0;
-  background:transparent;
-  color:#8ecbff;
-  font-size:11px;
-  cursor:pointer;
-  line-height:1;
-}}
+.refresh-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: #8ecbff;
+  font-size: 16px;
+  cursor: pointer;
+}
 .grid {{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; padding:8px; }}
 .cam {{ background:#222; border-radius:10px; overflow:hidden; }}
 .cam h2 {{ margin:0; padding:8px 10px; font-size:14px; line-height:1.2; }}
