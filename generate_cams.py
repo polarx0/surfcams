@@ -323,7 +323,11 @@ a {{ color:#8ecbff; }}
 
 <header>
   <b>Grande Porto Surf Cams</b><br>
-  <span>page generated: {generated_at_human}</span><br>
+  <span>
+    page generated: {generated_at_human}
+    | online: {len(online_names)}
+    | offline: {len(offline_names)}
+  </span><br>
   <button onclick="refreshAll()">Refresh All</button>
   <button onclick="stopAll()">Stop All</button>
 </header>
