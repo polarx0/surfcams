@@ -151,9 +151,7 @@ function updateTokenInfo(videoId, generatedAt, servedAt) {{
     const left = Math.max(0, TOKEN_LIFETIME_SECONDS - age);
 
     el.textContent =
-      "token fetched: " + fmtTime(generatedAt) +
-      " | age " + formatDuration(age) +
-      " | refresh in " + formatDuration(left);
+    "⏱ " + formatDuration(left);
   }}
 
   tick();

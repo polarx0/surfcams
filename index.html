@@ -79,9 +79,7 @@ function updateTokenInfo(videoId, generatedAt, servedAt) {
     const left = Math.max(0, TOKEN_LIFETIME_SECONDS - age);
 
     el.textContent =
-      "token fetched: " + fmtTime(generatedAt) +
-      " | age " + formatDuration(age) +
-      " | refresh in " + formatDuration(left);
+    "⏱ " + formatDuration(left);
   }
 
   tick();
@@ -195,7 +193,7 @@ a { color:#8ecbff; flex-shrink:0; }
 <header>
   <b>Norte Surf Cams</b><br>
   <span>
-    page generated: 13:03:18
+    page generated: 13:40:54
     | 🟢 16 online
     | 🔴 8 offline
   </span><br>
