@@ -33,7 +33,7 @@ CAMS = {
     "Cortegaça (Vila do Surf) HD": {"key": "cortegaca_vila", "page": "https://surftotal.com/camaras-report/aveiro/cortegaca-hd"},
     "Praia da Barra Norte HD": {"key": "barra_norte", "page": "https://surftotal.com/camaras-report/aveiro/praia-da-barra-norte-hd"},
     "Mira": {"key": "mira", "page": "https://surftotal.com/camaras-report/aveiro/mira"},
-    "Praia do Cabedelo (Figueira da Foz) HD": {"key": "figueira_cabedelo", "page": "https://surftotal.com/camaras-report/centro/praia-do-cabedelo-hd"},
+    "Praia do Cabedelo (Figueira da Foz) HD": {"key": "figueira_cabedelo", "page": "https://surftotal.com/camaras-report/figueira-da-foz/praia-do-cabedelo-hd"},
 }
 
 def now_human():
@@ -55,7 +55,7 @@ def render_cam(name, idx, data):
   <video id="video{idx}" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">token: loading...</span>
-    <button class="refresh-icon" onclick="refreshCam('video{idx}')" title="Refresh">⟳</button>
+    <button class="refresh-icon" onclick="refreshCam('video{idx}')" title="Refresh">↻</button>
     <a href="{data["page"]}" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -68,8 +68,7 @@ online_names = []
 offline_names = []
 
 for name, data in CAMS.items():
-    stream_url = find_m3u8(data["page"])
-    if stream_url:
+    if find_m3u8(data["page"]):
         online_names.append(name)
         print(f"{name}: ONLINE")
     else:
@@ -122,7 +121,6 @@ function initCam(videoId, src) {{
   if (!video || !src) return;
 
   destroyCam(videoId);
-
   video.dataset.stream = src;
   video.muted = true;
 
@@ -137,24 +135,14 @@ function initCam(videoId, src) {{
     hlsInstances[videoId] = hls;
     hls.loadSource(src);
     hls.attachMedia(video);
-    hls.on(Hls.Events.MANIFEST_PARSED, function() {{
-      video.play().catch(() => {{}});
-    }});
-    return;
+    hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {{}}));
   }}
-
-  const card = video.closest(".cam");
-  const el = card?.querySelector(".token-info");
-  if (el) el.textContent = "HLS is not supported in this browser";
 }}
 
 function updateTokenInfo(videoId, generatedAt, servedAt) {{
   const video = document.getElementById(videoId);
-  if (!video) return;
-
-  const card = video.closest(".cam");
-  const el = card?.querySelector(".token-info");
-  if (!el) return;
+  const el = video?.closest(".cam")?.querySelector(".token-info");
+  if (!video || !el) return;
 
   function tick() {{
     const now = Math.floor(Date.now() / 1000);
@@ -169,7 +157,6 @@ function updateTokenInfo(videoId, generatedAt, servedAt) {{
   }}
 
   tick();
-
   if (tokenTimers[videoId]) clearInterval(tokenTimers[videoId]);
   tokenTimers[videoId] = setInterval(tick, 1000);
 }}
@@ -181,23 +168,16 @@ async function fetchFreshStream(camKey) {{
   );
 
   const data = await res.json();
-
-  if (!res.ok || !data.stream) {{
-    throw new Error(data.error || "No stream returned");
-  }}
-
+  if (!res.ok || !data.stream) throw new Error(data.error || "No stream returned");
   return data;
 }}
 
 async function startOrRefreshCam(videoId) {{
   const video = document.getElementById(videoId);
-  if (!video) return;
-
-  const card = video.closest(".cam");
+  const card = video?.closest(".cam");
   const camKey = card?.dataset.key;
   const el = card?.querySelector(".token-info");
-
-  if (!camKey) return;
+  if (!video || !camKey) return;
 
   try {{
     if (el) el.textContent = "token: loading...";
@@ -216,8 +196,7 @@ async function refreshCam(videoId) {{
 }}
 
 async function refreshAll() {{
-  const videos = Array.from(document.querySelectorAll(".cam video"));
-  for (const video of videos) {{
+  for (const video of Array.from(document.querySelectorAll(".cam video"))) {{
     await startOrRefreshCam(video.id);
   }}
 }}
@@ -225,18 +204,14 @@ async function refreshAll() {{
 function stopAll() {{
   document.querySelectorAll("video").forEach(video => {{
     destroyCam(video.id);
-    const card = video.closest(".cam");
-    const el = card?.querySelector(".token-info");
+    const el = video.closest(".cam")?.querySelector(".token-info");
     if (el) el.textContent = "stopped";
   }});
 }}
 
 window.addEventListener("load", () => {{
   refreshAll();
-
-  setInterval(() => {{
-    refreshAll();
-  }}, AUTO_REFRESH_SECONDS * 1000);
+  setInterval(refreshAll, AUTO_REFRESH_SECONDS * 1000);
 }});
 </script>
 """
@@ -253,36 +228,45 @@ html = f"""<!doctype html>
 body {{ margin:0; font-family:Arial,sans-serif; background:#111; color:#eee; }}
 header {{ padding:10px 12px; background:#1b1b1b; position:sticky; top:0; z-index:10; }}
 button {{ margin:4px; padding:7px 10px; cursor:pointer; border-radius:6px; border:0; }}
-.refresh-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  padding: 0;
-  margin: 0;
-  border: 0;
-  background: transparent;
-  color: #8ecbff;
-  font-size: 16px;
-  cursor: pointer;
-}
+.refresh-icon {{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:22px;
+  height:22px;
+  padding:0;
+  margin:0;
+  border:0;
+  background:transparent;
+  color:#8ecbff;
+  font-size:18px;
+  font-weight:bold;
+  cursor:pointer;
+  flex-shrink:0;
+}}
 .grid {{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; padding:8px; }}
 .cam {{ background:#222; border-radius:10px; overflow:hidden; }}
 .cam h2 {{ margin:0; padding:8px 10px; font-size:14px; line-height:1.2; }}
 video {{ width:100%; background:#000; display:block; min-height:120px; }}
-.cam-footer {{ display:flex; gap:6px; align-items:center; flex-wrap:wrap; padding:7px 10px 9px; font-size:12px; }}
-.token-info {{ color:#ddd; }}
-a {{ color:#8ecbff; }}
+.cam-footer {{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:7px 10px 9px;
+  font-size:12px;
+  white-space:nowrap;
+  overflow-x:auto;
+}}
+.token-info {{ color:#ddd; flex-shrink:0; }}
+a {{ color:#8ecbff; flex-shrink:0; }}
 .bad {{ padding:12px; color:#ffb3b3; }}
 .offline-list {{ padding:0 12px 20px; }}
 .offline-item {{ padding:8px 10px; background:#222; margin-bottom:6px; border-radius:8px; }}
 @media (max-width:600px) {{
   .grid {{ grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; padding:6px; }}
   .cam h2 {{ font-size:11px; padding:6px 7px; }}
-  .cam-footer {{ font-size:10px; padding:6px 7px 8px; gap:4px; }}
-  button {{ font-size:11px; padding:5px 7px; }}
-  .refresh-icon {{ font-size:10px; padding:0 2px; }}
+  .cam-footer {{ font-size:10px; gap:4px; flex-wrap:nowrap; }}
+  .refresh-icon {{ width:24px; height:24px; font-size:20px; }}
   video {{ min-height:90px; }}
 }}
 </style>
