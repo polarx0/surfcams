@@ -293,6 +293,7 @@ async function showForecast(spotKey) {{
 
     '<div class="modal-row"><b>Tide</b><span>' +
       (data.tide?.state || "unknown") +
+      (data.tide?.heightM != null ? " (" + data.tide.heightM + " m)" : "") +
     '</span></div>' +
 
     '<div class="modal-row"><b>Updated</b><span>' +
@@ -346,6 +347,7 @@ body {{ margin:0; font-family:Arial,sans-serif; background:#111; color:#eee; }}
   color:#ddd;
   font-size:14px;
   white-space:nowrap;
+  overflow-x:auto;
 }}
 
 .refresh-all-icon {{
@@ -372,6 +374,7 @@ video {{ width:100%; background:#000; display:block; min-height:120px; }}
   padding:7px 8px;
   font-size:11px;
   white-space:nowrap;
+  overflow-x:auto;
 }}
 
 .sep {{ color:#666; flex-shrink:0; }}
