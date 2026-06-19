@@ -10,8 +10,8 @@ WORKER_URL = "https://surfcams.polarx0.workers.dev"
 CAMS = {
     "Moledo HD": {"key": "moledo", "page": "https://surftotal.com/camaras-report/minho/moledo"},
     "Vila Praia de Âncora HD": {"key": "ancora", "page": "https://surftotal.com/camaras-report/minho/vila-praia-de-ancora"},
-    "Viana do Castelo HD": {"key": "viana_castelo", "page": "https://surftotal.com/camaras-report/minho/viana-do-castelo"},
-    "Viana Pontão HD": {"key": "viana_pontao", "page": "https://surftotal.com/camaras-report/minho/viana-pontao"},
+    "Viana do Castelo HD": {"key": "viana_castelo", "page": "https://surftotal.com/camaras-report/minho/viana-do-castelo-hd"},
+    "Viana Pontão HD": {"key": "viana_pontao", "page": "https://surftotal.com/camaras-report/minho/viana-pontao-hd"},
     "Ofir": {"key": "ofir", "page": "https://surftotal.com/camaras-report/minho/ofir"},
 
     "Aguçadoura HD": {"key": "agucadoura", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/agucadoura"},
@@ -31,11 +31,11 @@ CAMS = {
     "Espinho vista aérea HD": {"key": "espinho_aerea", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-vista-aerea"},
     "Espinho - Silvalde HD": {"key": "silvalde", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-silvalde"},
 
-    "Cortegaça (Vila do Surf) HD": {"key": "cortegaca_vila", "page": "https://surftotal.com/camaras-report/aveiro/cortegaca-vila-do-surf"},
-    "Cortegaça Onda Pontão HD": {"key": "cortegaca_pontao", "page": "https://surftotal.com/camaras-report/aveiro/cortegaca-onda-pontao"},
-    "Praia da Barra Norte HD": {"key": "barra_norte", "page": "https://surftotal.com/camaras-report/aveiro/praia-da-barra-norte"},
+    "Cortegaça (Vila do Surf) HD": {"key": "cortegaca_vila", "page": "https://surftotal.com/camaras-report/aveiro/cortegaca-hd"},
+    "Cortegaça Onda Pontão HD": {"key": "cortegaca_pontao", "page": "https://surftotal.com/camaras-report/aveiro/cortegaca-onda-pontao-hd"},
+    "Praia da Barra Norte HD": {"key": "barra_norte", "page": "https://surftotal.com/camaras-report/aveiro/praia-da-barra-norte-hd"},
     "Mira": {"key": "mira", "page": "https://surftotal.com/camaras-report/aveiro/mira"},
-    "Praia do Cabedelo (Figueira da Foz) HD": {"key": "figueira_cabedelo", "page": "https://surftotal.com/camaras-report/centro/praia-do-cabedelo-figueira-da-foz"},
+    "Praia do Cabedelo (Figueira da Foz) HD": {"key": "figueira_cabedelo", "page": "https://surftotal.com/camaras-report/centro/praia-do-cabedelo-hd"},
 }
 
 def now_human():
