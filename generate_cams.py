@@ -2,7 +2,6 @@ import re
 import json
 import requests
 from pathlib import Path
-from datetime import datetime
 
 HEADERS = {"User-Agent": "Mozilla/5.0"}
 WORKER_URL = "https://surfcams.polarx0.workers.dev"
@@ -36,12 +35,13 @@ CAMS = {
     "Praia do Cabedelo (Figueira da Foz)": {"key": "figueira_cabedelo", "page": "https://surftotal.com/camaras-report/figueira-da-foz/praia-do-cabedelo-hd"},
 }
 
-def now_human():
-    return datetime.now().strftime("%H:%M:%S")
-
 def find_m3u8(page_url):
     try:
-        html = requests.get(page_url, headers={**HEADERS, "Referer": page_url}, timeout=20).text
+        html = requests.get(
+            page_url,
+            headers={**HEADERS, "Referer": page_url},
+            timeout=20
+        ).text
         matches = re.findall(r'https?://[^"\']+?\.m3u8[^"\']*', html)
         return matches[0].replace("\\/", "/") if matches else None
     except Exception as e:
@@ -54,9 +54,10 @@ def render_cam(name, idx, data):
   <h2>{name}</h2>
   <video id="video{idx}" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
-    <span class="token-info">token: loading...</span>
+    <span class="token-info">⏱ loading</span>
+    <span class="stars">{data.get("stars", "☆☆☆☆☆")}</span>
     <button class="refresh-icon" onclick="refreshCam('video{idx}')" title="Refresh">↻</button>
-    <a href="{data["page"]}" target="_blank">Surftotal</a>
+    <a class="source-link" href="{data["page"]}" target="_blank">Surftotal</a>
   </div>
 </div>
 """
@@ -75,8 +76,6 @@ for name, data in CAMS.items():
         offline_names.append(name)
         print(f"{name}: OFFLINE")
 
-generated_at_human = now_human()
-
 js = f"""
 <script>
 const WORKER_URL = {json.dumps(WORKER_URL)};
@@ -84,11 +83,6 @@ const hlsInstances = {{}};
 const tokenTimers = {{}};
 const TOKEN_LIFETIME_SECONDS = 300;
 const AUTO_REFRESH_SECONDS = 270;
-
-function fmtTime(ts) {{
-  if (!ts) return "unknown";
-  return new Date(ts * 1000).toLocaleTimeString();
-}}
 
 function formatDuration(seconds) {{
   const min = Math.floor(seconds / 60);
@@ -149,13 +143,15 @@ function updateTokenInfo(videoId, generatedAt, servedAt) {{
     const baseAge = Math.max(0, servedAt - generatedAt);
     const age = baseAge + Math.max(0, now - servedAt);
     const left = Math.max(0, TOKEN_LIFETIME_SECONDS - age);
-
-    el.textContent =
-    "⏱ " + formatDuration(left);
+    el.textContent = "⏱ " + formatDuration(left);
   }}
 
   tick();
-  if (tokenTimers[videoId]) clearInterval(tokenTimers[videoId]);
+
+  if (tokenTimers[videoId]) {{
+    clearInterval(tokenTimers[videoId]);
+  }}
+
   tokenTimers[videoId] = setInterval(tick, 1000);
 }}
 
@@ -166,7 +162,11 @@ async function fetchFreshStream(camKey) {{
   );
 
   const data = await res.json();
-  if (!res.ok || !data.stream) throw new Error(data.error || "No stream returned");
+
+  if (!res.ok || !data.stream) {{
+    throw new Error(data.error || "No stream returned");
+  }}
+
   return data;
 }}
 
@@ -175,17 +175,18 @@ async function startOrRefreshCam(videoId) {{
   const card = video?.closest(".cam");
   const camKey = card?.dataset.key;
   const el = card?.querySelector(".token-info");
+
   if (!video || !camKey) return;
 
   try {{
-    if (el) el.textContent = "token: loading...";
+    if (el) el.textContent = "⏱ loading";
     const data = await fetchFreshStream(camKey);
     const now = Math.floor(Date.now() / 1000);
     initCam(videoId, data.stream);
     updateTokenInfo(videoId, data.generatedAt || now, data.servedAt || now);
   }} catch (e) {{
     console.error(e);
-    if (el) el.textContent = "token: failed to load";
+    if (el) el.textContent = "⏱ failed";
   }}
 }}
 
@@ -197,14 +198,6 @@ async function refreshAll() {{
   for (const video of Array.from(document.querySelectorAll(".cam video"))) {{
     await startOrRefreshCam(video.id);
   }}
-}}
-
-function stopAll() {{
-  document.querySelectorAll("video").forEach(video => {{
-    destroyCam(video.id);
-    const el = video.closest(".cam")?.querySelector(".token-info");
-    if (el) el.textContent = "stopped";
-  }});
 }}
 
 window.addEventListener("load", () => {{
@@ -226,45 +219,70 @@ html = f"""<!doctype html>
 body {{ margin:0; font-family:Arial,sans-serif; background:#111; color:#eee; }}
 header {{ padding:10px 12px; background:#1b1b1b; position:sticky; top:0; z-index:10; }}
 button {{ margin:4px; padding:7px 10px; cursor:pointer; border-radius:6px; border:0; }}
+
+.refresh-all-icon {{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:28px;
+  height:28px;
+  padding:0;
+  margin-left:8px;
+  border:0;
+  background:transparent;
+  color:#8ecbff;
+  font-size:24px;
+  font-weight:bold;
+  vertical-align:middle;
+}}
+
 .refresh-icon {{
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  width:22px;
-  height:22px;
+  width:18px;
+  height:18px;
   padding:0;
   margin:0;
   border:0;
   background:transparent;
   color:#8ecbff;
-  font-size:18px;
+  font-size:15px;
   font-weight:bold;
   cursor:pointer;
   flex-shrink:0;
 }}
+
 .grid {{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; padding:8px; }}
 .cam {{ background:#222; border-radius:10px; overflow:hidden; }}
 .cam h2 {{ margin:0; padding:8px 10px; font-size:14px; line-height:1.2; }}
 video {{ width:100%; background:#000; display:block; min-height:120px; }}
+
 .cam-footer {{
   display:flex;
   align-items:center;
-  gap:6px;
+  gap:5px;
   padding:7px 10px 9px;
   font-size:12px;
   white-space:nowrap;
-  overflow-x:auto;
+  overflow:hidden;
 }}
+
 .token-info {{ color:#ddd; flex-shrink:0; }}
-a {{ color:#8ecbff; flex-shrink:0; }}
+.stars {{ color:#ffd36a; font-size:11px; flex-shrink:0; }}
+.source-link {{ color:#8ecbff; margin-left:auto; flex-shrink:0; }}
+a {{ color:#8ecbff; }}
 .bad {{ padding:12px; color:#ffb3b3; }}
 .offline-list {{ padding:0 12px 20px; }}
 .offline-item {{ padding:8px 10px; background:#222; margin-bottom:6px; border-radius:8px; }}
+
 @media (max-width:600px) {{
   .grid {{ grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; padding:6px; }}
   .cam h2 {{ font-size:11px; padding:6px 7px; }}
-  .cam-footer {{ font-size:10px; gap:4px; flex-wrap:nowrap; }}
-  .refresh-icon {{ width:18px; height:18px; font-size:14px; }}
+  .cam-footer {{ font-size:10px; gap:3px; flex-wrap:nowrap; }}
+  .refresh-icon {{ width:16px; height:16px; font-size:13px; }}
+  .stars {{ font-size:10px; }}
+  .source-link {{ font-size:10px; }}
   video {{ min-height:90px; }}
 }}
 </style>
@@ -273,13 +291,8 @@ a {{ color:#8ecbff; flex-shrink:0; }}
 
 <header>
   <b>Norte Surf Cams</b><br>
-  <span>
-    page generated: {generated_at_human}
-    | 🟢 {len(online_names)} online
-    | 🔴 {len(offline_names)} offline
-  </span><br>
-  <button onclick="refreshAll()">Refresh All</button>
-  <button onclick="stopAll()">Stop All</button>
+  <span>🟢 {len(online_names)} online | 🔴 {len(offline_names)} offline</span>
+  <button class="refresh-all-icon" onclick="refreshAll()" title="Refresh all">↻</button>
 </header>
 
 <h2 style="padding-left:12px">🌊 Online Cameras</h2>
@@ -302,14 +315,11 @@ for name in offline_names:
     html += render_offline(name, CAMS[name])
 
 html += """
+</div>
+
 <hr style="margin:20px 12px;border-color:#333">
 
-<div style="
-  padding:12px;
-  font-size:12px;
-  color:#999;
-  text-align:center;
-">
+<div style="padding:12px;font-size:12px;color:#999;text-align:center;">
   Surf camera streams and camera information are provided by
   <a href="https://surftotal.com" target="_blank">Surftotal</a>.
   Please visit the original website for full surf reports, forecasts and camera access.
@@ -323,4 +333,3 @@ Path("cams.html").write_text(html, encoding="utf-8")
 print("Generated: cams.html")
 print(f"Online: {len(online_names)}")
 print(f"Offline: {len(offline_names)}")
-print(f"Page generated: {generated_at_human}")
