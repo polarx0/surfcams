@@ -57,7 +57,7 @@ def render_cam(name, idx, data):
   <video id="video{idx}" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">token: loading...</span>
-    <button class="refresh-icon" onclick="refreshCam('video{idx}')" title="Refresh camera">↻</button>
+    <button class="refresh-icon" onclick="refreshCam('video{idx}')" title="Refresh">⟳</button>
     <a href="{data["page"]}" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -255,12 +255,21 @@ html = f"""<!doctype html>
 body {{ margin:0; font-family:Arial,sans-serif; background:#111; color:#eee; }}
 header {{ padding:10px 12px; background:#1b1b1b; position:sticky; top:0; z-index:10; }}
 button {{ margin:4px; padding:7px 10px; cursor:pointer; border-radius:6px; border:0; }}
-.refresh-icon {{ width:26px; height:26px; padding:0; font-size:15px; line-height:26px; text-align:center; }}
+.refresh-icon {{
+  padding:0 3px;
+  margin:0;
+  border:0;
+  background:transparent;
+  color:#8ecbff;
+  font-size:11px;
+  cursor:pointer;
+  line-height:1;
+}}
 .grid {{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; padding:8px; }}
 .cam {{ background:#222; border-radius:10px; overflow:hidden; }}
 .cam h2 {{ margin:0; padding:8px 10px; font-size:14px; line-height:1.2; }}
 video {{ width:100%; background:#000; display:block; min-height:120px; }}
-.cam-footer {{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding:7px 10px 9px; font-size:12px; }}
+.cam-footer {{ display:flex; gap:6px; align-items:center; flex-wrap:wrap; padding:7px 10px 9px; font-size:12px; }}
 .token-info {{ color:#ddd; }}
 a {{ color:#8ecbff; }}
 .bad {{ padding:12px; color:#ffb3b3; }}
@@ -271,7 +280,7 @@ a {{ color:#8ecbff; }}
   .cam h2 {{ font-size:11px; padding:6px 7px; }}
   .cam-footer {{ font-size:10px; padding:6px 7px 8px; gap:4px; }}
   button {{ font-size:11px; padding:5px 7px; }}
-  .refresh-icon {{ width:23px; height:23px; font-size:13px; line-height:23px; }}
+  .refresh-icon {{ font-size:10px; padding:0 2px; }}
   video {{ min-height:90px; }}
 }}
 </style>
@@ -284,7 +293,6 @@ a {{ color:#8ecbff; }}
     page generated: {generated_at_human}
     | 🟢 {len(online_names)} online
     | 🔴 {len(offline_names)} offline
-    | ⏱ stream cache ≤ 4 min
   </span><br>
   <button onclick="refreshAll()">Refresh All</button>
   <button onclick="stopAll()">Stop All</button>

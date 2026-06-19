@@ -171,12 +171,21 @@ window.addEventListener("load", () => {
 body { margin:0; font-family:Arial,sans-serif; background:#111; color:#eee; }
 header { padding:10px 12px; background:#1b1b1b; position:sticky; top:0; z-index:10; }
 button { margin:4px; padding:7px 10px; cursor:pointer; border-radius:6px; border:0; }
-.refresh-icon { width:26px; height:26px; padding:0; font-size:15px; line-height:26px; text-align:center; }
+.refresh-icon {
+  padding:0 3px;
+  margin:0;
+  border:0;
+  background:transparent;
+  color:#8ecbff;
+  font-size:11px;
+  cursor:pointer;
+  line-height:1;
+}
 .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; padding:8px; }
 .cam { background:#222; border-radius:10px; overflow:hidden; }
 .cam h2 { margin:0; padding:8px 10px; font-size:14px; line-height:1.2; }
 video { width:100%; background:#000; display:block; min-height:120px; }
-.cam-footer { display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding:7px 10px 9px; font-size:12px; }
+.cam-footer { display:flex; gap:6px; align-items:center; flex-wrap:wrap; padding:7px 10px 9px; font-size:12px; }
 .token-info { color:#ddd; }
 a { color:#8ecbff; }
 .bad { padding:12px; color:#ffb3b3; }
@@ -187,7 +196,7 @@ a { color:#8ecbff; }
   .cam h2 { font-size:11px; padding:6px 7px; }
   .cam-footer { font-size:10px; padding:6px 7px 8px; gap:4px; }
   button { font-size:11px; padding:5px 7px; }
-  .refresh-icon { width:23px; height:23px; font-size:13px; line-height:23px; }
+  .refresh-icon { font-size:10px; padding:0 2px; }
   video { min-height:90px; }
 }
 </style>
@@ -197,10 +206,9 @@ a { color:#8ecbff; }
 <header>
   <b>Norte Surf Cams</b><br>
   <span>
-    page generated: 12:18:41
+    page generated: 12:35:27
     | 🟢 17 online
     | 🔴 9 offline
-    | ⏱ stream cache ≤ 4 min
   </span><br>
   <button onclick="refreshAll()">Refresh All</button>
   <button onclick="stopAll()">Stop All</button>
@@ -214,7 +222,7 @@ a { color:#8ecbff; }
   <video id="video0" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">token: loading...</span>
-    <button class="refresh-icon" onclick="refreshCam('video0')" title="Refresh camera">↻</button>
+    <button class="refresh-icon" onclick="refreshCam('video0')" title="Refresh">⟳</button>
     <a href="https://surftotal.com/camaras-report/minho/moledo" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -224,7 +232,7 @@ a { color:#8ecbff; }
   <video id="video1" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">token: loading...</span>
-    <button class="refresh-icon" onclick="refreshCam('video1')" title="Refresh camera">↻</button>
+    <button class="refresh-icon" onclick="refreshCam('video1')" title="Refresh">⟳</button>
     <a href="https://surftotal.com/camaras-report/minho/viana-do-castelo-hd" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -234,7 +242,7 @@ a { color:#8ecbff; }
   <video id="video2" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">token: loading...</span>
-    <button class="refresh-icon" onclick="refreshCam('video2')" title="Refresh camera">↻</button>
+    <button class="refresh-icon" onclick="refreshCam('video2')" title="Refresh">⟳</button>
     <a href="https://surftotal.com/camaras-report/minho/viana-pontao-hd" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -244,7 +252,7 @@ a { color:#8ecbff; }
   <video id="video3" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">token: loading...</span>
-    <button class="refresh-icon" onclick="refreshCam('video3')" title="Refresh camera">↻</button>
+    <button class="refresh-icon" onclick="refreshCam('video3')" title="Refresh">⟳</button>
     <a href="https://surftotal.com/camaras-report/minho/ofir" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -254,7 +262,7 @@ a { color:#8ecbff; }
   <video id="video4" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">token: loading...</span>
-    <button class="refresh-icon" onclick="refreshCam('video4')" title="Refresh camera">↻</button>
+    <button class="refresh-icon" onclick="refreshCam('video4')" title="Refresh">⟳</button>
     <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/agucadoura" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -264,7 +272,7 @@ a { color:#8ecbff; }
   <video id="video5" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">token: loading...</span>
-    <button class="refresh-icon" onclick="refreshCam('video5')" title="Refresh camera">↻</button>
+    <button class="refresh-icon" onclick="refreshCam('video5')" title="Refresh">⟳</button>
     <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/povoa-de-varzim-ferrari" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -274,7 +282,7 @@ a { color:#8ecbff; }
   <video id="video6" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">token: loading...</span>
-    <button class="refresh-icon" onclick="refreshCam('video6')" title="Refresh camera">↻</button>
+    <button class="refresh-icon" onclick="refreshCam('video6')" title="Refresh">⟳</button>
     <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/azurara" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -284,7 +292,7 @@ a { color:#8ecbff; }
   <video id="video7" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">token: loading...</span>
-    <button class="refresh-icon" onclick="refreshCam('video7')" title="Refresh camera">↻</button>
+    <button class="refresh-icon" onclick="refreshCam('video7')" title="Refresh">⟳</button>
     <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -294,7 +302,7 @@ a { color:#8ecbff; }
   <video id="video8" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">token: loading...</span>
-    <button class="refresh-icon" onclick="refreshCam('video8')" title="Refresh camera">↻</button>
+    <button class="refresh-icon" onclick="refreshCam('video8')" title="Refresh">⟳</button>
     <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo-meia-laranja" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -304,7 +312,7 @@ a { color:#8ecbff; }
   <video id="video9" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">token: loading...</span>
-    <button class="refresh-icon" onclick="refreshCam('video9')" title="Refresh camera">↻</button>
+    <button class="refresh-icon" onclick="refreshCam('video9')" title="Refresh">⟳</button>
     <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-da-palmeira" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -314,7 +322,7 @@ a { color:#8ecbff; }
   <video id="video10" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">token: loading...</span>
-    <button class="refresh-icon" onclick="refreshCam('video10')" title="Refresh camera">↻</button>
+    <button class="refresh-icon" onclick="refreshCam('video10')" title="Refresh">⟳</button>
     <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-hd" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -324,7 +332,7 @@ a { color:#8ecbff; }
   <video id="video11" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">token: loading...</span>
-    <button class="refresh-icon" onclick="refreshCam('video11')" title="Refresh camera">↻</button>
+    <button class="refresh-icon" onclick="refreshCam('video11')" title="Refresh">⟳</button>
     <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-vagas-bar" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -334,7 +342,7 @@ a { color:#8ecbff; }
   <video id="video12" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">token: loading...</span>
-    <button class="refresh-icon" onclick="refreshCam('video12')" title="Refresh camera">↻</button>
+    <button class="refresh-icon" onclick="refreshCam('video12')" title="Refresh">⟳</button>
     <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-hd" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -344,7 +352,7 @@ a { color:#8ecbff; }
   <video id="video13" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">token: loading...</span>
-    <button class="refresh-icon" onclick="refreshCam('video13')" title="Refresh camera">↻</button>
+    <button class="refresh-icon" onclick="refreshCam('video13')" title="Refresh">⟳</button>
     <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-vista-aerea" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -354,7 +362,7 @@ a { color:#8ecbff; }
   <video id="video14" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">token: loading...</span>
-    <button class="refresh-icon" onclick="refreshCam('video14')" title="Refresh camera">↻</button>
+    <button class="refresh-icon" onclick="refreshCam('video14')" title="Refresh">⟳</button>
     <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-silvalde" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -364,7 +372,7 @@ a { color:#8ecbff; }
   <video id="video15" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">token: loading...</span>
-    <button class="refresh-icon" onclick="refreshCam('video15')" title="Refresh camera">↻</button>
+    <button class="refresh-icon" onclick="refreshCam('video15')" title="Refresh">⟳</button>
     <a href="https://surftotal.com/camaras-report/aveiro/cortegaca-hd" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -374,7 +382,7 @@ a { color:#8ecbff; }
   <video id="video16" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">token: loading...</span>
-    <button class="refresh-icon" onclick="refreshCam('video16')" title="Refresh camera">↻</button>
+    <button class="refresh-icon" onclick="refreshCam('video16')" title="Refresh">⟳</button>
     <a href="https://surftotal.com/camaras-report/aveiro/cortegaca-onda-pontao-hd" target="_blank">Surftotal</a>
   </div>
 </div>
