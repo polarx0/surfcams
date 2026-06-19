@@ -261,23 +261,49 @@ async function showForecast(spotKey) {{
 
   if (!data) return;
 
-  const text =
-    data.name + "\\n\\n" +
-    (data.stars || "☆☆☆☆☆") + "\\n\\n" +
-    "Energy: " + (data.energyKj ?? "--") + " kJ\\n\\n" +
-    "Wave: " + fmt(data.wave?.heightM, " m") +
-    " @ " + fmt(data.wave?.periodS, " s") +
-    " " + (data.wave?.directionText || "") + "\\n" +
-    "Swell: " + fmt(data.swell?.heightM, " m") +
-    " @ " + fmt(data.swell?.periodS, " s") +
-    " " + (data.swell?.directionText || "") + "\\n\\n" +
-    "Wind: " + fmt(data.wind?.speedMs, " m/s") +
-    " " + (data.wind?.directionText || "") + "\\n" +
-    "Effect: " + (data.wind?.effect || "unknown") + "\\n\\n" +
-    "Tide: " + (data.tide?.state || "unknown") + "\\n" +
-    "Updated: " + (data.updatedLocal || "unknown");
+  const modal = document.getElementById("forecast-modal");
+  const body = document.getElementById("forecast-modal-body");
 
-  alert(text);
+  body.innerHTML =
+    '<div class="modal-title">' + data.name + '</div>' +
+    '<div class="modal-stars">' + (data.stars || "☆☆☆☆☆") + '</div>' +
+
+    '<div class="modal-row"><b>Energy</b><span>' + (data.energyKj ?? "--") + ' kJ</span></div>' +
+
+    '<div class="modal-row"><b>Wave</b><span>' +
+      fmt(data.wave?.heightM, " m") + ' @ ' +
+      fmt(data.wave?.periodS, " s") + ' ' +
+      (data.wave?.directionText || "") +
+    '</span></div>' +
+
+    '<div class="modal-row"><b>Swell</b><span>' +
+      fmt(data.swell?.heightM, " m") + ' @ ' +
+      fmt(data.swell?.periodS, " s") + ' ' +
+      (data.swell?.directionText || "") +
+    '</span></div>' +
+
+    '<div class="modal-row"><b>Wind</b><span>' +
+      fmt(data.wind?.speedMs, " m/s") + ' ' +
+      (data.wind?.directionText || "") +
+    '</span></div>' +
+
+    '<div class="modal-row"><b>Effect</b><span>' +
+      (data.wind?.effect || "unknown") +
+    '</span></div>' +
+
+    '<div class="modal-row"><b>Tide</b><span>' +
+      (data.tide?.state || "unknown") +
+    '</span></div>' +
+
+    '<div class="modal-row"><b>Updated</b><span>' +
+      (data.updatedLocal || "unknown") +
+    '</span></div>';
+
+  modal.classList.add("show");
+}}
+
+function closeForecastModal() {{
+  document.getElementById("forecast-modal").classList.remove("show");
 }}
 
 function fmt(value, suffix) {{
@@ -375,6 +401,67 @@ video {{ width:100%; background:#000; display:block; min-height:120px; }}
   cursor:pointer;
   flex-shrink:0;
 }}
+.forecast-modal {{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.72);
+  z-index:999;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}}
+
+.forecast-modal.show {{
+  display:flex;
+}}
+
+.forecast-modal-content {{
+  position:relative;
+  width:min(360px, 92vw);
+  background:#1f1f1f;
+  border-radius:14px;
+  padding:18px;
+  color:#eee;
+  box-shadow:0 10px 35px rgba(0,0,0,0.5);
+}}
+
+.modal-close {{
+  position:absolute;
+  top:8px;
+  right:10px;
+  background:transparent;
+  color:#aaa;
+  border:0;
+  font-size:24px;
+  cursor:pointer;
+}}
+
+.modal-title {{
+  font-size:18px;
+  font-weight:bold;
+  margin-bottom:6px;
+}}
+
+.modal-stars {{
+  color:#ffd36a;
+  font-size:20px;
+  margin-bottom:14px;
+}}
+
+.modal-row {{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  padding:7px 0;
+  border-top:1px solid #333;
+  font-size:13px;
+}}
+
+.modal-row span {{
+  text-align:right;
+  color:#ddd;
+}}
 
 .source-link {{
   color:#8ecbff;
@@ -451,6 +538,12 @@ html += """
 <div class="footer-credit">
   Camera data courtesy of
   <a href="https://surftotal.com" target="_blank">Surftotal</a>.
+</div>
+<div id="forecast-modal" class="forecast-modal" onclick="closeForecastModal()">
+  <div class="forecast-modal-content" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeForecastModal()">×</button>
+    <div id="forecast-modal-body"></div>
+  </div>
 </div>
 
 </body>
