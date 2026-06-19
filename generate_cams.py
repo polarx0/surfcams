@@ -9,7 +9,7 @@ WORKER_URL = "https://surfcams.polarx0.workers.dev"
 
 CAMS = {
     "Moledo HD": {"key": "moledo", "page": "https://surftotal.com/camaras-report/minho/moledo"},
-    "Vila Praia de Âncora HD": {"key": "ancora", "page": "https://surftotal.com/camaras-report/minho/vila-praia-de-ancora"},
+    "Vila Praia de Âncora HD": {"key": "ancora", "page": "https://surftotal.com/camaras-report/minho/vila-praia-ancora"},
     "Viana do Castelo HD": {"key": "viana_castelo", "page": "https://surftotal.com/camaras-report/minho/viana-do-castelo-hd"},
     "Ofir": {"key": "ofir", "page": "https://surftotal.com/camaras-report/minho/ofir"},
 
@@ -33,7 +33,7 @@ CAMS = {
     "Cortegaça (Vila do Surf) HD": {"key": "cortegaca_vila", "page": "https://surftotal.com/camaras-report/aveiro/cortegaca-hd"},
     "Praia da Barra Norte HD": {"key": "barra_norte", "page": "https://surftotal.com/camaras-report/aveiro/praia-da-barra-norte-hd"},
     "Mira": {"key": "mira", "page": "https://surftotal.com/camaras-report/aveiro/mira"},
-    "Praia do Cabedelo (Figueira da Foz) HD": {"key": "figueira_cabedelo", "page": "https://surftotal.com/camaras-report/figueira-da-foz/praia-do-cabedelo-hd"},
+    "Praia do Cabedelo (Figueira da Foz)": {"key": "figueira_cabedelo", "page": "https://surftotal.com/camaras-report/figueira-da-foz/praia-do-cabedelo-hd"},
 }
 
 def now_human():
@@ -264,7 +264,7 @@ a {{ color:#8ecbff; flex-shrink:0; }}
   .grid {{ grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; padding:6px; }}
   .cam h2 {{ font-size:11px; padding:6px 7px; }}
   .cam-footer {{ font-size:10px; gap:4px; flex-wrap:nowrap; }}
-  .refresh-icon {{ width:24px; height:24px; font-size:20px; }}
+  .refresh-icon {{ width:20px; height:20px; font-size:16px; }}
   video {{ min-height:90px; }}
 }}
 </style>
