@@ -8,6 +8,12 @@ HEADERS = {"User-Agent": "Mozilla/5.0"}
 WORKER_URL = "https://surfcams.polarx0.workers.dev"
 
 CAMS = {
+    "Moledo HD": {"key": "moledo", "page": "https://surftotal.com/camaras-report/minho/moledo"},
+    "Vila Praia de Âncora HD": {"key": "ancora", "page": "https://surftotal.com/camaras-report/minho/vila-praia-de-ancora"},
+    "Viana do Castelo HD": {"key": "viana_castelo", "page": "https://surftotal.com/camaras-report/minho/viana-do-castelo"},
+    "Viana Pontão HD": {"key": "viana_pontao", "page": "https://surftotal.com/camaras-report/minho/viana-pontao"},
+    "Ofir": {"key": "ofir", "page": "https://surftotal.com/camaras-report/minho/ofir"},
+
     "Aguçadoura HD": {"key": "agucadoura", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/agucadoura"},
     "Póvoa de Varzim - Ferrari HD": {"key": "ferrari", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/povoa-de-varzim-ferrari"},
     "Azurara HD": {"key": "azurara", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/azurara"},
@@ -24,6 +30,12 @@ CAMS = {
     "Espinho HD": {"key": "espinho", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-hd"},
     "Espinho vista aérea HD": {"key": "espinho_aerea", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-vista-aerea"},
     "Espinho - Silvalde HD": {"key": "silvalde", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-silvalde"},
+
+    "Cortegaça (Vila do Surf) HD": {"key": "cortegaca_vila", "page": "https://surftotal.com/camaras-report/aveiro/cortegaca-vila-do-surf"},
+    "Cortegaça Onda Pontão HD": {"key": "cortegaca_pontao", "page": "https://surftotal.com/camaras-report/aveiro/cortegaca-onda-pontao"},
+    "Praia da Barra Norte HD": {"key": "barra_norte", "page": "https://surftotal.com/camaras-report/aveiro/praia-da-barra-norte"},
+    "Mira": {"key": "mira", "page": "https://surftotal.com/camaras-report/aveiro/mira"},
+    "Praia do Cabedelo (Figueira da Foz) HD": {"key": "figueira_cabedelo", "page": "https://surftotal.com/camaras-report/centro/praia-do-cabedelo-figueira-da-foz"},
 }
 
 def now_human():
@@ -45,7 +57,7 @@ def render_cam(name, idx, data):
   <video id="video{idx}" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">token: loading...</span>
-    <button onclick="refreshCam('video{idx}')">Refresh</button>
+    <button class="refresh-icon" onclick="refreshCam('video{idx}')" title="Refresh camera">↻</button>
     <a href="{data["page"]}" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -73,7 +85,6 @@ js = f"""
 const WORKER_URL = {json.dumps(WORKER_URL)};
 const hlsInstances = {{}};
 const tokenTimers = {{}};
-const tokenAges = {{}};
 const TOKEN_LIFETIME_SECONDS = 300;
 const AUTO_REFRESH_SECONDS = 270;
 
@@ -88,21 +99,6 @@ function formatDuration(seconds) {{
   return min + "m " + String(sec).padStart(2, "0") + "s";
 }}
 
-function updateOldestTokenAge() {{
-  const values = Object.values(tokenAges);
-  const el = document.getElementById("oldest-token-age");
-
-  if (!el) return;
-
-  if (!values.length) {{
-    el.textContent = "oldest token age: loading";
-    return;
-  }}
-
-  const oldest = Math.max(...values);
-  el.textContent = "oldest token age: " + formatDuration(oldest);
-}}
-
 function destroyCam(videoId) {{
   const video = document.getElementById(videoId);
 
@@ -115,9 +111,6 @@ function destroyCam(videoId) {{
     clearInterval(tokenTimers[videoId]);
     delete tokenTimers[videoId];
   }}
-
-  delete tokenAges[videoId];
-  updateOldestTokenAge();
 
   if (video) {{
     video.pause();
@@ -157,7 +150,7 @@ function initCam(videoId, src) {{
   if (el) el.textContent = "HLS is not supported in this browser";
 }}
 
-function updateTokenInfo(videoId, generatedAt) {{
+function updateTokenInfo(videoId, generatedAt, servedAt) {{
   const video = document.getElementById(videoId);
   if (!video) return;
 
@@ -167,11 +160,9 @@ function updateTokenInfo(videoId, generatedAt) {{
 
   function tick() {{
     const now = Math.floor(Date.now() / 1000);
-    const age = Math.max(0, now - generatedAt);
+    const baseAge = Math.max(0, servedAt - generatedAt);
+    const age = baseAge + Math.max(0, now - servedAt);
     const left = Math.max(0, TOKEN_LIFETIME_SECONDS - age);
-
-    tokenAges[videoId] = age;
-    updateOldestTokenAge();
 
     el.textContent =
       "token fetched: " + fmtTime(generatedAt) +
@@ -213,8 +204,9 @@ async function startOrRefreshCam(videoId) {{
   try {{
     if (el) el.textContent = "token: loading...";
     const data = await fetchFreshStream(camKey);
+    const now = Math.floor(Date.now() / 1000);
     initCam(videoId, data.stream);
-    updateTokenInfo(videoId, data.generatedAt || Math.floor(Date.now() / 1000));
+    updateTokenInfo(videoId, data.generatedAt || now, data.servedAt || now);
   }} catch (e) {{
     console.error(e);
     if (el) el.textContent = "token: failed to load";
@@ -256,13 +248,14 @@ html = f"""<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Grande Porto Surf Cams</title>
+<title>Norte Surf Cams</title>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 {js}
 <style>
 body {{ margin:0; font-family:Arial,sans-serif; background:#111; color:#eee; }}
 header {{ padding:10px 12px; background:#1b1b1b; position:sticky; top:0; z-index:10; }}
 button {{ margin:4px; padding:7px 10px; cursor:pointer; border-radius:6px; border:0; }}
+.refresh-icon {{ width:26px; height:26px; padding:0; font-size:15px; line-height:26px; text-align:center; }}
 .grid {{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; padding:8px; }}
 .cam {{ background:#222; border-radius:10px; overflow:hidden; }}
 .cam h2 {{ margin:0; padding:8px 10px; font-size:14px; line-height:1.2; }}
@@ -278,6 +271,7 @@ a {{ color:#8ecbff; }}
   .cam h2 {{ font-size:11px; padding:6px 7px; }}
   .cam-footer {{ font-size:10px; padding:6px 7px 8px; gap:4px; }}
   button {{ font-size:11px; padding:5px 7px; }}
+  .refresh-icon {{ width:23px; height:23px; font-size:13px; line-height:23px; }}
   video {{ min-height:90px; }}
 }}
 </style>
@@ -285,12 +279,12 @@ a {{ color:#8ecbff; }}
 <body>
 
 <header>
-  <b>Grande Porto Surf Cams</b><br>
+  <b>Norte Surf Cams</b><br>
   <span>
     page generated: {generated_at_human}
     | 🟢 {len(online_names)} online
     | 🔴 {len(offline_names)} offline
-    | ⏱ <span id="oldest-token-age">oldest token age: loading</span>
+    | ⏱ stream cache ≤ 4 min
   </span><br>
   <button onclick="refreshAll()">Refresh All</button>
   <button onclick="stopAll()">Stop All</button>

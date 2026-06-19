@@ -3,14 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Grande Porto Surf Cams</title>
+<title>Norte Surf Cams</title>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
 <script>
 const WORKER_URL = "https://surfcams.polarx0.workers.dev";
 const hlsInstances = {};
 const tokenTimers = {};
-const tokenAges = {};
 const TOKEN_LIFETIME_SECONDS = 300;
 const AUTO_REFRESH_SECONDS = 270;
 
@@ -25,21 +24,6 @@ function formatDuration(seconds) {
   return min + "m " + String(sec).padStart(2, "0") + "s";
 }
 
-function updateOldestTokenAge() {
-  const values = Object.values(tokenAges);
-  const el = document.getElementById("oldest-token-age");
-
-  if (!el) return;
-
-  if (!values.length) {
-    el.textContent = "oldest token age: loading";
-    return;
-  }
-
-  const oldest = Math.max(...values);
-  el.textContent = "oldest token age: " + formatDuration(oldest);
-}
-
 function destroyCam(videoId) {
   const video = document.getElementById(videoId);
 
@@ -52,9 +36,6 @@ function destroyCam(videoId) {
     clearInterval(tokenTimers[videoId]);
     delete tokenTimers[videoId];
   }
-
-  delete tokenAges[videoId];
-  updateOldestTokenAge();
 
   if (video) {
     video.pause();
@@ -94,7 +75,7 @@ function initCam(videoId, src) {
   if (el) el.textContent = "HLS is not supported in this browser";
 }
 
-function updateTokenInfo(videoId, generatedAt) {
+function updateTokenInfo(videoId, generatedAt, servedAt) {
   const video = document.getElementById(videoId);
   if (!video) return;
 
@@ -104,11 +85,9 @@ function updateTokenInfo(videoId, generatedAt) {
 
   function tick() {
     const now = Math.floor(Date.now() / 1000);
-    const age = Math.max(0, now - generatedAt);
+    const baseAge = Math.max(0, servedAt - generatedAt);
+    const age = baseAge + Math.max(0, now - servedAt);
     const left = Math.max(0, TOKEN_LIFETIME_SECONDS - age);
-
-    tokenAges[videoId] = age;
-    updateOldestTokenAge();
 
     el.textContent =
       "token fetched: " + fmtTime(generatedAt) +
@@ -150,8 +129,9 @@ async function startOrRefreshCam(videoId) {
   try {
     if (el) el.textContent = "token: loading...";
     const data = await fetchFreshStream(camKey);
+    const now = Math.floor(Date.now() / 1000);
     initCam(videoId, data.stream);
-    updateTokenInfo(videoId, data.generatedAt || Math.floor(Date.now() / 1000));
+    updateTokenInfo(videoId, data.generatedAt || now, data.servedAt || now);
   } catch (e) {
     console.error(e);
     if (el) el.textContent = "token: failed to load";
@@ -191,6 +171,7 @@ window.addEventListener("load", () => {
 body { margin:0; font-family:Arial,sans-serif; background:#111; color:#eee; }
 header { padding:10px 12px; background:#1b1b1b; position:sticky; top:0; z-index:10; }
 button { margin:4px; padding:7px 10px; cursor:pointer; border-radius:6px; border:0; }
+.refresh-icon { width:26px; height:26px; padding:0; font-size:15px; line-height:26px; text-align:center; }
 .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; padding:8px; }
 .cam { background:#222; border-radius:10px; overflow:hidden; }
 .cam h2 { margin:0; padding:8px 10px; font-size:14px; line-height:1.2; }
@@ -206,6 +187,7 @@ a { color:#8ecbff; }
   .cam h2 { font-size:11px; padding:6px 7px; }
   .cam-footer { font-size:10px; padding:6px 7px 8px; gap:4px; }
   button { font-size:11px; padding:5px 7px; }
+  .refresh-icon { width:23px; height:23px; font-size:13px; line-height:23px; }
   video { min-height:90px; }
 }
 </style>
@@ -213,12 +195,12 @@ a { color:#8ecbff; }
 <body>
 
 <header>
-  <b>Grande Porto Surf Cams</b><br>
+  <b>Norte Surf Cams</b><br>
   <span>
-    page generated: 10:38:24
-    | 🟢 11 online
-    | 🔴 5 offline
-    | ⏱ <span id="oldest-token-age">oldest token age: loading</span>
+    page generated: 12:11:25
+    | 🟢 13 online
+    | 🔴 13 offline
+    | ⏱ stream cache ≤ 4 min
   </span><br>
   <button onclick="refreshAll()">Refresh All</button>
   <button onclick="stopAll()">Stop All</button>
@@ -227,112 +209,132 @@ a { color:#8ecbff; }
 <h2 style="padding-left:12px">🌊 Online Cameras</h2>
 <div class="grid">
 
-<div class="cam" data-name="Agu\u00e7adoura HD" data-key="agucadoura">
-  <h2>Aguçadoura HD</h2>
+<div class="cam" data-name="Moledo HD" data-key="moledo">
+  <h2>Moledo HD</h2>
   <video id="video0" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">token: loading...</span>
-    <button onclick="refreshCam('video0')">Refresh</button>
+    <button class="refresh-icon" onclick="refreshCam('video0')" title="Refresh camera">↻</button>
+    <a href="https://surftotal.com/camaras-report/minho/moledo" target="_blank">Surftotal</a>
+  </div>
+</div>
+
+<div class="cam" data-name="Ofir" data-key="ofir">
+  <h2>Ofir</h2>
+  <video id="video1" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <span class="token-info">token: loading...</span>
+    <button class="refresh-icon" onclick="refreshCam('video1')" title="Refresh camera">↻</button>
+    <a href="https://surftotal.com/camaras-report/minho/ofir" target="_blank">Surftotal</a>
+  </div>
+</div>
+
+<div class="cam" data-name="Agu\u00e7adoura HD" data-key="agucadoura">
+  <h2>Aguçadoura HD</h2>
+  <video id="video2" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <span class="token-info">token: loading...</span>
+    <button class="refresh-icon" onclick="refreshCam('video2')" title="Refresh camera">↻</button>
     <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/agucadoura" target="_blank">Surftotal</a>
   </div>
 </div>
 
 <div class="cam" data-name="P\u00f3voa de Varzim - Ferrari HD" data-key="ferrari">
   <h2>Póvoa de Varzim - Ferrari HD</h2>
-  <video id="video1" controls autoplay muted playsinline preload="none"></video>
+  <video id="video3" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">token: loading...</span>
-    <button onclick="refreshCam('video1')">Refresh</button>
+    <button class="refresh-icon" onclick="refreshCam('video3')" title="Refresh camera">↻</button>
     <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/povoa-de-varzim-ferrari" target="_blank">Surftotal</a>
   </div>
 </div>
 
 <div class="cam" data-name="Azurara HD" data-key="azurara">
   <h2>Azurara HD</h2>
-  <video id="video2" controls autoplay muted playsinline preload="none"></video>
+  <video id="video4" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">token: loading...</span>
-    <button onclick="refreshCam('video2')">Refresh</button>
+    <button class="refresh-icon" onclick="refreshCam('video4')" title="Refresh camera">↻</button>
     <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/azurara" target="_blank">Surftotal</a>
   </div>
 </div>
 
 <div class="cam" data-name="Mindelo" data-key="mindelo">
   <h2>Mindelo</h2>
-  <video id="video3" controls autoplay muted playsinline preload="none"></video>
+  <video id="video5" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">token: loading...</span>
-    <button onclick="refreshCam('video3')">Refresh</button>
+    <button class="refresh-icon" onclick="refreshCam('video5')" title="Refresh camera">↻</button>
     <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo" target="_blank">Surftotal</a>
   </div>
 </div>
 
 <div class="cam" data-name="Mindelo meia laranja HD" data-key="mindelo_meia_laranja">
   <h2>Mindelo meia laranja HD</h2>
-  <video id="video4" controls autoplay muted playsinline preload="none"></video>
+  <video id="video6" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">token: loading...</span>
-    <button onclick="refreshCam('video4')">Refresh</button>
+    <button class="refresh-icon" onclick="refreshCam('video6')" title="Refresh camera">↻</button>
     <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo-meia-laranja" target="_blank">Surftotal</a>
   </div>
 </div>
 
 <div class="cam" data-name="Le\u00e7a da Palmeira HD" data-key="leca">
   <h2>Leça da Palmeira HD</h2>
-  <video id="video5" controls autoplay muted playsinline preload="none"></video>
+  <video id="video7" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">token: loading...</span>
-    <button onclick="refreshCam('video5')">Refresh</button>
+    <button class="refresh-icon" onclick="refreshCam('video7')" title="Refresh camera">↻</button>
     <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-da-palmeira" target="_blank">Surftotal</a>
   </div>
 </div>
 
 <div class="cam" data-name="Matosinhos HD" data-key="matosinhos">
   <h2>Matosinhos HD</h2>
-  <video id="video6" controls autoplay muted playsinline preload="none"></video>
+  <video id="video8" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">token: loading...</span>
-    <button onclick="refreshCam('video6')">Refresh</button>
+    <button class="refresh-icon" onclick="refreshCam('video8')" title="Refresh camera">↻</button>
     <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-hd" target="_blank">Surftotal</a>
   </div>
 </div>
 
 <div class="cam" data-name="Matosinhos - Vagas Bar HD" data-key="vagas">
   <h2>Matosinhos - Vagas Bar HD</h2>
-  <video id="video7" controls autoplay muted playsinline preload="none"></video>
+  <video id="video9" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">token: loading...</span>
-    <button onclick="refreshCam('video7')">Refresh</button>
+    <button class="refresh-icon" onclick="refreshCam('video9')" title="Refresh camera">↻</button>
     <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-vagas-bar" target="_blank">Surftotal</a>
   </div>
 </div>
 
 <div class="cam" data-name="Espinho HD" data-key="espinho">
   <h2>Espinho HD</h2>
-  <video id="video8" controls autoplay muted playsinline preload="none"></video>
+  <video id="video10" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">token: loading...</span>
-    <button onclick="refreshCam('video8')">Refresh</button>
+    <button class="refresh-icon" onclick="refreshCam('video10')" title="Refresh camera">↻</button>
     <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-hd" target="_blank">Surftotal</a>
   </div>
 </div>
 
 <div class="cam" data-name="Espinho vista a\u00e9rea HD" data-key="espinho_aerea">
   <h2>Espinho vista aérea HD</h2>
-  <video id="video9" controls autoplay muted playsinline preload="none"></video>
+  <video id="video11" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">token: loading...</span>
-    <button onclick="refreshCam('video9')">Refresh</button>
+    <button class="refresh-icon" onclick="refreshCam('video11')" title="Refresh camera">↻</button>
     <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-vista-aerea" target="_blank">Surftotal</a>
   </div>
 </div>
 
 <div class="cam" data-name="Espinho - Silvalde HD" data-key="silvalde">
   <h2>Espinho - Silvalde HD</h2>
-  <video id="video10" controls autoplay muted playsinline preload="none"></video>
+  <video id="video12" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">token: loading...</span>
-    <button onclick="refreshCam('video10')">Refresh</button>
+    <button class="refresh-icon" onclick="refreshCam('video12')" title="Refresh camera">↻</button>
     <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-silvalde" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -340,11 +342,19 @@ a { color:#8ecbff; }
 
 <h2 style="padding-left:12px">⚠️ Offline / unavailable</h2>
 <div class="offline-list">
+<div class="offline-item"><a href="https://surftotal.com/camaras-report/minho/vila-praia-de-ancora" target="_blank">Vila Praia de Âncora HD</a></div>
+<div class="offline-item"><a href="https://surftotal.com/camaras-report/minho/viana-do-castelo" target="_blank">Viana do Castelo HD</a></div>
+<div class="offline-item"><a href="https://surftotal.com/camaras-report/minho/viana-pontao" target="_blank">Viana Pontão HD</a></div>
 <div class="offline-item"><a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/praia-da-arvore-areal" target="_blank">Praia de Árvore - Areal HD</a></div>
 <div class="offline-item"><a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/pedras-do-corgo" target="_blank">Pedras do Corgo - Melanina HD</a></div>
 <div class="offline-item"><a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabo-do-mundo-hd" target="_blank">Cabo do Mundo HD</a></div>
 <div class="offline-item"><a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-kodak-aterro" target="_blank">Leça - L'Kodak (Aterro) HD</a></div>
 <div class="offline-item"><a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabedelo-do-porto" target="_blank">Cabedelo do Porto</a></div>
+<div class="offline-item"><a href="https://surftotal.com/camaras-report/aveiro/cortegaca-vila-do-surf" target="_blank">Cortegaça (Vila do Surf) HD</a></div>
+<div class="offline-item"><a href="https://surftotal.com/camaras-report/aveiro/cortegaca-onda-pontao" target="_blank">Cortegaça Onda Pontão HD</a></div>
+<div class="offline-item"><a href="https://surftotal.com/camaras-report/aveiro/praia-da-barra-norte" target="_blank">Praia da Barra Norte HD</a></div>
+<div class="offline-item"><a href="https://surftotal.com/camaras-report/aveiro/mira" target="_blank">Mira</a></div>
+<div class="offline-item"><a href="https://surftotal.com/camaras-report/centro/praia-do-cabedelo-figueira-da-foz" target="_blank">Praia do Cabedelo (Figueira da Foz) HD</a></div>
 
 </div>
 
