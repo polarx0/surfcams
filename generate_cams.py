@@ -52,7 +52,11 @@ def render_cam(name, idx, data):
   <div class="cam-footer">
     <span class="token-info">⏱ loading</span>
     <span class="sep">|</span>
-    <span class="stars">{data.get("stars", "☆☆☆☆☆")}</span>
+    <button class="forecast-pill" onclick="showForecast('{data["key"]}')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('{data["key"]}')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
     <span class="sep">|</span>
     <button class="refresh-icon" onclick="refreshCam('video{idx}')" title="Refresh">↻</button>
     <span class="sep">|</span>
@@ -86,6 +90,7 @@ js = f"""
 const WORKER_URL = {json.dumps(WORKER_URL)};
 const hlsInstances = {{}};
 const tokenTimers = {{}};
+const forecastCache = {{}};
 const TOKEN_LIFETIME_SECONDS = 300;
 const AUTO_REFRESH_SECONDS = 270;
 
@@ -196,9 +201,94 @@ async function refreshAll() {{
   }}
 }}
 
+
+async function fetchForecast(spotKey) {{
+  const res = await fetch(
+    WORKER_URL + "/forecast?spot=" + encodeURIComponent(spotKey) + "&t=" + Date.now(),
+    {{ cache: "no-store" }}
+  );
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Forecast failed");
+
+  forecastCache[spotKey] = data;
+  return data;
+}}
+
+function updateForecastInCard(card, data) {{
+  const starsEl = card.querySelector(".forecast-pill");
+  const energyEl = card.querySelector(".energy-pill");
+  const windEl = card.querySelector(".wind-pill");
+
+  if (starsEl) starsEl.textContent = data.stars || "☆☆☆☆☆";
+  if (energyEl) energyEl.textContent = (data.energyKj ?? "--") + " kJ";
+  if (windEl) windEl.textContent = ((data.wind && data.wind.speedMs != null) ? data.wind.speedMs : "--") + " m/s";
+}}
+
+async function loadForecastForCard(card) {{
+  const spotKey = card?.dataset.key;
+  if (!spotKey) return;
+
+  try {{
+    const data = await fetchForecast(spotKey);
+    updateForecastInCard(card, data);
+  }} catch (e) {{
+    console.error(e);
+    const starsEl = card.querySelector(".forecast-pill");
+    const energyEl = card.querySelector(".energy-pill");
+    const windEl = card.querySelector(".wind-pill");
+    if (starsEl) starsEl.textContent = "☆☆☆☆☆";
+    if (energyEl) energyEl.textContent = "-- kJ";
+    if (windEl) windEl.textContent = "-- m/s";
+  }}
+}}
+
+async function loadAllForecasts() {{
+  const cards = Array.from(document.querySelectorAll(".cam"));
+  for (const card of cards) {{
+    await loadForecastForCard(card);
+  }}
+}}
+
+async function showForecast(spotKey) {{
+  let data = forecastCache[spotKey];
+
+  if (!data) {{
+    const card = document.querySelector('.cam[data-key="' + spotKey + '"]');
+    await loadForecastForCard(card);
+    data = forecastCache[spotKey];
+  }}
+
+  if (!data) return;
+
+  const text =
+    data.name + "\\n\\n" +
+    (data.stars || "☆☆☆☆☆") + "\\n\\n" +
+    "Energy: " + (data.energyKj ?? "--") + " kJ\\n\\n" +
+    "Wave: " + fmt(data.wave?.heightM, " m") +
+    " @ " + fmt(data.wave?.periodS, " s") +
+    " " + (data.wave?.directionText || "") + "\\n" +
+    "Swell: " + fmt(data.swell?.heightM, " m") +
+    " @ " + fmt(data.swell?.periodS, " s") +
+    " " + (data.swell?.directionText || "") + "\\n\\n" +
+    "Wind: " + fmt(data.wind?.speedMs, " m/s") +
+    " " + (data.wind?.directionText || "") + "\\n" +
+    "Effect: " + (data.wind?.effect || "unknown") + "\\n\\n" +
+    "Tide: " + (data.tide?.state || "unknown") + "\\n" +
+    "Updated: " + (data.updatedLocal || "unknown");
+
+  alert(text);
+}}
+
+function fmt(value, suffix) {{
+  return value == null ? "--" : value + suffix;
+}}
+
 window.addEventListener("load", () => {{
   refreshAll();
+  loadAllForecasts();
   setInterval(refreshAll, AUTO_REFRESH_SECONDS * 1000);
+  setInterval(loadAllForecasts, 60 * 60 * 1000);
 }});
 </script>
 """
@@ -217,7 +307,7 @@ body {{ margin:0; font-family:Arial,sans-serif; background:#111; color:#eee; }}
 .header-bar {{
   display:flex;
   align-items:center;
-  justify-content:center;
+  justify-content:flex-start;
   gap:4px;
   padding:10px 12px;
   background:#1b1b1b;
@@ -251,7 +341,7 @@ video {{ width:100%; background:#000; display:block; min-height:120px; }}
 .cam-footer {{
   display:flex;
   align-items:center;
-  justify-content:center;
+  justify-content:flex-start;
   gap:4px;
   padding:7px 8px;
   font-size:11px;
@@ -260,7 +350,19 @@ video {{ width:100%; background:#000; display:block; min-height:120px; }}
 
 .sep {{ color:#666; flex-shrink:0; }}
 .token-info {{ color:#ddd; flex-shrink:0; }}
-.stars {{ color:#ffd36a; flex-shrink:0; }}
+.wind-pill {{ color:#ddd; flex-shrink:0; }}
+.forecast-pill,
+.energy-pill {{
+  padding:0;
+  margin:0;
+  border:0;
+  background:transparent;
+  color:#ffd36a;
+  font:inherit;
+  cursor:pointer;
+  flex-shrink:0;
+}}
+.energy-pill {{ color:#ddd; }}
 
 .refresh-icon {{
   width:14px;
@@ -310,7 +412,6 @@ a {{ color:#8ecbff; }}
   .cam h2 {{ font-size:11px; padding:6px 7px; }}
   .cam-footer {{ font-size:9px; gap:3px; padding:6px 5px; }}
   .refresh-icon {{ width:12px; height:12px; font-size:11px; }}
-  .stars {{ font-size:9px; }}
   .source-link {{ font-size:9px; }}
   video {{ min-height:90px; }}
 }}
