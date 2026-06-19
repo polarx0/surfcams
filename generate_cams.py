@@ -93,13 +93,13 @@ def find_m3u8(page_url):
 def render_cam(name, idx, data):
     name_json = json.dumps(name)
     key_json = json.dumps(data["key"])
+
     return f"""
 <div class="cam" data-name={name_json} data-key={key_json}>
   <h2>{name}</h2>
   <video id="video{idx}" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
-    <span class="token-info">token: not loaded</span>
-    <button onclick="playCam('video{idx}')">Play</button>
+    <span class="token-info">token: loading...</span>
     <button onclick="refreshCam('video{idx}')">Refresh</button>
     <a href="{data["page"]}" target="_blank">Surftotal</a>
   </div>
@@ -186,7 +186,9 @@ function initCam(videoId, src) {{
     return;
   }}
 
-  alert("HLS is not supported in this browser");
+  const card = video.closest(".cam");
+  const el = card?.querySelector(".token-info");
+  if (el) el.textContent = "HLS is not supported in this browser";
 }}
 
 function updateTokenInfo(videoId, generatedAt) {{
@@ -194,9 +196,7 @@ function updateTokenInfo(videoId, generatedAt) {{
   if (!video) return;
 
   const card = video.closest(".cam");
-  if (!card) return;
-
-  const el = card.querySelector(".token-info");
+  const el = card?.querySelector(".token-info");
   if (!el) return;
 
   function tick() {{
@@ -236,47 +236,50 @@ async function fetchFreshStream(camKey) {{
   return data;
 }}
 
-async function playCam(videoId) {{
+async function startOrRefreshCam(videoId) {{
   const video = document.getElementById(videoId);
   if (!video) return;
 
   const card = video.closest(".cam");
-  const camKey = card.dataset.key;
+  const camKey = card?.dataset.key;
+  const el = card?.querySelector(".token-info");
+
+  if (!camKey) return;
 
   try {{
+    if (el) el.textContent = "token: loading...";
     const data = await fetchFreshStream(camKey);
     initCam(videoId, data.stream);
     updateTokenInfo(videoId, data.generatedAt || Math.floor(Date.now() / 1000));
   }} catch (e) {{
     console.error(e);
-    const el = card.querySelector(".token-info");
     if (el) el.textContent = "token: failed to load";
   }}
 }}
 
 async function refreshCam(videoId) {{
-  await playCam(videoId);
-}}
-
-async function playAll() {{
-  const videos = Array.from(document.querySelectorAll(".cam video"));
-  for (const video of videos) {{
-    await playCam(video.id);
-  }}
+  await startOrRefreshCam(videoId);
 }}
 
 async function refreshAll() {{
-  await playAll();
+  const videos = Array.from(document.querySelectorAll(".cam video"));
+
+  for (const video of videos) {{
+    await startOrRefreshCam(video.id);
+  }}
 }}
 
 function stopAll() {{
   document.querySelectorAll("video").forEach(video => {{
     destroyCam(video.id);
+    const card = video.closest(".cam");
+    const el = card?.querySelector(".token-info");
+    if (el) el.textContent = "stopped";
   }});
 }}
 
 window.addEventListener("load", () => {{
-  playAll();
+  refreshAll();
 
   setInterval(() => {{
     refreshAll();
@@ -321,10 +324,8 @@ a {{ color:#8ecbff; }}
 <header>
   <b>Grande Porto Surf Cams</b><br>
   <span>page generated: {generated_at_human}</span><br>
-  <button onclick="playAll()">Play All</button>
   <button onclick="refreshAll()">Refresh All</button>
   <button onclick="stopAll()">Stop All</button>
-  <button onclick="window.location.reload()">Reload Page</button>
 </header>
 
 <h2 style="padding-left:12px">🌊 Online Cameras</h2>
