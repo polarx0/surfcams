@@ -1,40 +1,81 @@
 import re
 import json
-import time
 import requests
-import urllib.parse
 from pathlib import Path
 from datetime import datetime
 
 HEADERS = {"User-Agent": "Mozilla/5.0"}
-GITHUB_WORKFLOW_URL = "https://github.com/polarx0/surfcams/actions/workflows/update.yml"
+WORKER_URL = "https://surfcams.polarx0.workers.dev"
 
 CAMS = {
-    "Aguçadoura HD": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/agucadoura",
-    "Póvoa de Varzim - Ferrari HD": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/povoa-de-varzim-ferrari",
-    "Azurara HD": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/azurara",
-    "Praia de Árvore - Areal HD": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/praia-da-arvore-areal",
-    "Mindelo": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo",
-    "Mindelo meia laranja HD": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo-meia-laranja",
-    "Pedras do Corgo - Melanina HD": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/pedras-do-corgo",
-    "Cabo do Mundo HD": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabo-do-mundo-hd",
-    "Leça - L'Kodak (Aterro) HD": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-kodak-aterro",
-    "Leça da Palmeira HD": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-da-palmeira",
-    "Matosinhos HD": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-hd",
-    "Matosinhos - Vagas Bar HD": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-vagas-bar",
-    "Cabedelo do Porto": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabedelo-do-porto",
-    "Espinho HD": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-hd",
-    "Espinho vista aérea HD": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-vista-aerea",
-    "Espinho - Silvalde HD": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-silvalde",
+    "Aguçadoura HD": {
+        "key": "agucadoura",
+        "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/agucadoura",
+    },
+    "Póvoa de Varzim - Ferrari HD": {
+        "key": "ferrari",
+        "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/povoa-de-varzim-ferrari",
+    },
+    "Azurara HD": {
+        "key": "azurara",
+        "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/azurara",
+    },
+    "Praia de Árvore - Areal HD": {
+        "key": "arvore",
+        "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/praia-da-arvore-areal",
+    },
+    "Mindelo": {
+        "key": "mindelo",
+        "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo",
+    },
+    "Mindelo meia laranja HD": {
+        "key": "mindelo_meia_laranja",
+        "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo-meia-laranja",
+    },
+    "Pedras do Corgo - Melanina HD": {
+        "key": "pedras",
+        "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/pedras-do-corgo",
+    },
+    "Cabo do Mundo HD": {
+        "key": "cabo",
+        "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabo-do-mundo-hd",
+    },
+    "Leça - L'Kodak (Aterro) HD": {
+        "key": "leca_aterro",
+        "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-kodak-aterro",
+    },
+    "Leça da Palmeira HD": {
+        "key": "leca",
+        "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-da-palmeira",
+    },
+    "Matosinhos HD": {
+        "key": "matosinhos",
+        "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-hd",
+    },
+    "Matosinhos - Vagas Bar HD": {
+        "key": "vagas",
+        "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-vagas-bar",
+    },
+    "Cabedelo do Porto": {
+        "key": "cabedelo",
+        "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabedelo-do-porto",
+    },
+    "Espinho HD": {
+        "key": "espinho",
+        "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-hd",
+    },
+    "Espinho vista aérea HD": {
+        "key": "espinho_aerea",
+        "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-vista-aerea",
+    },
+    "Espinho - Silvalde HD": {
+        "key": "silvalde",
+        "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-silvalde",
+    },
 }
 
 def now_human():
     return datetime.now().strftime("%H:%M:%S")
-
-def fmt_ts(ts):
-    if not ts:
-        return "unknown"
-    return datetime.fromtimestamp(ts).strftime("%H:%M:%S")
 
 def find_m3u8(page_url):
     try:
@@ -49,93 +90,77 @@ def find_m3u8(page_url):
         print(f"ERROR finding stream: {page_url}: {e}")
         return None
 
-def stream_time_ts(stream_url):
-    if not stream_url:
-        return None
-    try:
-        params = urllib.parse.parse_qs(urllib.parse.urlparse(stream_url).query)
-        return int(params["time"][0]) if "time" in params else None
-    except Exception:
-        return None
-
 def render_cam(name, idx, data):
-    stream_json = json.dumps(data["stream"])
     name_json = json.dumps(name)
+    key_json = json.dumps(data["key"])
     return f"""
-<div class="cam" data-name={name_json}>
+<div class="cam" data-name={name_json} data-key={key_json}>
   <h2>{name}</h2>
-  <video
-    id="video{idx}"
-    controls
-    muted
-    playsinline
-    preload="none"
-    data-stream={stream_json}
-  ></video>
+  <video id="video{idx}" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
-    <span>stream time: {fmt_ts(data["stream_time"])}</span>
+    <span class="token-info">token: not loaded</span>
     <button onclick="playCam('video{idx}')">Play</button>
-    <button onclick="refreshCam({name_json}, 'video{idx}')">Refresh</button>
+    <button onclick="refreshCam('video{idx}')">Refresh</button>
     <a href="{data["page"]}" target="_blank">Surftotal</a>
   </div>
 </div>
 """
 
-streams = {}
-generated_at = int(time.time())
+def render_offline(name, data):
+    return f"""
+<div class="offline-item">
+  <a href="{data["page"]}" target="_blank">{name}</a>
+</div>
+"""
+
+online_names = []
+offline_names = []
+
+for name, data in CAMS.items():
+    stream_url = find_m3u8(data["page"])
+    if stream_url:
+        online_names.append(name)
+        print(f"{name}: ONLINE")
+    else:
+        offline_names.append(name)
+        print(f"{name}: OFFLINE")
+
 generated_at_human = now_human()
 
-for name, page_url in CAMS.items():
-    stream_url = find_m3u8(page_url)
-    stime = stream_time_ts(stream_url)
-
-    streams[name] = {
-        "name": name,
-        "page": page_url,
-        "stream": stream_url,
-        "online": stream_url is not None,
-        "stream_time": stime,
-        "stream_time_human": fmt_ts(stime),
-    }
-
-    print(f"{name}: {'ONLINE' if stream_url else 'OFFLINE'} stream_time={fmt_ts(stime)}")
-
-online_names = [n for n, d in streams.items() if d["online"]]
-offline_names = [n for n, d in streams.items() if not d["online"]]
-
-Path("streams.json").write_text(
-    json.dumps(
-        {
-            "generated_at": generated_at,
-            "generated_at_human": generated_at_human,
-            "streams": streams,
-        },
-        ensure_ascii=False,
-        indent=2,
-    ),
-    encoding="utf-8",
-)
-
-js = """
+js = f"""
 <script>
-const hlsInstances = {};
+const WORKER_URL = {json.dumps(WORKER_URL)};
+const hlsInstances = {{}};
+const tokenTimers = {{}};
+const TOKEN_LIFETIME_SECONDS = 300;
+const AUTO_REFRESH_SECONDS = 270;
 
-function destroyCam(videoId) {
+function fmtTime(ts) {{
+  if (!ts) return "unknown";
+  return new Date(ts * 1000).toLocaleTimeString();
+}}
+
+function destroyCam(videoId) {{
   const video = document.getElementById(videoId);
 
-  if (hlsInstances[videoId]) {
+  if (hlsInstances[videoId]) {{
     hlsInstances[videoId].destroy();
     delete hlsInstances[videoId];
-  }
+  }}
 
-  if (video) {
+  if (tokenTimers[videoId]) {{
+    clearInterval(tokenTimers[videoId]);
+    delete tokenTimers[videoId];
+  }}
+
+  if (video) {{
     video.pause();
     video.removeAttribute("src");
     video.load();
-  }
-}
+  }}
+}}
 
-function initCam(videoId, src) {
+function initCam(videoId, src) {{
   const video = document.getElementById(videoId);
   if (!video || !src) return;
 
@@ -144,125 +169,119 @@ function initCam(videoId, src) {
   video.dataset.stream = src;
   video.muted = true;
 
-  if (video.canPlayType("application/vnd.apple.mpegurl")) {
+  if (video.canPlayType("application/vnd.apple.mpegurl")) {{
     video.src = src;
-    video.play().catch(() => {});
+    video.play().catch(() => {{}});
     return;
-  }
+  }}
 
-  if (window.Hls && Hls.isSupported()) {
+  if (window.Hls && Hls.isSupported()) {{
     const hls = new Hls();
     hlsInstances[videoId] = hls;
     hls.loadSource(src);
     hls.attachMedia(video);
-    hls.on(Hls.Events.MANIFEST_PARSED, function() {
-      video.play().catch(() => {});
-    });
+    hls.on(Hls.Events.MANIFEST_PARSED, function() {{
+      video.play().catch(() => {{}});
+    }});
     return;
-  }
+  }}
 
   alert("HLS is not supported in this browser");
-}
+}}
 
-function playCam(videoId) {
+function updateTokenInfo(videoId, generatedAt) {{
   const video = document.getElementById(videoId);
   if (!video) return;
 
-  const src = video.dataset.stream;
-  if (!src) {
-    alert("No stream URL for this camera");
-    return;
-  }
+  const card = video.closest(".cam");
+  if (!card) return;
 
-  initCam(videoId, src);
-}
+  const el = card.querySelector(".token-info");
+  if (!el) return;
 
-function playAll() {
-  document.querySelectorAll("video[data-stream]").forEach(video => {
-    playCam(video.id);
-  });
-}
+  function tick() {{
+    const now = Math.floor(Date.now() / 1000);
+    const age = Math.max(0, now - generatedAt);
+    const left = Math.max(0, TOKEN_LIFETIME_SECONDS - age);
 
-function stopAll() {
-  document.querySelectorAll("video").forEach(video => {
+    const ageMin = Math.floor(age / 60);
+    const ageSec = age % 60;
+    const leftMin = Math.floor(left / 60);
+    const leftSec = left % 60;
+
+    el.textContent =
+      "token fetched: " + fmtTime(generatedAt) +
+      " | age " + ageMin + ":" + String(ageSec).padStart(2, "0") +
+      " | refresh in " + leftMin + ":" + String(leftSec).padStart(2, "0");
+  }}
+
+  tick();
+
+  if (tokenTimers[videoId]) clearInterval(tokenTimers[videoId]);
+  tokenTimers[videoId] = setInterval(tick, 1000);
+}}
+
+async function fetchFreshStream(camKey) {{
+  const res = await fetch(
+    WORKER_URL + "/stream?cam=" + encodeURIComponent(camKey) + "&t=" + Date.now(),
+    {{ cache: "no-store" }}
+  );
+
+  const data = await res.json();
+
+  if (!res.ok || !data.stream) {{
+    throw new Error(data.error || "No stream returned");
+  }}
+
+  return data;
+}}
+
+async function playCam(videoId) {{
+  const video = document.getElementById(videoId);
+  if (!video) return;
+
+  const card = video.closest(".cam");
+  const camKey = card.dataset.key;
+
+  try {{
+    const data = await fetchFreshStream(camKey);
+    initCam(videoId, data.stream);
+    updateTokenInfo(videoId, data.generatedAt || Math.floor(Date.now() / 1000));
+  }} catch (e) {{
+    console.error(e);
+    const el = card.querySelector(".token-info");
+    if (el) el.textContent = "token: failed to load";
+  }}
+}}
+
+async function refreshCam(videoId) {{
+  await playCam(videoId);
+}}
+
+async function playAll() {{
+  const videos = Array.from(document.querySelectorAll(".cam video"));
+  for (const video of videos) {{
+    await playCam(video.id);
+  }}
+}}
+
+async function refreshAll() {{
+  await playAll();
+}}
+
+function stopAll() {{
+  document.querySelectorAll("video").forEach(video => {{
     destroyCam(video.id);
-  });
-}
+  }});
+}}
 
-async function refreshCam(name, videoId) {
-  try {
-    const response = await fetch("streams.json?t=" + Date.now(), { cache: "no-store" });
-    const data = await response.json();
-    const cam = data.streams[name];
+window.addEventListener("load", () => {{
+  playAll();
 
-    if (!cam || !cam.stream) {
-      alert("No fresh stream for " + name);
-      return;
-    }
-
-    const video = document.getElementById(videoId);
-    if (video) {
-      video.dataset.stream = cam.stream;
-    }
-
-    initCam(videoId, cam.stream);
-
-    const card = document.querySelector('[data-name="' + CSS.escape(name) + '"]');
-    if (card) {
-      const footer = card.querySelector(".cam-footer span");
-      if (footer) footer.textContent = "stream time: " + (cam.stream_time_human || "unknown");
-    }
-  } catch (e) {
-    alert("Refresh failed. Try Refresh Page or Regenerate.");
-  }
-}
-
-function updateTimers() {
-  const generatedAt = Number(document.body.dataset.generatedAt || "0");
-  const autoStopSeconds = Number(document.body.datasetAutoStopSeconds || document.body.dataset.autoStopSeconds || "240");
-  const now = Math.floor(Date.now() / 1000);
-
-  const age = Math.max(0, now - generatedAt);
-  const ageMin = Math.floor(age / 60);
-  const ageSec = age % 60;
-
-  const ageEl = document.getElementById("streamAge");
-  if (ageEl) {
-    ageEl.textContent = ` | age ${ageMin}:${String(ageSec).padStart(2, "0")}`;
-  }
-
-  const left = Math.max(0, autoStopSeconds - age);
-  const leftMin = Math.floor(left / 60);
-  const leftSec = left % 60;
-
-  const stopEl = document.getElementById("autoStopTimer");
-  if (stopEl) {
-    stopEl.textContent = ` | auto-stop in ${leftMin}:${String(leftSec).padStart(2, "0")}`;
-  }
-
-  if (age >= autoStopSeconds) {
-    stopAll();
-    if (stopEl) {
-      stopEl.textContent = " | auto-stopped";
-    }
-    return;
-  }
-
-  setTimeout(updateTimers, 1000);
-}
-
-function toggleBlock(id, button, showText, hideText) {
-  const block = document.getElementById(id);
-  if (block.style.display === "none" || block.style.display === "") {
-    block.style.display = "block";
-    button.textContent = hideText;
-  } else {
-    block.style.display = "none";
-    button.textContent = showText;
-  }
-}
-
-window.addEventListener("load", updateTimers);
+  setInterval(() => {{
+    refreshAll();
+  }}, AUTO_REFRESH_SECONDS * 1000);
+}});
 </script>
 """
 
@@ -283,9 +302,9 @@ button {{ margin:4px; padding:7px 10px; cursor:pointer; border-radius:6px; borde
 .cam h2 {{ margin:0; padding:8px 10px; font-size:14px; line-height:1.2; }}
 video {{ width:100%; background:#000; display:block; min-height:120px; }}
 .cam-footer {{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding:7px 10px 9px; font-size:12px; }}
+.token-info {{ color:#ddd; }}
 a {{ color:#8ecbff; }}
 .bad {{ padding:12px; color:#ffb3b3; }}
-#offlineCams {{ display:none; }}
 .offline-list {{ padding:0 12px 20px; }}
 .offline-item {{ padding:8px 10px; background:#222; margin-bottom:6px; border-radius:8px; }}
 @media (max-width:600px) {{
@@ -297,20 +316,15 @@ a {{ color:#8ecbff; }}
 }}
 </style>
 </head>
-<body data-generated-at="{generated_at}" data-auto-stop-seconds="240">
+<body>
 
 <header>
   <b>Grande Porto Surf Cams</b><br>
-  <span>
-    streams generated: {generated_at_human}
-    <span id="streamAge"></span>
-    <span id="autoStopTimer"></span>
-  </span><br>
+  <span>page generated: {generated_at_human}</span><br>
   <button onclick="playAll()">Play All</button>
+  <button onclick="refreshAll()">Refresh All</button>
   <button onclick="stopAll()">Stop All</button>
-  <button onclick="window.location.reload()">Refresh Page</button>
-  <button onclick="window.open('{GITHUB_WORKFLOW_URL}', '_blank')">Regenerate</button>
-  <button onclick="toggleBlock('offlineCams', this, 'Show Offline', 'Hide Offline')">Show Offline</button>
+  <button onclick="window.location.reload()">Reload Page</button>
 </header>
 
 <h2 style="padding-left:12px">🌊 Online Cameras</h2>
@@ -319,22 +333,20 @@ a {{ color:#8ecbff; }}
 if online_names:
     html += '<div class="grid">\n'
     for idx, name in enumerate(online_names):
-        html += render_cam(name, idx, streams[name])
+        html += render_cam(name, idx, CAMS[name])
     html += "</div>\n"
 else:
     html += '<div class="bad">No cameras are currently online.</div>\n'
 
 html += """
-<div id="offlineCams">
 <h2 style="padding-left:12px">⚠️ Offline / unavailable</h2>
 <div class="offline-list">
 """
 
 for name in offline_names:
-    html += f'<div class="offline-item"><a href="{streams[name]["page"]}" target="_blank">{name}</a></div>\n'
+    html += render_offline(name, CAMS[name])
 
 html += """
-</div>
 </div>
 
 </body>
@@ -343,7 +355,6 @@ html += """
 
 Path("cams.html").write_text(html, encoding="utf-8")
 print("Generated: cams.html")
-print("Generated: streams.json")
 print(f"Online: {len(online_names)}")
 print(f"Offline: {len(offline_names)}")
-print(f"Streams generated: {generated_at_human}")
+print(f"Page generated: {generated_at_human}")
