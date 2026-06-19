@@ -76,11 +76,7 @@ function updateTokenInfo(videoId, generatedAt, servedAt) {
   }
 
   tick();
-
-  if (tokenTimers[videoId]) {
-    clearInterval(tokenTimers[videoId]);
-  }
-
+  if (tokenTimers[videoId]) clearInterval(tokenTimers[videoId]);
   tokenTimers[videoId] = setInterval(tick, 1000);
 }
 
@@ -91,11 +87,7 @@ async function fetchFreshStream(camKey) {
   );
 
   const data = await res.json();
-
-  if (!res.ok || !data.stream) {
-    throw new Error(data.error || "No stream returned");
-  }
-
+  if (!res.ok || !data.stream) throw new Error(data.error || "No stream returned");
   return data;
 }
 
@@ -104,7 +96,6 @@ async function startOrRefreshCam(videoId) {
   const card = video?.closest(".cam");
   const camKey = card?.dataset.key;
   const el = card?.querySelector(".token-info");
-
   if (!video || !camKey) return;
 
   try {
@@ -137,40 +128,34 @@ window.addEventListener("load", () => {
 
 <style>
 body { margin:0; font-family:Arial,sans-serif; background:#111; color:#eee; }
-header { padding:10px 12px; background:#1b1b1b; position:sticky; top:0; z-index:10; }
-button { margin:4px; padding:7px 10px; cursor:pointer; border-radius:6px; border:0; }
 
-.refresh-all-icon {
-  display:inline-flex;
+.header-bar {
+  display:flex;
   align-items:center;
   justify-content:center;
-  width:28px;
-  height:28px;
-  padding:0;
-  margin-left:8px;
-  border:0;
-  background:transparent;
-  color:#8ecbff;
-  font-size:24px;
-  font-weight:bold;
-  vertical-align:middle;
+  gap:4px;
+  padding:10px 12px;
+  background:#1b1b1b;
+  position:sticky;
+  top:0;
+  z-index:10;
 }
 
-.refresh-icon {
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  width:18px;
-  height:18px;
+.header-line {
+  color:#ddd;
+  font-size:14px;
+  white-space:nowrap;
+}
+
+.refresh-all-icon {
+  width:20px;
+  height:20px;
   padding:0;
-  margin:0;
   border:0;
   background:transparent;
   color:#8ecbff;
-  font-size:15px;
-  font-weight:bold;
+  font-size:18px;
   cursor:pointer;
-  flex-shrink:0;
 }
 
 .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; padding:8px; }
@@ -181,37 +166,75 @@ video { width:100%; background:#000; display:block; min-height:120px; }
 .cam-footer {
   display:flex;
   align-items:center;
-  gap:5px;
-  padding:7px 10px 9px;
-  font-size:12px;
+  justify-content:center;
+  gap:4px;
+  padding:7px 8px;
+  font-size:11px;
   white-space:nowrap;
-  overflow:hidden;
 }
 
+.sep { color:#666; flex-shrink:0; }
 .token-info { color:#ddd; flex-shrink:0; }
-.stars { color:#ffd36a; font-size:11px; flex-shrink:0; }
-.source-link { color:#8ecbff; margin-left:auto; flex-shrink:0; }
+.stars { color:#ffd36a; flex-shrink:0; }
+
+.refresh-icon {
+  width:14px;
+  height:14px;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:#8ecbff;
+  font-size:13px;
+  cursor:pointer;
+  flex-shrink:0;
+}
+
+.source-link {
+  color:#8ecbff;
+  text-decoration:none;
+  flex-shrink:0;
+}
+
 a { color:#8ecbff; }
 .bad { padding:12px; color:#ffb3b3; }
+
 .offline-list { padding:0 12px 20px; }
-.offline-item { padding:8px 10px; background:#222; margin-bottom:6px; border-radius:8px; }
+.offline-item {
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:8px 10px;
+  background:#222;
+  margin-bottom:6px;
+  border-radius:8px;
+  font-size:12px;
+}
+
+.footer-credit {
+  padding:12px;
+  font-size:12px;
+  color:#999;
+  text-align:center;
+}
 
 @media (max-width:600px) {
+  .header-line { font-size:11px; }
+  .refresh-all-icon { width:18px; height:18px; font-size:15px; }
+
   .grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; padding:6px; }
   .cam h2 { font-size:11px; padding:6px 7px; }
-  .cam-footer { font-size:10px; gap:3px; flex-wrap:nowrap; }
-  .refresh-icon { width:16px; height:16px; font-size:13px; }
-  .stars { font-size:10px; }
-  .source-link { font-size:10px; }
+  .cam-footer { font-size:9px; gap:3px; padding:6px 5px; }
+  .refresh-icon { width:12px; height:12px; font-size:11px; }
+  .stars { font-size:9px; }
+  .source-link { font-size:9px; }
   video { min-height:90px; }
 }
 </style>
 </head>
 <body>
 
-<header>
-  <b>Norte Surf Cams</b><br>
-  <span>🟢 17 online | 🔴 7 offline</span>
+<header class="header-bar">
+  <span class="header-line">Norte Surf Cams | 🟢 17 online | 🔴 7 offline |</span>
   <button class="refresh-all-icon" onclick="refreshAll()" title="Refresh all">↻</button>
 </header>
 
@@ -223,8 +246,11 @@ a { color:#8ecbff; }
   <video id="video0" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">⏱ loading</span>
-    <span class="stars">☆☆☆☆☆</span>
+    <span class="sep">|</span>
+    <span class="stars">★★★★☆</span>
+    <span class="sep">|</span>
     <button class="refresh-icon" onclick="refreshCam('video0')" title="Refresh">↻</button>
+    <span class="sep">|</span>
     <a class="source-link" href="https://surftotal.com/camaras-report/minho/moledo" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -234,8 +260,11 @@ a { color:#8ecbff; }
   <video id="video1" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">⏱ loading</span>
-    <span class="stars">☆☆☆☆☆</span>
+    <span class="sep">|</span>
+    <span class="stars">★★★☆☆</span>
+    <span class="sep">|</span>
     <button class="refresh-icon" onclick="refreshCam('video1')" title="Refresh">↻</button>
+    <span class="sep">|</span>
     <a class="source-link" href="https://surftotal.com/camaras-report/minho/vila-praia-ancora" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -245,8 +274,11 @@ a { color:#8ecbff; }
   <video id="video2" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">⏱ loading</span>
-    <span class="stars">☆☆☆☆☆</span>
+    <span class="sep">|</span>
+    <span class="stars">★★★☆☆</span>
+    <span class="sep">|</span>
     <button class="refresh-icon" onclick="refreshCam('video2')" title="Refresh">↻</button>
+    <span class="sep">|</span>
     <a class="source-link" href="https://surftotal.com/camaras-report/minho/viana-do-castelo-hd" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -256,8 +288,11 @@ a { color:#8ecbff; }
   <video id="video3" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">⏱ loading</span>
-    <span class="stars">☆☆☆☆☆</span>
+    <span class="sep">|</span>
+    <span class="stars">★★★★☆</span>
+    <span class="sep">|</span>
     <button class="refresh-icon" onclick="refreshCam('video3')" title="Refresh">↻</button>
+    <span class="sep">|</span>
     <a class="source-link" href="https://surftotal.com/camaras-report/minho/ofir" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -267,8 +302,11 @@ a { color:#8ecbff; }
   <video id="video4" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">⏱ loading</span>
-    <span class="stars">☆☆☆☆☆</span>
+    <span class="sep">|</span>
+    <span class="stars">★★★☆☆</span>
+    <span class="sep">|</span>
     <button class="refresh-icon" onclick="refreshCam('video4')" title="Refresh">↻</button>
+    <span class="sep">|</span>
     <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/agucadoura" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -278,8 +316,11 @@ a { color:#8ecbff; }
   <video id="video5" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">⏱ loading</span>
-    <span class="stars">☆☆☆☆☆</span>
+    <span class="sep">|</span>
+    <span class="stars">★★☆☆☆</span>
+    <span class="sep">|</span>
     <button class="refresh-icon" onclick="refreshCam('video5')" title="Refresh">↻</button>
+    <span class="sep">|</span>
     <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/povoa-de-varzim-ferrari" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -289,8 +330,11 @@ a { color:#8ecbff; }
   <video id="video6" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">⏱ loading</span>
-    <span class="stars">☆☆☆☆☆</span>
+    <span class="sep">|</span>
+    <span class="stars">★★★☆☆</span>
+    <span class="sep">|</span>
     <button class="refresh-icon" onclick="refreshCam('video6')" title="Refresh">↻</button>
+    <span class="sep">|</span>
     <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/azurara" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -300,8 +344,11 @@ a { color:#8ecbff; }
   <video id="video7" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">⏱ loading</span>
-    <span class="stars">☆☆☆☆☆</span>
+    <span class="sep">|</span>
+    <span class="stars">★★☆☆☆</span>
+    <span class="sep">|</span>
     <button class="refresh-icon" onclick="refreshCam('video7')" title="Refresh">↻</button>
+    <span class="sep">|</span>
     <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -311,8 +358,11 @@ a { color:#8ecbff; }
   <video id="video8" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">⏱ loading</span>
-    <span class="stars">☆☆☆☆☆</span>
+    <span class="sep">|</span>
+    <span class="stars">★★☆☆☆</span>
+    <span class="sep">|</span>
     <button class="refresh-icon" onclick="refreshCam('video8')" title="Refresh">↻</button>
+    <span class="sep">|</span>
     <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo-meia-laranja" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -322,8 +372,11 @@ a { color:#8ecbff; }
   <video id="video9" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">⏱ loading</span>
-    <span class="stars">☆☆☆☆☆</span>
+    <span class="sep">|</span>
+    <span class="stars">★★☆☆☆</span>
+    <span class="sep">|</span>
     <button class="refresh-icon" onclick="refreshCam('video9')" title="Refresh">↻</button>
+    <span class="sep">|</span>
     <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-da-palmeira" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -333,8 +386,11 @@ a { color:#8ecbff; }
   <video id="video10" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">⏱ loading</span>
-    <span class="stars">☆☆☆☆☆</span>
+    <span class="sep">|</span>
+    <span class="stars">★★☆☆☆</span>
+    <span class="sep">|</span>
     <button class="refresh-icon" onclick="refreshCam('video10')" title="Refresh">↻</button>
+    <span class="sep">|</span>
     <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-hd" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -344,8 +400,11 @@ a { color:#8ecbff; }
   <video id="video11" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">⏱ loading</span>
-    <span class="stars">☆☆☆☆☆</span>
+    <span class="sep">|</span>
+    <span class="stars">★★★☆☆</span>
+    <span class="sep">|</span>
     <button class="refresh-icon" onclick="refreshCam('video11')" title="Refresh">↻</button>
+    <span class="sep">|</span>
     <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-vagas-bar" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -355,8 +414,11 @@ a { color:#8ecbff; }
   <video id="video12" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">⏱ loading</span>
-    <span class="stars">☆☆☆☆☆</span>
+    <span class="sep">|</span>
+    <span class="stars">★★★☆☆</span>
+    <span class="sep">|</span>
     <button class="refresh-icon" onclick="refreshCam('video12')" title="Refresh">↻</button>
+    <span class="sep">|</span>
     <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-hd" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -366,8 +428,11 @@ a { color:#8ecbff; }
   <video id="video13" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">⏱ loading</span>
-    <span class="stars">☆☆☆☆☆</span>
+    <span class="sep">|</span>
+    <span class="stars">★★★☆☆</span>
+    <span class="sep">|</span>
     <button class="refresh-icon" onclick="refreshCam('video13')" title="Refresh">↻</button>
+    <span class="sep">|</span>
     <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-vista-aerea" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -377,8 +442,11 @@ a { color:#8ecbff; }
   <video id="video14" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">⏱ loading</span>
-    <span class="stars">☆☆☆☆☆</span>
+    <span class="sep">|</span>
+    <span class="stars">★★★★☆</span>
+    <span class="sep">|</span>
     <button class="refresh-icon" onclick="refreshCam('video14')" title="Refresh">↻</button>
+    <span class="sep">|</span>
     <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-silvalde" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -388,8 +456,11 @@ a { color:#8ecbff; }
   <video id="video15" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">⏱ loading</span>
-    <span class="stars">☆☆☆☆☆</span>
+    <span class="sep">|</span>
+    <span class="stars">★★★☆☆</span>
+    <span class="sep">|</span>
     <button class="refresh-icon" onclick="refreshCam('video15')" title="Refresh">↻</button>
+    <span class="sep">|</span>
     <a class="source-link" href="https://surftotal.com/camaras-report/aveiro/cortegaca-hd" target="_blank">Surftotal</a>
   </div>
 </div>
@@ -399,31 +470,68 @@ a { color:#8ecbff; }
   <video id="video16" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">⏱ loading</span>
-    <span class="stars">☆☆☆☆☆</span>
+    <span class="sep">|</span>
+    <span class="stars">★★★☆☆</span>
+    <span class="sep">|</span>
     <button class="refresh-icon" onclick="refreshCam('video16')" title="Refresh">↻</button>
+    <span class="sep">|</span>
     <a class="source-link" href="https://surftotal.com/camaras-report/figueira-da-foz/praia-do-cabedelo-hd" target="_blank">Surftotal</a>
   </div>
 </div>
 </div>
 
-<h2 style="padding-left:12px">⚠️ Offline / unavailable</h2>
+<h2 style="padding-left:12px">⚠️ Offline Cameras</h2>
 <div class="offline-list">
-<div class="offline-item"><a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/praia-da-arvore-areal" target="_blank">Praia de Árvore - Areal HD</a></div>
-<div class="offline-item"><a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/pedras-do-corgo" target="_blank">Pedras do Corgo - Melanina HD</a></div>
-<div class="offline-item"><a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabo-do-mundo-hd" target="_blank">Cabo do Mundo HD</a></div>
-<div class="offline-item"><a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-kodak-aterro" target="_blank">Leça - L'Kodak (Aterro) HD</a></div>
-<div class="offline-item"><a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabedelo-do-porto" target="_blank">Cabedelo do Porto</a></div>
-<div class="offline-item"><a href="https://surftotal.com/camaras-report/aveiro/praia-da-barra-norte-hd" target="_blank">Praia da Barra Norte HD</a></div>
-<div class="offline-item"><a href="https://surftotal.com/camaras-report/aveiro/mira" target="_blank">Mira</a></div>
+
+<div class="offline-item">
+  <span>Praia de Árvore - Areal HD</span>
+  <span class="sep">|</span>
+  <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/praia-da-arvore-areal" target="_blank">Surftotal</a>
+</div>
+
+<div class="offline-item">
+  <span>Pedras do Corgo - Melanina HD</span>
+  <span class="sep">|</span>
+  <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/pedras-do-corgo" target="_blank">Surftotal</a>
+</div>
+
+<div class="offline-item">
+  <span>Cabo do Mundo HD</span>
+  <span class="sep">|</span>
+  <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabo-do-mundo-hd" target="_blank">Surftotal</a>
+</div>
+
+<div class="offline-item">
+  <span>Leça - L'Kodak (Aterro) HD</span>
+  <span class="sep">|</span>
+  <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-kodak-aterro" target="_blank">Surftotal</a>
+</div>
+
+<div class="offline-item">
+  <span>Cabedelo do Porto</span>
+  <span class="sep">|</span>
+  <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabedelo-do-porto" target="_blank">Surftotal</a>
+</div>
+
+<div class="offline-item">
+  <span>Praia da Barra Norte HD</span>
+  <span class="sep">|</span>
+  <a href="https://surftotal.com/camaras-report/aveiro/praia-da-barra-norte-hd" target="_blank">Surftotal</a>
+</div>
+
+<div class="offline-item">
+  <span>Mira</span>
+  <span class="sep">|</span>
+  <a href="https://surftotal.com/camaras-report/aveiro/mira" target="_blank">Surftotal</a>
+</div>
 
 </div>
 
 <hr style="margin:20px 12px;border-color:#333">
 
-<div style="padding:12px;font-size:12px;color:#999;text-align:center;">
-  Surf camera streams and camera information are provided by
+<div class="footer-credit">
+  Camera data courtesy of
   <a href="https://surftotal.com" target="_blank">Surftotal</a>.
-  Please visit the original website for full surf reports, forecasts and camera access.
 </div>
 
 </body>

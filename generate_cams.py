@@ -7,41 +7,37 @@ HEADERS = {"User-Agent": "Mozilla/5.0"}
 WORKER_URL = "https://surfcams.polarx0.workers.dev"
 
 CAMS = {
-    "Moledo HD": {"key": "moledo", "page": "https://surftotal.com/camaras-report/minho/moledo"},
-    "Vila Praia de Âncora HD": {"key": "ancora", "page": "https://surftotal.com/camaras-report/minho/vila-praia-ancora"},
-    "Viana do Castelo HD": {"key": "viana_castelo", "page": "https://surftotal.com/camaras-report/minho/viana-do-castelo-hd"},
-    "Ofir": {"key": "ofir", "page": "https://surftotal.com/camaras-report/minho/ofir"},
+    "Moledo HD": {"key": "moledo", "page": "https://surftotal.com/camaras-report/minho/moledo", "stars": "★★★★☆"},
+    "Vila Praia de Âncora HD": {"key": "ancora", "page": "https://surftotal.com/camaras-report/minho/vila-praia-ancora", "stars": "★★★☆☆"},
+    "Viana do Castelo HD": {"key": "viana_castelo", "page": "https://surftotal.com/camaras-report/minho/viana-do-castelo-hd", "stars": "★★★☆☆"},
+    "Ofir": {"key": "ofir", "page": "https://surftotal.com/camaras-report/minho/ofir", "stars": "★★★★☆"},
 
-    "Aguçadoura HD": {"key": "agucadoura", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/agucadoura"},
-    "Póvoa de Varzim - Ferrari HD": {"key": "ferrari", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/povoa-de-varzim-ferrari"},
-    "Azurara HD": {"key": "azurara", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/azurara"},
-    "Praia de Árvore - Areal HD": {"key": "arvore", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/praia-da-arvore-areal"},
-    "Mindelo": {"key": "mindelo", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo"},
-    "Mindelo meia laranja HD": {"key": "mindelo_meia_laranja", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo-meia-laranja"},
-    "Pedras do Corgo - Melanina HD": {"key": "pedras", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/pedras-do-corgo"},
-    "Cabo do Mundo HD": {"key": "cabo", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabo-do-mundo-hd"},
-    "Leça - L'Kodak (Aterro) HD": {"key": "leca_aterro", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-kodak-aterro"},
-    "Leça da Palmeira HD": {"key": "leca", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-da-palmeira"},
-    "Matosinhos HD": {"key": "matosinhos", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-hd"},
-    "Matosinhos - Vagas Bar HD": {"key": "vagas", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-vagas-bar"},
-    "Cabedelo do Porto": {"key": "cabedelo", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabedelo-do-porto"},
-    "Espinho HD": {"key": "espinho", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-hd"},
-    "Espinho vista aérea HD": {"key": "espinho_aerea", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-vista-aerea"},
-    "Espinho - Silvalde HD": {"key": "silvalde", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-silvalde"},
+    "Aguçadoura HD": {"key": "agucadoura", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/agucadoura", "stars": "★★★☆☆"},
+    "Póvoa de Varzim - Ferrari HD": {"key": "ferrari", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/povoa-de-varzim-ferrari", "stars": "★★☆☆☆"},
+    "Azurara HD": {"key": "azurara", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/azurara", "stars": "★★★☆☆"},
+    "Praia de Árvore - Areal HD": {"key": "arvore", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/praia-da-arvore-areal", "stars": "★★★☆☆"},
+    "Mindelo": {"key": "mindelo", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo", "stars": "★★☆☆☆"},
+    "Mindelo meia laranja HD": {"key": "mindelo_meia_laranja", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo-meia-laranja", "stars": "★★☆☆☆"},
+    "Pedras do Corgo - Melanina HD": {"key": "pedras", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/pedras-do-corgo", "stars": "★★☆☆☆"},
+    "Cabo do Mundo HD": {"key": "cabo", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabo-do-mundo-hd", "stars": "★★☆☆☆"},
+    "Leça - L'Kodak (Aterro) HD": {"key": "leca_aterro", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-kodak-aterro", "stars": "★★☆☆☆"},
+    "Leça da Palmeira HD": {"key": "leca", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-da-palmeira", "stars": "★★☆☆☆"},
+    "Matosinhos HD": {"key": "matosinhos", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-hd", "stars": "★★☆☆☆"},
+    "Matosinhos - Vagas Bar HD": {"key": "vagas", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-vagas-bar", "stars": "★★★☆☆"},
+    "Cabedelo do Porto": {"key": "cabedelo", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabedelo-do-porto", "stars": "★★☆☆☆"},
+    "Espinho HD": {"key": "espinho", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-hd", "stars": "★★★☆☆"},
+    "Espinho vista aérea HD": {"key": "espinho_aerea", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-vista-aerea", "stars": "★★★☆☆"},
+    "Espinho - Silvalde HD": {"key": "silvalde", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-silvalde", "stars": "★★★★☆"},
 
-    "Cortegaça (Vila do Surf) HD": {"key": "cortegaca_vila", "page": "https://surftotal.com/camaras-report/aveiro/cortegaca-hd"},
-    "Praia da Barra Norte HD": {"key": "barra_norte", "page": "https://surftotal.com/camaras-report/aveiro/praia-da-barra-norte-hd"},
-    "Mira": {"key": "mira", "page": "https://surftotal.com/camaras-report/aveiro/mira"},
-    "Praia do Cabedelo (Figueira da Foz)": {"key": "figueira_cabedelo", "page": "https://surftotal.com/camaras-report/figueira-da-foz/praia-do-cabedelo-hd"},
+    "Cortegaça (Vila do Surf) HD": {"key": "cortegaca_vila", "page": "https://surftotal.com/camaras-report/aveiro/cortegaca-hd", "stars": "★★★☆☆"},
+    "Praia da Barra Norte HD": {"key": "barra_norte", "page": "https://surftotal.com/camaras-report/aveiro/praia-da-barra-norte-hd", "stars": "★★★☆☆"},
+    "Mira": {"key": "mira", "page": "https://surftotal.com/camaras-report/aveiro/mira", "stars": "★★★☆☆"},
+    "Praia do Cabedelo (Figueira da Foz)": {"key": "figueira_cabedelo", "page": "https://surftotal.com/camaras-report/figueira-da-foz/praia-do-cabedelo-hd", "stars": "★★★☆☆"},
 }
 
 def find_m3u8(page_url):
     try:
-        html = requests.get(
-            page_url,
-            headers={**HEADERS, "Referer": page_url},
-            timeout=20
-        ).text
+        html = requests.get(page_url, headers={**HEADERS, "Referer": page_url}, timeout=20).text
         matches = re.findall(r'https?://[^"\']+?\.m3u8[^"\']*', html)
         return matches[0].replace("\\/", "/") if matches else None
     except Exception as e:
@@ -55,15 +51,24 @@ def render_cam(name, idx, data):
   <video id="video{idx}" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <span class="token-info">⏱ loading</span>
+    <span class="sep">|</span>
     <span class="stars">{data.get("stars", "☆☆☆☆☆")}</span>
+    <span class="sep">|</span>
     <button class="refresh-icon" onclick="refreshCam('video{idx}')" title="Refresh">↻</button>
+    <span class="sep">|</span>
     <a class="source-link" href="{data["page"]}" target="_blank">Surftotal</a>
   </div>
 </div>
 """
 
 def render_offline(name, data):
-    return f'<div class="offline-item"><a href="{data["page"]}" target="_blank">{name}</a></div>\n'
+    return f"""
+<div class="offline-item">
+  <span>{name}</span>
+  <span class="sep">|</span>
+  <a href="{data["page"]}" target="_blank">Surftotal</a>
+</div>
+"""
 
 online_names = []
 offline_names = []
@@ -147,11 +152,7 @@ function updateTokenInfo(videoId, generatedAt, servedAt) {{
   }}
 
   tick();
-
-  if (tokenTimers[videoId]) {{
-    clearInterval(tokenTimers[videoId]);
-  }}
-
+  if (tokenTimers[videoId]) clearInterval(tokenTimers[videoId]);
   tokenTimers[videoId] = setInterval(tick, 1000);
 }}
 
@@ -162,11 +163,7 @@ async function fetchFreshStream(camKey) {{
   );
 
   const data = await res.json();
-
-  if (!res.ok || !data.stream) {{
-    throw new Error(data.error || "No stream returned");
-  }}
-
+  if (!res.ok || !data.stream) throw new Error(data.error || "No stream returned");
   return data;
 }}
 
@@ -175,7 +172,6 @@ async function startOrRefreshCam(videoId) {{
   const card = video?.closest(".cam");
   const camKey = card?.dataset.key;
   const el = card?.querySelector(".token-info");
-
   if (!video || !camKey) return;
 
   try {{
@@ -217,40 +213,34 @@ html = f"""<!doctype html>
 {js}
 <style>
 body {{ margin:0; font-family:Arial,sans-serif; background:#111; color:#eee; }}
-header {{ padding:10px 12px; background:#1b1b1b; position:sticky; top:0; z-index:10; }}
-button {{ margin:4px; padding:7px 10px; cursor:pointer; border-radius:6px; border:0; }}
 
-.refresh-all-icon {{
-  display:inline-flex;
+.header-bar {{
+  display:flex;
   align-items:center;
   justify-content:center;
-  width:28px;
-  height:28px;
-  padding:0;
-  margin-left:8px;
-  border:0;
-  background:transparent;
-  color:#8ecbff;
-  font-size:24px;
-  font-weight:bold;
-  vertical-align:middle;
+  gap:4px;
+  padding:10px 12px;
+  background:#1b1b1b;
+  position:sticky;
+  top:0;
+  z-index:10;
 }}
 
-.refresh-icon {{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  width:18px;
-  height:18px;
+.header-line {{
+  color:#ddd;
+  font-size:14px;
+  white-space:nowrap;
+}}
+
+.refresh-all-icon {{
+  width:20px;
+  height:20px;
   padding:0;
-  margin:0;
   border:0;
   background:transparent;
   color:#8ecbff;
-  font-size:15px;
-  font-weight:bold;
+  font-size:18px;
   cursor:pointer;
-  flex-shrink:0;
 }}
 
 .grid {{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; padding:8px; }}
@@ -261,37 +251,75 @@ video {{ width:100%; background:#000; display:block; min-height:120px; }}
 .cam-footer {{
   display:flex;
   align-items:center;
-  gap:5px;
-  padding:7px 10px 9px;
-  font-size:12px;
+  justify-content:center;
+  gap:4px;
+  padding:7px 8px;
+  font-size:11px;
   white-space:nowrap;
-  overflow:hidden;
 }}
 
+.sep {{ color:#666; flex-shrink:0; }}
 .token-info {{ color:#ddd; flex-shrink:0; }}
-.stars {{ color:#ffd36a; font-size:11px; flex-shrink:0; }}
-.source-link {{ color:#8ecbff; margin-left:auto; flex-shrink:0; }}
+.stars {{ color:#ffd36a; flex-shrink:0; }}
+
+.refresh-icon {{
+  width:14px;
+  height:14px;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:#8ecbff;
+  font-size:13px;
+  cursor:pointer;
+  flex-shrink:0;
+}}
+
+.source-link {{
+  color:#8ecbff;
+  text-decoration:none;
+  flex-shrink:0;
+}}
+
 a {{ color:#8ecbff; }}
 .bad {{ padding:12px; color:#ffb3b3; }}
+
 .offline-list {{ padding:0 12px 20px; }}
-.offline-item {{ padding:8px 10px; background:#222; margin-bottom:6px; border-radius:8px; }}
+.offline-item {{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:8px 10px;
+  background:#222;
+  margin-bottom:6px;
+  border-radius:8px;
+  font-size:12px;
+}}
+
+.footer-credit {{
+  padding:12px;
+  font-size:12px;
+  color:#999;
+  text-align:center;
+}}
 
 @media (max-width:600px) {{
+  .header-line {{ font-size:11px; }}
+  .refresh-all-icon {{ width:18px; height:18px; font-size:15px; }}
+
   .grid {{ grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; padding:6px; }}
   .cam h2 {{ font-size:11px; padding:6px 7px; }}
-  .cam-footer {{ font-size:10px; gap:3px; flex-wrap:nowrap; }}
-  .refresh-icon {{ width:16px; height:16px; font-size:13px; }}
-  .stars {{ font-size:10px; }}
-  .source-link {{ font-size:10px; }}
+  .cam-footer {{ font-size:9px; gap:3px; padding:6px 5px; }}
+  .refresh-icon {{ width:12px; height:12px; font-size:11px; }}
+  .stars {{ font-size:9px; }}
+  .source-link {{ font-size:9px; }}
   video {{ min-height:90px; }}
 }}
 </style>
 </head>
 <body>
 
-<header>
-  <b>Norte Surf Cams</b><br>
-  <span>🟢 {len(online_names)} online | 🔴 {len(offline_names)} offline</span>
+<header class="header-bar">
+  <span class="header-line">Norte Surf Cams | 🟢 {len(online_names)} online | 🔴 {len(offline_names)} offline |</span>
   <button class="refresh-all-icon" onclick="refreshAll()" title="Refresh all">↻</button>
 </header>
 
@@ -307,7 +335,7 @@ else:
     html += '<div class="bad">No cameras are currently online.</div>\n'
 
 html += """
-<h2 style="padding-left:12px">⚠️ Offline / unavailable</h2>
+<h2 style="padding-left:12px">⚠️ Offline Cameras</h2>
 <div class="offline-list">
 """
 
@@ -319,10 +347,9 @@ html += """
 
 <hr style="margin:20px 12px;border-color:#333">
 
-<div style="padding:12px;font-size:12px;color:#999;text-align:center;">
-  Surf camera streams and camera information are provided by
+<div class="footer-credit">
+  Camera data courtesy of
   <a href="https://surftotal.com" target="_blank">Surftotal</a>.
-  Please visit the original website for full surf reports, forecasts and camera access.
 </div>
 
 </body>
