@@ -213,46 +213,28 @@ html = f"""<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Norte Surf Cams</title>
-/<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 {js}
 <style>
 body {{ margin:0; font-family:Arial,sans-serif; background:#111; color:#eee; }}
 header {{ padding:10px 12px; background:#1b1b1b; position:sticky; top:0; z-index:10; }}
 button {{ margin:4px; padding:7px 10px; cursor:pointer; border-radius:6px; border:0; }}
 
-.header-bar {
-  display:flex;
+.refresh-all-icon {{
+  display:inline-flex;
   align-items:center;
-  gap:8px;
-  padding:10px 12px;
-  background:#1b1b1b;
-  position:sticky;
-  top:0;
-  z-index:10;
-}
-
-.header-title {
-  font-size:18px;
-  font-weight:bold;
-}
-
-.header-stats {
-  color:#ddd;
-  font-size:13px;
-}
-
-.refresh-all-icon {
-  margin-left:auto;
-  width:24px;
-  height:24px;
+  justify-content:center;
+  width:28px;
+  height:28px;
   padding:0;
+  margin-left:8px;
   border:0;
   background:transparent;
   color:#8ecbff;
-  font-size:20px;
+  font-size:24px;
   font-weight:bold;
-  cursor:pointer;
-}
+  vertical-align:middle;
+}}
 
 .refresh-icon {{
   display:inline-flex;
@@ -300,27 +282,17 @@ a {{ color:#8ecbff; }}
   .cam-footer {{ font-size:10px; gap:3px; flex-wrap:nowrap; }}
   .refresh-icon {{ width:16px; height:16px; font-size:13px; }}
   .stars {{ font-size:10px; }}
-  .header-title {
-    font-size:14px;
-  }
-  .header-stats {
-    font-size:11px;
-  } 
-.source-link {{ font-size:10px; }}
+  .source-link {{ font-size:10px; }}
   video {{ min-height:90px; }}
 }}
 </style>
 </head>
 <body>
 
-<header class="header-bar">
-  <span class="header-title">Norte Surf Cams |</span>
-  <span class="header-stats">
-    🟢 {len(online_names)} online | 🔴 {len(offline_names)} offline |
-  </span>
-  <button class="refresh-all-icon"
-          onclick="refreshAll()"
-          title="Refresh all">↻</button>
+<header>
+  <b>Norte Surf Cams</b><br>
+  <span>🟢 {len(online_names)} online | 🔴 {len(offline_names)} offline</span>
+  <button class="refresh-all-icon" onclick="refreshAll()" title="Refresh all">↻</button>
 </header>
 
 <h2 style="padding-left:12px">🌊 Online Cameras</h2>
