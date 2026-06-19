@@ -314,9 +314,9 @@ a {{ color:#8ecbff; }}
 <body>
 
 <header class="header-bar">
-  <span class="header-title">Norte Surf Cams</span>
+  <span class="header-title">Norte Surf Cams |</span>
   <span class="header-stats">
-    🟢 {len(online_names)} online | 🔴 {len(offline_names)} offline
+    🟢 {len(online_names)} online | 🔴 {len(offline_names)} offline |
   </span>
   <button class="refresh-all-icon"
           onclick="refreshAll()"
