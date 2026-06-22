@@ -171,10 +171,11 @@ function updateForecastInCard(card, data) {
 function updateDashboardStats() {
   const cards = Array.from(document.querySelectorAll(".cam"));
   const liveCount = cards.length;
-  const liveCountEl = document.getElementById("live-camera-count");
+  const totalCount = liveCount + document.querySelectorAll(".offline-item").length;
   const liveStatusEl = document.getElementById("live-status-count");
-  if (liveCountEl) liveCountEl.textContent = liveCount;
+  const totalStatusEl = document.getElementById("total-camera-count");
   if (liveStatusEl) liveStatusEl.textContent = liveCount;
+  if (totalStatusEl) totalStatusEl.textContent = totalCount;
   const rated = cards.map(card => ({
     name: card.dataset.name,
     rating: Number(card.dataset.rating || 0),
@@ -182,9 +183,7 @@ function updateDashboardStats() {
   })).filter(item => item.rating);
   const best = rated.sort((a, b) => b.rating - a.rating || b.energy - a.energy)[0];
   const bestEl = document.getElementById("best-spot");
-  const goodEl = document.getElementById("good-spots");
   if (bestEl && best) bestEl.textContent = best.name.replace(" HD", "");
-  if (goodEl) goodEl.textContent = rated.filter(item => item.rating >= 4).length || "—";
 }
 
 function filterCams() {
@@ -410,7 +409,6 @@ window.addEventListener("focus", reloadAfterLongIdle);
 
 window.addEventListener("load", () => {
   setupAnalytics();
-  document.getElementById("local-date").textContent = new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long" }).format(new Date());
   updateDashboardStats();
   refreshAll();
   loadAllForecasts();
@@ -604,23 +602,19 @@ a { color:#8ecbff; }
 * { box-sizing:border-box; }
 body { min-height:100vh; font-family:Arial,sans-serif; background:#0a1513; color:var(--ink); }
 body:before { display:none; }
-.header-bar { height:58px; padding:0 clamp(16px,3vw,40px); justify-content:space-between; background:#0a1513; border-bottom:1px solid var(--line); }
+.header-bar { height:58px; padding:0 clamp(16px,3vw,40px); justify-content:flex-start; gap:20px; background:#0a1513; border-bottom:1px solid var(--line); }
 .brand { display:flex; align-items:center; gap:9px; font-size:14px; font-weight:700; }
 .brand-mark { color:var(--mint); font-size:18px; }
-.header-actions { display:flex; align-items:center; gap:14px; }
-.live-status { display:flex; align-items:center; gap:7px; color:var(--muted); font-size:13px; }
+.header-search { flex:1; max-width:300px; margin-left:8px; }
+.header-actions { display:flex; align-items:center; gap:16px; margin-left:auto; min-width:0; }
+.best-status { display:flex; align-items:baseline; gap:5px; min-width:0; color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.05em; }
+.best-status strong { overflow:hidden; max-width:150px; color:var(--ink); font-size:12px; text-overflow:ellipsis; white-space:nowrap; text-transform:none; letter-spacing:0; }
+.live-status { display:flex; align-items:center; gap:4px; color:var(--muted); font-size:12px; white-space:nowrap; }
 .live-status:before { content:""; width:7px; height:7px; border-radius:50%; background:#5ce09b; box-shadow:0 0 0 5px rgba(92,224,155,.1); }
 .refresh-all-icon { width:30px; height:30px; border:1px solid var(--line); border-radius:6px; color:var(--ink); background:transparent; transition:.2s; }
 .refresh-all-icon:hover { border-color:var(--mint); color:var(--mint); }
-.overview { display:flex; align-items:center; justify-content:space-between; gap:24px; max-width:1440px; margin:0 auto; padding:22px clamp(16px,3vw,40px) 16px; }
-.eyebrow { margin:0; color:var(--muted); font-size:12px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
-.stats { display:flex; align-items:center; gap:24px; }
-.stat { min-width:74px; }
-.stat + .stat { padding-left:24px; border-left:1px solid var(--line); }
-.stat-value { display:block; overflow:hidden; max-width:150px; color:var(--ink); font-size:16px; font-weight:700; text-overflow:ellipsis; white-space:nowrap; }
-.stat-label { display:block; margin-top:3px; color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.07em; }
-.toolbar { max-width:1440px; margin:0 auto; padding:0 clamp(16px,3vw,40px) 18px; display:flex; align-items:center; gap:8px; }
-.search-wrap { position:relative; width:280px; max-width:100%; }
+.toolbar { max-width:1440px; margin:0 auto; padding:18px clamp(16px,3vw,40px) 12px; display:flex; align-items:center; gap:8px; }
+.search-wrap { position:relative; width:100%; }
 .search-wrap span { position:absolute; left:11px; top:8px; color:var(--muted); }
 #cam-search { width:100%; height:34px; padding:0 12px 0 32px; border:1px solid var(--line); border-radius:6px; outline:none; background:var(--panel); color:var(--ink); font:12px Arial,sans-serif; }
 #cam-search:focus { border-color:var(--mint); box-shadow:0 0 0 3px rgba(132,224,198,.09); }
@@ -649,26 +643,24 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
 #empty-state { margin:10px auto 50px; color:var(--muted); text-align:center; }
 [hidden] { display:none !important; }
 @media (max-width:980px) { .grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
-@media (max-width:600px) { .header-bar { height:52px; padding:0 14px; } .live-status { display:none; } .overview { align-items:flex-start; flex-direction:column; gap:14px; padding:18px 14px 14px; } .stats { width:100%; gap:0; } .stat { flex:1; min-width:0; } .stat + .stat { margin-left:12px; padding-left:12px; } .stat-value { font-size:14px; } .toolbar { padding:0 14px 14px; flex-wrap:wrap; } .search-wrap { width:100%; } .filter-chip { flex:1; } .grid { grid-template-columns:1fr; gap:10px; padding:0 10px 32px; } .cam h2 { padding:9px 10px; font-size:12px; } .cam-footer { padding:7px 9px; font-size:9px; overflow-x:visible; } .source-link { margin-left:auto; } video { min-height:0; } }
+@media (max-width:700px) { .header-bar { height:auto; min-height:52px; padding:8px 12px; gap:10px; flex-wrap:wrap; } .brand { flex:1; } .header-actions { gap:10px; margin-left:0; } .best-status strong { max-width:90px; } .live-status { font-size:11px; } .live-status:before { width:6px; height:6px; box-shadow:none; } .refresh-all-icon { width:28px; height:28px; } .header-search { order:3; flex-basis:100%; max-width:none; margin-left:0; } .toolbar { padding:12px 12px 10px; } .filter-chip { flex:1; } .grid { grid-template-columns:1fr; gap:10px; padding:0 10px 32px; } .cam h2 { padding:9px 10px; font-size:12px; } .cam-footer { padding:7px 9px; font-size:9px; overflow-x:visible; } .source-link { margin-left:auto; } video { min-height:0; } }
 </style>
 </head>
 <body>
 
 <header class="header-bar">
   <div class="brand"><span class="brand-mark">≈</span><span>Norte / Surf</span></div>
-  <div class="header-actions"><span class="live-status"><span id="live-status-count">17</span> cameras live</span><button class="refresh-all-icon" onclick="refreshAll()" title="Refresh all cameras">↻</button></div>
+  <div class="header-search">
+    <label class="search-wrap"><span>⌕</span><input id="cam-search" type="search" placeholder="Find a spot…" aria-label="Find a surf spot" oninput="filterCams()"></label>
+  </div>
+  <div class="header-actions">
+    <span class="best-status">Best <strong id="best-spot">—</strong></span>
+    <span class="live-status"><span id="live-status-count">18</span>/<span id="total-camera-count">24</span> online</span>
+    <button class="refresh-all-icon" onclick="refreshAll()" title="Refresh all cameras">↻</button>
+  </div>
 </header>
 
-<section class="overview">
-  <p class="eyebrow" id="local-date">Northern Portugal</p>
-  <div class="stats">
-    <div class="stat"><span class="stat-value" id="live-camera-count">17</span><span class="stat-label">Online</span></div>
-    <div class="stat"><span class="stat-value" id="good-spots">—</span><span class="stat-label">4+ stars</span></div>
-    <div class="stat"><span class="stat-value" id="best-spot">—</span><span class="stat-label">Best spot</span></div>
-  </div>
-</section>
 <div class="toolbar">
-  <label class="search-wrap"><span>⌕</span><input id="cam-search" type="search" placeholder="Find a spot…" aria-label="Find a surf spot" oninput="filterCams()"></label>
   <button class="filter-chip active" data-filter="all" onclick="setFilter(this)">All cameras</button>
   <button class="filter-chip" data-filter="best" onclick="setFilter(this)">Best now</button>
 </div>
