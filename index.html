@@ -1,8 +1,9 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="google-analytics-id" content="G-JW7WY9PQH7">
 <title>Norte Surf Cams</title>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
@@ -13,6 +14,9 @@ const tokenTimers = {};
 const forecastCache = {};
 const TOKEN_LIFETIME_SECONDS = 300;
 const AUTO_REFRESH_SECONDS = 270;
+const LONG_IDLE_SECONDS = 300;
+let pageHiddenAt = null;
+let idleReloadStarted = false;
 
 function formatDuration(seconds) {
   const min = Math.floor(seconds / 60);
@@ -143,6 +147,49 @@ function updateForecastInCard(card, data) {
   if (starsEl) starsEl.textContent = data.stars || "☆☆☆☆☆";
   if (energyEl) energyEl.textContent = (data.energyKj ?? "--") + " kJ";
   if (windEl) windEl.textContent = ((data.wind && data.wind.speedMs != null) ? data.wind.speedMs : "--") + " m/s";
+  const rating = (data.stars || "").split("★").length - 1;
+  card.dataset.rating = rating;
+  card.classList.toggle("is-pumping", rating >= 4);
+  updateDashboardStats();
+}
+
+function updateDashboardStats() {
+  const cards = Array.from(document.querySelectorAll(".cam"));
+  const liveCount = cards.length;
+  const liveCountEl = document.getElementById("live-camera-count");
+  const liveStatusEl = document.getElementById("live-status-count");
+  if (liveCountEl) liveCountEl.textContent = liveCount;
+  if (liveStatusEl) liveStatusEl.textContent = liveCount;
+  const rated = cards.map(card => ({
+    name: card.dataset.name,
+    rating: Number(card.dataset.rating || 0),
+    energy: parseFloat(card.querySelector(".energy-pill")?.textContent) || 0
+  })).filter(item => item.rating);
+  const best = rated.sort((a, b) => b.rating - a.rating || b.energy - a.energy)[0];
+  const bestEl = document.getElementById("best-spot");
+  const goodEl = document.getElementById("good-spots");
+  if (bestEl && best) bestEl.textContent = best.name.replace(" HD", "");
+  if (goodEl) goodEl.textContent = rated.filter(item => item.rating >= 4).length || "—";
+}
+
+function filterCams() {
+  const query = (document.getElementById("cam-search")?.value || "").trim().toLowerCase();
+  const filter = document.querySelector(".filter-chip.active")?.dataset.filter || "all";
+  let visible = 0;
+  document.querySelectorAll(".cam").forEach(card => {
+    const matchesSearch = (card.dataset.name || "").toLowerCase().includes(query);
+    const matchesFilter = filter === "all" || (filter === "best" && Number(card.dataset.rating || 0) >= 4);
+    card.hidden = !(matchesSearch && matchesFilter);
+    if (!card.hidden) visible++;
+  });
+  const empty = document.getElementById("empty-state");
+  if (empty) empty.hidden = visible !== 0;
+}
+
+function setFilter(button) {
+  document.querySelectorAll(".filter-chip").forEach(item => item.classList.remove("active"));
+  button.classList.add("active");
+  filterCams();
 }
 
 async function loadForecastForCard(card) {
@@ -193,31 +240,31 @@ async function showForecast(spotKey) {
     '<div class="modal-row"><b>Wave</b><span>' +
       fmt(data.wave?.heightM, " m") + ' @ ' +
       fmt(data.wave?.periodS, " s") + ' ' +
-      (data.wave?.directionText || "") +
+      formatDirection(data.wave) +
     '</span></div>' +
 
     '<div class="modal-row"><b>Swell</b><span>' +
       fmt(data.swell?.heightM, " m") + ' @ ' +
       fmt(data.swell?.periodS, " s") + ' ' +
-      (data.swell?.directionText || "") +
+      formatDirection(data.swell) +
     '</span></div>' +
 
     '<div class="modal-row"><b>Wind</b><span>' +
       fmt(data.wind?.speedMs, " m/s") + ' ' +
-      (data.wind?.directionText || "") +
+      formatDirection(data.wind) +
     '</span></div>' +
 
     '<div class="modal-row"><b>Effect</b><span>' +
       (data.wind?.effect || "unknown") +
     '</span></div>' +
 
-    '<div class="modal-row"><b>Tide</b><span>' +
-      (data.tide?.state || "unknown") +
-      (data.tide?.heightM != null ? " (" + data.tide.heightM + " m)" : "") +
+    '<div class="modal-row tide-row"><b>Tide</b><span>' +
+      formatTidePhase(data.tide) +
+      (data.tide?.heightM != null ? " · " + data.tide.heightM + " m" : "") +
     '</span></div>' +
 
     '<div class="modal-row"><b>Updated</b><span>' +
-      (data.updatedLocal || "unknown") +
+      formatUpdatedAgo(data) +
     '</span></div>';
 
   modal.classList.add("show");
@@ -231,7 +278,84 @@ function fmt(value, suffix) {
   return value == null ? "--" : value + suffix;
 }
 
+function directionArrow(degrees) {
+  if (!Number.isFinite(Number(degrees))) return "";
+  return ["↑", "↗", "→", "↘", "↓", "↙", "←", "↖"][Math.round(Number(degrees) / 45) % 8];
+}
+
+function formatDirection(item) {
+  if (!item) return "";
+  const arrow = directionArrow(item.directionDeg);
+  return [arrow, item.directionText].filter(Boolean).join(" ");
+}
+
+function formatUpdatedAgo(data) {
+  const timestamp = Number(data?.generatedAt) * 1000 || Date.parse(data?.updatedLocal || "");
+  if (!Number.isFinite(timestamp)) return "unknown";
+  const minutes = Math.max(0, Math.floor((Date.now() - timestamp) / 60000));
+  if (minutes < 1) return "just now";
+  return minutes + (minutes === 1 ? " minute ago" : " minutes ago");
+}
+
+function formatClock(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value).slice(0, 5);
+  return new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit" }).format(date);
+}
+
+function formatTidePhase(tide) {
+  if (!tide) return "unknown";
+  const phase = String(tide.phase || tide.state || "").toLowerCase().replaceAll("_", "-");
+  const labels = {
+    low: "Low",
+    "low-to-mid": "Low to mid",
+    "mid-to-high": "Mid to high",
+    high: "High",
+    "high-to-mid": "High to mid",
+    "mid-to-low": "Mid to low",
+    rising: "Low → Mid → High",
+    falling: "High → Mid → Low"
+  };
+  const exactTime = phase === "low"
+    ? formatClock(tide.lowTime || tide.eventTime || tide.time)
+    : phase === "high"
+      ? formatClock(tide.highTime || tide.eventTime || tide.time)
+      : "";
+  return (labels[phase] || tide.state || "unknown") + (exactTime ? " · " + exactTime : "");
+}
+
+function setupAnalytics() {
+  const measurementId = document.querySelector('meta[name="google-analytics-id"]')?.content?.trim();
+  if (!measurementId || !/^G-[A-Z0-9]+$/i.test(measurementId)) return;
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function() { window.dataLayer.push(arguments); };
+  window.gtag("js", new Date());
+  window.gtag("config", measurementId, { anonymize_ip: true });
+  const script = document.createElement("script");
+  script.async = true;
+  script.src = "https://www.googletagmanager.com/gtag/js?id=" + encodeURIComponent(measurementId);
+  document.head.appendChild(script);
+}
+
+function reloadAfterLongIdle() {
+  if (document.hidden || idleReloadStarted || !pageHiddenAt) return;
+  if (Date.now() - pageHiddenAt >= LONG_IDLE_SECONDS * 1000) {
+    idleReloadStarted = true;
+    window.location.reload();
+  }
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) pageHiddenAt = Date.now();
+  else reloadAfterLongIdle();
+});
+window.addEventListener("focus", reloadAfterLongIdle);
+
 window.addEventListener("load", () => {
+  setupAnalytics();
+  document.getElementById("local-date").textContent = new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long" }).format(new Date());
+  updateDashboardStats();
   refreshAll();
   loadAllForecasts();
   setInterval(refreshAll, AUTO_REFRESH_SECONDS * 1000);
@@ -399,11 +523,13 @@ a { color:#8ecbff; }
 }
 
 .footer-credit {
-  padding:12px;
+  padding:12px 18px 30px;
   font-size:12px;
   color:#999;
   text-align:center;
 }
+.footer-credit p { margin:6px 0; }
+.coffee-link { display:inline-flex; align-items:center; margin-top:10px; padding:9px 13px; border:1px solid rgba(132,224,198,.35); border-radius:10px; color:#08211d; background:var(--mint); font-weight:750; text-decoration:none; }
 
 @media (max-width:600px) {
   .header-line { font-size:11px; }
@@ -416,17 +542,84 @@ a { color:#8ecbff; }
   .source-link { font-size:9px; }
   video { min-height:90px; }
 }
+
+/* 2026 dashboard refresh */
+:root { color-scheme:dark; --ink:#edf3f2; --muted:#8b9b98; --panel:#101f1d; --line:rgba(210,235,230,.1); --mint:#8ad7c2; --sun:#eec36b; }
+* { box-sizing:border-box; }
+body { min-height:100vh; font-family:Arial,sans-serif; background:#0a1513; color:var(--ink); }
+body:before { display:none; }
+.header-bar { height:58px; padding:0 clamp(16px,3vw,40px); justify-content:space-between; background:#0a1513; border-bottom:1px solid var(--line); }
+.brand { display:flex; align-items:center; gap:9px; font-size:14px; font-weight:700; }
+.brand-mark { color:var(--mint); font-size:18px; }
+.header-actions { display:flex; align-items:center; gap:14px; }
+.live-status { display:flex; align-items:center; gap:7px; color:var(--muted); font-size:13px; }
+.live-status:before { content:""; width:7px; height:7px; border-radius:50%; background:#5ce09b; box-shadow:0 0 0 5px rgba(92,224,155,.1); }
+.refresh-all-icon { width:30px; height:30px; border:1px solid var(--line); border-radius:6px; color:var(--ink); background:transparent; transition:.2s; }
+.refresh-all-icon:hover { border-color:var(--mint); color:var(--mint); }
+.overview { display:flex; align-items:center; justify-content:space-between; gap:24px; max-width:1440px; margin:0 auto; padding:22px clamp(16px,3vw,40px) 16px; }
+.eyebrow { margin:0; color:var(--muted); font-size:12px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
+.stats { display:flex; align-items:center; gap:24px; }
+.stat { min-width:74px; }
+.stat + .stat { padding-left:24px; border-left:1px solid var(--line); }
+.stat-value { display:block; overflow:hidden; max-width:150px; color:var(--ink); font-size:16px; font-weight:700; text-overflow:ellipsis; white-space:nowrap; }
+.stat-label { display:block; margin-top:3px; color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.07em; }
+.toolbar { max-width:1440px; margin:0 auto; padding:0 clamp(16px,3vw,40px) 18px; display:flex; align-items:center; gap:8px; }
+.search-wrap { position:relative; width:280px; max-width:100%; }
+.search-wrap span { position:absolute; left:11px; top:8px; color:var(--muted); }
+#cam-search { width:100%; height:34px; padding:0 12px 0 32px; border:1px solid var(--line); border-radius:6px; outline:none; background:var(--panel); color:var(--ink); font:12px Arial,sans-serif; }
+#cam-search:focus { border-color:var(--mint); box-shadow:0 0 0 3px rgba(132,224,198,.09); }
+.filter-chip { height:34px; padding:0 12px; border:1px solid var(--line); border-radius:6px; background:transparent; color:var(--muted); cursor:pointer; font:12px Arial,sans-serif; }
+.filter-chip.active { border-color:var(--mint); background:var(--mint); color:#08211d; font-weight:700; }
+.section-heading { max-width:1440px; margin:0 auto !important; padding:8px clamp(16px,3vw,40px) 12px !important; font-size:11px !important; color:var(--muted); letter-spacing:.1em; text-transform:uppercase; }
+.grid { max-width:1440px; margin:0 auto; padding:0 clamp(16px,3vw,40px) 40px; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+.cam { position:relative; background:var(--panel); border:1px solid var(--line); border-radius:8px; transition:border-color .2s; }
+.cam:hover { border-color:rgba(132,224,198,.3); }
+.cam.is-pumping:before { content:"GOOD NOW"; position:absolute; top:12px; right:12px; z-index:2; padding:5px 7px; border-radius:7px; background:var(--mint); color:#06201b; font-size:9px; font-weight:900; letter-spacing:.08em; }
+.cam h2 { padding:10px 12px; font-size:12px; font-weight:600; letter-spacing:0; }
+video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
+.cam-footer { gap:7px; padding:8px 10px; color:var(--muted); font-size:10px; }
+.sep { display:none; }
+.token-info { display:none; }
+.forecast-pill,.energy-pill,.wind-pill { padding:4px 5px; border-radius:4px; background:rgba(255,255,255,.035); }
+.forecast-pill { color:var(--sun); }
+.energy-pill,.wind-pill,.token-info { color:#c5d7d4; }
+.source-link { margin-left:auto; color:var(--mint); }
+.refresh-icon { color:var(--mint); }
+.forecast-modal { backdrop-filter:blur(8px); }
+.forecast-modal-content { width:min(420px,92vw); padding:24px; border:1px solid var(--line); background:#102421; border-radius:20px; }
+.modal-row { padding:11px 0; border-color:var(--line); }
+.offline-list,.footer-credit { max-width:1400px; margin:0 auto; }
+#empty-state { margin:10px auto 50px; color:var(--muted); text-align:center; }
+[hidden] { display:none !important; }
+@media (max-width:980px) { .grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:600px) { .header-bar { height:52px; padding:0 14px; } .live-status { display:none; } .overview { align-items:flex-start; flex-direction:column; gap:14px; padding:18px 14px 14px; } .stats { width:100%; gap:0; } .stat { flex:1; min-width:0; } .stat + .stat { margin-left:12px; padding-left:12px; } .stat-value { font-size:14px; } .toolbar { padding:0 14px 14px; flex-wrap:wrap; } .search-wrap { width:100%; } .filter-chip { flex:1; } .grid { grid-template-columns:1fr; gap:10px; padding:0 10px 32px; } .cam h2 { padding:9px 10px; font-size:12px; } .cam-footer { padding:7px 9px; font-size:9px; overflow-x:visible; } .source-link { margin-left:auto; } video { min-height:0; } }
 </style>
 </head>
 <body>
 
 <header class="header-bar">
-  <span class="header-line">Norte Surf Cams | 🟢 18 online | 🔴 6 offline |</span>
-  <button class="refresh-all-icon" onclick="refreshAll()" title="Refresh all">↻</button>
+  <div class="brand"><span class="brand-mark">≈</span><span>Norte / Surf</span></div>
+  <div class="header-actions"><span class="live-status"><span id="live-status-count">17</span> cameras live</span><button class="refresh-all-icon" onclick="refreshAll()" title="Refresh all cameras">↻</button></div>
 </header>
 
-<h2 style="padding-left:12px">🌊 Online Cameras</h2>
+<section class="overview">
+  <p class="eyebrow" id="local-date">Northern Portugal</p>
+  <div class="stats">
+    <div class="stat"><span class="stat-value" id="live-camera-count">17</span><span class="stat-label">Online</span></div>
+    <div class="stat"><span class="stat-value" id="good-spots">—</span><span class="stat-label">4+ stars</span></div>
+    <div class="stat"><span class="stat-value" id="best-spot">—</span><span class="stat-label">Best spot</span></div>
+  </div>
+</section>
+<div class="toolbar">
+  <label class="search-wrap"><span>⌕</span><input id="cam-search" type="search" placeholder="Find a spot…" aria-label="Find a surf spot" oninput="filterCams()"></label>
+  <button class="filter-chip active" data-filter="all" onclick="setFilter(this)">All cameras</button>
+  <button class="filter-chip" data-filter="best" onclick="setFilter(this)">Best now</button>
+</div>
+
+<h2 class="section-heading">Live surf cameras</h2>
+<p id="empty-state" hidden>No spots found. Try another search.</p>
 <div class="grid">
+<!-- ONLINE_CAMS_START -->
 
 <div class="cam" data-name="Moledo HD" data-key="moledo">
   <h2>Moledo HD</h2>
@@ -751,10 +944,12 @@ a { color:#8ecbff; }
     <a class="source-link" href="https://surftotal.com/camaras-report/figueira-da-foz/praia-do-cabedelo-hd" target="_blank">Surftotal</a>
   </div>
 </div>
+<!-- ONLINE_CAMS_END -->
 </div>
 
 <h2 style="padding-left:12px">⚠️ Offline Cameras</h2>
 <div class="offline-list">
+<!-- OFFLINE_CAMS_START -->
 
 <div class="offline-item">
   <span>Praia de Árvore - Areal HD</span>
@@ -791,14 +986,16 @@ a { color:#8ecbff; }
   <span class="sep">|</span>
   <a href="https://surftotal.com/camaras-report/aveiro/mira" target="_blank">Surftotal</a>
 </div>
+<!-- OFFLINE_CAMS_END -->
 
 </div>
 
 <hr style="margin:20px 12px;border-color:#333">
 
 <div class="footer-credit">
-  Camera data courtesy of
-  <a href="https://surftotal.com" target="_blank">Surftotal</a>.
+  <p>Cameras courtesy of <a href="https://surftotal.com" target="_blank" rel="noopener noreferrer">Surftotal</a>.</p>
+  <p>Marine and weather data by <a href="https://open-meteo.com" target="_blank" rel="noopener noreferrer">Open-Meteo</a>. Tide data by <a href="https://tidecheck.com" target="_blank" rel="noopener noreferrer">TideCheck</a>.</p>
+  <a class="coffee-link" href="https://buymeacoffee.com/polarx01" target="_blank" rel="noopener noreferrer">☕ Buy me a coffee</a>
 </div>
 <div id="forecast-modal" class="forecast-modal" onclick="closeForecastModal()">
   <div class="forecast-modal-content" onclick="event.stopPropagation()">

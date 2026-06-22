@@ -50,8 +50,6 @@ def render_cam(name, idx, data):
   <h2>{name}</h2>
   <video id="video{idx}" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
-    <span class="token-info">⏱ loading</span>
-    <span class="sep">|</span>
     <button class="forecast-pill" onclick="showForecast('{data["key"]}')" title="Forecast">☆☆☆☆☆</button>
     <span class="sep">|</span>
     <button class="energy-pill" onclick="showForecast('{data["key"]}')" title="Forecast energy">-- kJ</button>
@@ -552,6 +550,39 @@ html += """
 </body>
 </html>
 """
+
+template_path = Path("index.html")
+if template_path.exists():
+    template = template_path.read_text(encoding="utf-8")
+
+    def replace_generated_section(source, start_marker, end_marker, content):
+        pattern = re.escape(start_marker) + r".*?" + re.escape(end_marker)
+        replacement = f"{start_marker}\n{content.rstrip()}\n{end_marker}"
+        updated, count = re.subn(pattern, replacement, source, count=1, flags=re.S)
+        if count != 1:
+            raise RuntimeError(f"Missing generated section: {start_marker}")
+        return updated
+
+    online_html = "".join(
+        render_cam(name, idx, CAMS[name])
+        for idx, name in enumerate(online_names)
+    )
+    offline_html = "".join(
+        render_offline(name, CAMS[name])
+        for name in offline_names
+    )
+    html = replace_generated_section(
+        template,
+        "<!-- ONLINE_CAMS_START -->",
+        "<!-- ONLINE_CAMS_END -->",
+        online_html,
+    )
+    html = replace_generated_section(
+        html,
+        "<!-- OFFLINE_CAMS_START -->",
+        "<!-- OFFLINE_CAMS_END -->",
+        offline_html,
+    )
 
 Path("cams.html").write_text(html, encoding="utf-8")
 print("Generated: cams.html")
