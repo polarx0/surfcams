@@ -253,13 +253,13 @@ async function showForecast(spotKey) {
     '<div class="modal-row"><b>Energy</b><span>' + (data.energyKj ?? "--") + ' kJ</span></div>' +
 
     '<div class="modal-row"><b>Wave</b><span>' +
-      formatDirection(data.wave) +
+      formatDirection(data.wave, true) +
       fmt(data.wave?.heightM, " m") + ' @ ' +
       fmt(data.wave?.periodS, " s") +
     '</span></div>' +
 
     '<div class="modal-row"><b>Swell</b><span>' +
-      formatDirection(data.swell) +
+      formatDirection(data.swell, true) +
       fmt(data.swell?.heightM, " m") + ' @ ' +
       fmt(data.swell?.periodS, " s") +
     '</span></div>' +
@@ -293,12 +293,14 @@ function fmt(value, suffix) {
   return value == null ? "--" : value + suffix;
 }
 
-function formatDirection(item) {
+function formatDirection(item, followsWaveTravel = false) {
   const degrees = Number(item?.directionDeg);
   if (!Number.isFinite(degrees)) return "";
   const normalized = ((degrees % 360) + 360) % 360;
-  const label = item.directionText ? item.directionText + " · " + Math.round(normalized) + "°" : Math.round(normalized) + "°";
-  return '<span class="direction-icon" style="--direction:' + normalized + 'deg" title="' + label + '" aria-label="' + label + '">↑</span>';
+  const arrowDegrees = followsWaveTravel ? (normalized + 180) % 360 : normalized;
+  const source = item.directionText ? "From " + item.directionText + " · " : "";
+  const label = source + Math.round(normalized) + "°";
+  return '<span class="direction-icon" style="--direction:' + arrowDegrees + 'deg" title="' + label + '" aria-label="' + label + '">↑</span>';
 }
 
 function formatUpdatedAgo(data) {
