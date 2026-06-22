@@ -15,6 +15,7 @@ const streamRefreshes = {};
 const forecastCache = {};
 const FAVORITES_STORAGE_KEY = "norte-surf-cam-favorites";
 let favoriteKeys = new Set();
+let bestCameraKeys = new Set();
 const TOKEN_LIFETIME_SECONDS = 300;
 const TOKEN_REFRESH_BUFFER_SECONDS = 75;
 const TOKEN_RETRY_SECONDS = 15;
@@ -161,10 +162,13 @@ function updateForecastInCard(card, data) {
   const energyEl = card.querySelector(".energy-pill");
   const windEl = card.querySelector(".wind-pill");
 
-  if (starsEl) starsEl.textContent = data.stars || "☆☆☆☆☆";
+  const rating = ratingFromData(data);
+  if (starsEl) {
+    starsEl.innerHTML = renderStars(rating);
+    starsEl.setAttribute("aria-label", formatRatingLabel(rating));
+  }
   if (energyEl) energyEl.textContent = (data.energyKj ?? "--") + " kJ";
   if (windEl) windEl.textContent = ((data.wind && data.wind.speedMs != null) ? data.wind.speedMs : "--") + " m/s";
-  const rating = (data.stars || "").split("★").length - 1;
   card.dataset.rating = rating;
   card.classList.toggle("is-pumping", rating >= 4);
   updateDashboardStats();
@@ -178,6 +182,17 @@ function updateDashboardStats() {
   const totalStatusEl = document.getElementById("total-camera-count");
   if (liveStatusEl) liveStatusEl.textContent = liveCount;
   if (totalStatusEl) totalStatusEl.textContent = totalCount;
+  const ranked = cards
+    .filter(card => card.dataset.rating !== undefined)
+    .map(card => ({
+      key: card.dataset.key,
+      rating: Number(card.dataset.rating || 0),
+      energy: parseFloat(card.querySelector(".energy-pill")?.textContent) || 0
+    }))
+    .sort((a, b) => b.rating - a.rating || b.energy - a.energy)
+    .slice(0, 3);
+  bestCameraKeys = new Set(ranked.map(item => item.key));
+  if (document.querySelector('.filter-chip.active')?.dataset.filter === "best") filterCams();
 }
 
 function filterCams() {
@@ -187,7 +202,7 @@ function filterCams() {
   document.querySelectorAll(".cam").forEach(card => {
     const matchesSearch = (card.dataset.name || "").toLowerCase().includes(query);
     const matchesFilter = filter === "all"
-      || (filter === "best" && Number(card.dataset.rating || 0) >= 4)
+      || (filter === "best" && bestCameraKeys.has(card.dataset.key))
       || (filter === "favorites" && favoriteKeys.has(card.dataset.key));
     card.hidden = !(matchesSearch && matchesFilter);
     if (!card.hidden) visible++;
@@ -285,7 +300,7 @@ async function showForecast(spotKey) {
 
   body.innerHTML =
     '<div class="modal-title">' + data.name + '</div>' +
-    '<div class="modal-stars">' + (data.stars || "☆☆☆☆☆") + '</div>' +
+    '<div class="modal-stars" aria-label="' + formatRatingLabel(ratingFromData(data)) + '">' + renderStars(ratingFromData(data)) + '</div>' +
 
     '<div class="modal-row"><b>Energy</b><span>' + (data.energyKj ?? "--") + ' kJ</span></div>' +
 
@@ -331,6 +346,30 @@ function closeForecastModal() {
 
 function fmt(value, suffix) {
   return value == null ? "--" : value + suffix;
+}
+
+function normalizeRating(value) {
+  const rating = Number(value);
+  return Number.isFinite(rating) ? Math.max(0, Math.min(5, Math.round(rating * 2) / 2)) : 0;
+}
+
+function ratingFromData(data) {
+  if (Number.isFinite(Number(data?.rating))) return Number(data.rating);
+  return (data?.stars || "").split("★").length - 1;
+}
+
+function formatRatingLabel(value) {
+  return normalizeRating(value) + " out of 5 stars";
+}
+
+function renderStars(value) {
+  const rating = normalizeRating(value);
+  return Array.from({ length: 5 }, (_, index) => {
+    const remaining = rating - index;
+    if (remaining >= 1) return '<span class="rating-star full">★</span>';
+    if (remaining >= 0.5) return '<span class="rating-star half">☆</span>';
+    return '<span class="rating-star empty">☆</span>';
+  }).join("");
 }
 
 function formatDirection(item, followsFlow = false) {
@@ -671,6 +710,9 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
 .token-info { display:none; }
 .forecast-pill,.energy-pill,.wind-pill { padding:4px 5px; border-radius:4px; background:rgba(255,255,255,.035); }
 .forecast-pill { color:var(--sun); }
+.rating-star { position:relative; display:inline-block; width:.95em; }
+.rating-star.empty,.rating-star.half { color:#64706e; }
+.rating-star.half:before { content:"★"; position:absolute; inset:0 auto 0 0; width:50%; overflow:hidden; color:var(--sun); }
 .energy-pill,.wind-pill,.token-info { color:#c5d7d4; }
 .source-link { margin-left:auto; color:var(--mint); }
 .refresh-icon { color:var(--mint); }
