@@ -255,18 +255,21 @@ async function showForecast(spotKey) {
     '<div class="modal-row"><b>Wave</b><span>' +
       formatDirection(data.wave, true) +
       fmt(data.wave?.heightM, " m") + ' @ ' +
-      fmt(data.wave?.periodS, " s") +
+      fmt(data.wave?.periodS, " s") + ' ' +
+      formatCompassDirection(data.wave?.directionDeg) +
     '</span></div>' +
 
     '<div class="modal-row"><b>Swell</b><span>' +
       formatDirection(data.swell, true) +
       fmt(data.swell?.heightM, " m") + ' @ ' +
-      fmt(data.swell?.periodS, " s") +
+      fmt(data.swell?.periodS, " s") + ' ' +
+      formatCompassDirection(data.swell?.directionDeg) +
     '</span></div>' +
 
     '<div class="modal-row"><b>Wind</b><span>' +
-      formatDirection(data.wind) +
-      fmt(data.wind?.speedMs, " m/s") +
+      formatDirection(data.wind, true) +
+      fmt(data.wind?.speedMs, " m/s") + ' ' +
+      formatCompassDirection(data.wind?.directionDeg) +
     '</span></div>' +
 
     '<div class="modal-row"><b>Effect</b><span>' +
@@ -293,14 +296,23 @@ function fmt(value, suffix) {
   return value == null ? "--" : value + suffix;
 }
 
-function formatDirection(item, followsWaveTravel = false) {
+function formatDirection(item, followsFlow = false) {
   const degrees = Number(item?.directionDeg);
   if (!Number.isFinite(degrees)) return "";
   const normalized = ((degrees % 360) + 360) % 360;
-  const arrowDegrees = followsWaveTravel ? (normalized + 180) % 360 : normalized;
-  const source = item.directionText ? "From " + item.directionText + " · " : "";
+  const arrowDegrees = followsFlow ? (normalized + 180) % 360 : normalized;
+  const compass = formatCompassDirection(normalized);
+  const source = compass ? "From " + compass + " · " : "";
   const label = source + Math.round(normalized) + "°";
   return '<span class="direction-icon" style="--direction:' + arrowDegrees + 'deg" title="' + label + '" aria-label="' + label + '">↑</span>';
+}
+
+function formatCompassDirection(degrees) {
+  const value = Number(degrees);
+  if (!Number.isFinite(value)) return "";
+  const points = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
+  const normalized = ((value % 360) + 360) % 360;
+  return points[Math.round(normalized / 22.5) % 16];
 }
 
 function formatUpdatedAgo(data) {
