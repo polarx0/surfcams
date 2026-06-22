@@ -11,9 +11,12 @@
 const WORKER_URL = "https://surfcams.polarx0.workers.dev";
 const hlsInstances = {};
 const tokenTimers = {};
+const streamRefreshes = {};
 const forecastCache = {};
 const TOKEN_LIFETIME_SECONDS = 300;
-const AUTO_REFRESH_SECONDS = 270;
+const TOKEN_REFRESH_BUFFER_SECONDS = 75;
+const TOKEN_RETRY_SECONDS = 15;
+const AUTO_REFRESH_SECONDS = 180;
 const LONG_IDLE_SECONDS = 300;
 let pageHiddenAt = null;
 let idleReloadStarted = false;
@@ -33,7 +36,7 @@ function destroyCam(videoId) {
   }
 
   if (tokenTimers[videoId]) {
-    clearInterval(tokenTimers[videoId]);
+    clearTimeout(tokenTimers[videoId]);
     delete tokenTimers[videoId];
   }
 
@@ -70,19 +73,22 @@ function initCam(videoId, src) {
 function updateTokenInfo(videoId, generatedAt, servedAt) {
   const video = document.getElementById(videoId);
   const el = video?.closest(".cam")?.querySelector(".token-info");
-  if (!video || !el) return;
+  if (!video) return;
 
   function tick() {
     const now = Math.floor(Date.now() / 1000);
     const baseAge = Math.max(0, servedAt - generatedAt);
     const age = baseAge + Math.max(0, now - servedAt);
     const left = Math.max(0, TOKEN_LIFETIME_SECONDS - age);
-    el.textContent = "⏱ " + formatDuration(left);
+    if (el) el.textContent = "⏱ " + formatDuration(left);
   }
 
   tick();
-  if (tokenTimers[videoId]) clearInterval(tokenTimers[videoId]);
-  tokenTimers[videoId] = setInterval(tick, 1000);
+  if (tokenTimers[videoId]) clearTimeout(tokenTimers[videoId]);
+  const expiresAt = (generatedAt + TOKEN_LIFETIME_SECONDS) * 1000;
+  const refreshAt = expiresAt - TOKEN_REFRESH_BUFFER_SECONDS * 1000;
+  const delay = Math.max(TOKEN_RETRY_SECONDS * 1000, refreshAt - Date.now());
+  tokenTimers[videoId] = setTimeout(() => startOrRefreshCam(videoId), delay);
 }
 
 async function fetchFreshStream(camKey) {
@@ -97,22 +103,32 @@ async function fetchFreshStream(camKey) {
 }
 
 async function startOrRefreshCam(videoId) {
+  if (streamRefreshes[videoId]) return streamRefreshes[videoId];
+
   const video = document.getElementById(videoId);
   const card = video?.closest(".cam");
   const camKey = card?.dataset.key;
   const el = card?.querySelector(".token-info");
   if (!video || !camKey) return;
 
-  try {
-    if (el) el.textContent = "⏱ loading";
-    const data = await fetchFreshStream(camKey);
-    const now = Math.floor(Date.now() / 1000);
-    initCam(videoId, data.stream);
-    updateTokenInfo(videoId, data.generatedAt || now, data.servedAt || now);
-  } catch (e) {
-    console.error(e);
-    if (el) el.textContent = "⏱ failed";
-  }
+  streamRefreshes[videoId] = (async () => {
+    try {
+      if (el) el.textContent = "⏱ loading";
+      const data = await fetchFreshStream(camKey);
+      const now = Math.floor(Date.now() / 1000);
+      initCam(videoId, data.stream);
+      updateTokenInfo(videoId, data.generatedAt || now, data.servedAt || now);
+    } catch (e) {
+      console.error(e);
+      if (el) el.textContent = "⏱ failed";
+      if (tokenTimers[videoId]) clearTimeout(tokenTimers[videoId]);
+      tokenTimers[videoId] = setTimeout(() => startOrRefreshCam(videoId), TOKEN_RETRY_SECONDS * 1000);
+    } finally {
+      delete streamRefreshes[videoId];
+    }
+  })();
+
+  return streamRefreshes[videoId];
 }
 
 async function refreshCam(videoId) {
@@ -120,9 +136,8 @@ async function refreshCam(videoId) {
 }
 
 async function refreshAll() {
-  for (const video of Array.from(document.querySelectorAll(".cam video"))) {
-    await startOrRefreshCam(video.id);
-  }
+  const videos = Array.from(document.querySelectorAll(".cam video"));
+  await Promise.allSettled(videos.map(video => startOrRefreshCam(video.id)));
 }
 
 
@@ -340,9 +355,13 @@ function setupAnalytics() {
 
 function reloadAfterLongIdle() {
   if (document.hidden || idleReloadStarted || !pageHiddenAt) return;
-  if (Date.now() - pageHiddenAt >= LONG_IDLE_SECONDS * 1000) {
+  const idleSeconds = (Date.now() - pageHiddenAt) / 1000;
+  pageHiddenAt = null;
+  if (idleSeconds >= LONG_IDLE_SECONDS) {
     idleReloadStarted = true;
     window.location.reload();
+  } else if (idleSeconds >= 30) {
+    refreshAll();
   }
 }
 
