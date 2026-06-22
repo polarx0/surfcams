@@ -13,6 +13,8 @@ const hlsInstances = {};
 const tokenTimers = {};
 const streamRefreshes = {};
 const forecastCache = {};
+const FAVORITES_STORAGE_KEY = "norte-surf-cam-favorites";
+let favoriteKeys = new Set();
 const TOKEN_LIFETIME_SECONDS = 300;
 const TOKEN_REFRESH_BUFFER_SECONDS = 75;
 const TOKEN_RETRY_SECONDS = 15;
@@ -192,7 +194,9 @@ function filterCams() {
   let visible = 0;
   document.querySelectorAll(".cam").forEach(card => {
     const matchesSearch = (card.dataset.name || "").toLowerCase().includes(query);
-    const matchesFilter = filter === "all" || (filter === "best" && Number(card.dataset.rating || 0) >= 4);
+    const matchesFilter = filter === "all"
+      || (filter === "best" && Number(card.dataset.rating || 0) >= 4)
+      || (filter === "favorites" && favoriteKeys.has(card.dataset.key));
     card.hidden = !(matchesSearch && matchesFilter);
     if (!card.hidden) visible++;
   });
@@ -204,6 +208,48 @@ function setFilter(button) {
   document.querySelectorAll(".filter-chip").forEach(item => item.classList.remove("active"));
   button.classList.add("active");
   filterCams();
+}
+
+function saveFavorites() {
+  try {
+    localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(Array.from(favoriteKeys)));
+  } catch (e) {
+    console.warn("Could not save favorites", e);
+  }
+}
+
+function updateFavoriteButton(card, button) {
+  const isFavorite = favoriteKeys.has(card.dataset.key);
+  button.textContent = isFavorite ? "★" : "☆";
+  button.classList.toggle("active", isFavorite);
+  button.setAttribute("aria-pressed", String(isFavorite));
+  button.setAttribute("aria-label", (isFavorite ? "Remove " : "Add ") + card.dataset.name + (isFavorite ? " from favorites" : " to favorites"));
+}
+
+function setupFavorites() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(FAVORITES_STORAGE_KEY) || "[]");
+    favoriteKeys = new Set(Array.isArray(stored) ? stored.filter(value => typeof value === "string") : []);
+  } catch (e) {
+    favoriteKeys = new Set();
+  }
+
+  document.querySelectorAll(".cam").forEach(card => {
+    const heading = card.querySelector("h2");
+    if (!heading || heading.querySelector(".favorite-toggle")) return;
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "favorite-toggle";
+    updateFavoriteButton(card, button);
+    button.addEventListener("click", () => {
+      if (favoriteKeys.has(card.dataset.key)) favoriteKeys.delete(card.dataset.key);
+      else favoriteKeys.add(card.dataset.key);
+      saveFavorites();
+      updateFavoriteButton(card, button);
+      filterCams();
+    });
+    heading.appendChild(button);
+  });
 }
 
 async function loadForecastForCard(card) {
@@ -409,6 +455,7 @@ window.addEventListener("focus", reloadAfterLongIdle);
 
 window.addEventListener("load", () => {
   setupAnalytics();
+  setupFavorites();
   updateDashboardStats();
   refreshAll();
   loadAllForecasts();
@@ -624,8 +671,10 @@ body:before { display:none; }
 .grid { max-width:1440px; margin:0 auto; padding:0 clamp(16px,3vw,40px) 40px; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
 .cam { position:relative; background:var(--panel); border:1px solid var(--line); border-radius:8px; transition:border-color .2s; }
 .cam:hover { border-color:rgba(132,224,198,.3); }
-.cam.is-pumping:before { content:"GOOD NOW"; position:absolute; top:12px; right:12px; z-index:2; padding:5px 7px; border-radius:7px; background:var(--mint); color:#06201b; font-size:9px; font-weight:900; letter-spacing:.08em; }
-.cam h2 { padding:10px 12px; font-size:12px; font-weight:600; letter-spacing:0; }
+.cam.is-pumping:before { content:"GOOD NOW"; position:absolute; top:42px; right:8px; z-index:2; padding:5px 7px; border-radius:7px; background:var(--mint); color:#06201b; font-size:9px; font-weight:900; letter-spacing:.08em; }
+.cam h2 { display:flex; align-items:center; gap:8px; padding:8px 10px; font-size:12px; font-weight:600; letter-spacing:0; }
+.favorite-toggle { display:grid; place-items:center; width:24px; height:24px; margin:-4px -4px -4px auto; padding:0; border:0; background:transparent; color:var(--muted); font-size:18px; line-height:1; cursor:pointer; }
+.favorite-toggle:hover,.favorite-toggle.active { color:var(--sun); }
 video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
 .cam-footer { gap:7px; padding:8px 10px; color:var(--muted); font-size:10px; }
 .sep { display:none; }
@@ -643,13 +692,13 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
 #empty-state { margin:10px auto 50px; color:var(--muted); text-align:center; }
 [hidden] { display:none !important; }
 @media (max-width:980px) { .grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
-@media (max-width:700px) { .header-bar { height:auto; min-height:52px; padding:8px 12px; gap:10px; flex-wrap:wrap; } .brand { flex:1; } .header-actions { gap:10px; margin-left:0; } .best-status strong { max-width:90px; } .live-status { font-size:11px; } .live-status:before { width:6px; height:6px; box-shadow:none; } .refresh-all-icon { width:28px; height:28px; } .header-search { order:3; flex-basis:100%; max-width:none; margin-left:0; } .toolbar { padding:12px 12px 10px; } .filter-chip { flex:1; } .grid { grid-template-columns:1fr; gap:10px; padding:0 10px 32px; } .cam h2 { padding:9px 10px; font-size:12px; } .cam-footer { padding:7px 9px; font-size:9px; overflow-x:visible; } .source-link { margin-left:auto; } video { min-height:0; } }
+@media (max-width:700px) { .header-bar { height:auto; min-height:52px; padding:8px 12px; gap:10px; flex-wrap:wrap; } .brand { flex:1; } .header-actions { gap:10px; margin-left:0; } .best-status strong { max-width:90px; } .live-status { font-size:11px; } .live-status:before { width:6px; height:6px; box-shadow:none; } .refresh-all-icon { width:28px; height:28px; } .header-search { order:3; flex-basis:100%; max-width:none; margin-left:0; } .toolbar { padding:12px 12px 10px; } .filter-chip { flex:1; padding:0 8px; } .grid { grid-template-columns:1fr; gap:10px; padding:0 10px 32px; } .cam h2 { padding:8px 10px; font-size:12px; } .cam-footer { padding:7px 9px; font-size:9px; overflow-x:visible; } .source-link { margin-left:auto; } video { min-height:0; } }
 </style>
 </head>
 <body>
 
 <header class="header-bar">
-  <div class="brand"><span class="brand-mark">≈</span><span>Norte / Surf</span></div>
+  <div class="brand"><span class="brand-mark">≈</span><span>Norte Surf Cams</span></div>
   <div class="header-search">
     <label class="search-wrap"><span>⌕</span><input id="cam-search" type="search" placeholder="Find a spot…" aria-label="Find a surf spot" oninput="filterCams()"></label>
   </div>
@@ -662,6 +711,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
 
 <div class="toolbar">
   <button class="filter-chip active" data-filter="all" onclick="setFilter(this)">All cameras</button>
+  <button class="filter-chip" data-filter="favorites" onclick="setFilter(this)">Favorites</button>
   <button class="filter-chip" data-filter="best" onclick="setFilter(this)">Best now</button>
 </div>
 
