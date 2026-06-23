@@ -180,8 +180,13 @@ function updateDashboardStats() {
   const totalCount = liveCount + document.querySelectorAll(".offline-item").length;
   const liveStatusEl = document.getElementById("live-status-count");
   const totalStatusEl = document.getElementById("total-camera-count");
+  const offlineCountEl = document.querySelector(".offline-count");
   if (liveStatusEl) liveStatusEl.textContent = liveCount;
   if (totalStatusEl) totalStatusEl.textContent = totalCount;
+  if (offlineCountEl) {
+    const offlineCount = document.querySelectorAll(".offline-item").length;
+    offlineCountEl.textContent = offlineCount + " unavailable";
+  }
   const ranked = cards
     .filter(card => card.dataset.rating !== undefined)
     .map(card => ({
@@ -642,16 +647,39 @@ video { width:100%; background:#000; display:block; min-height:120px; }
 a { color:#8ecbff; }
 .bad { padding:12px; color:#ffb3b3; }
 
-.offline-list { padding:0 12px 20px; }
+.offline-section { max-width:1400px; margin:0 auto; padding:0 clamp(16px,3vw,40px) 22px; }
+.offline-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:0 0 8px; color:var(--muted); font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+.offline-count { color:#60716d; font-weight:600; letter-spacing:0; text-transform:none; }
+.offline-list { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; padding:0; }
 .offline-item {
   display:flex;
   align-items:center;
-  gap:6px;
-  padding:8px 10px;
-  background:#222;
-  margin-bottom:6px;
+  gap:8px;
+  min-width:0;
+  padding:9px 10px;
+  background:var(--panel);
+  border:1px solid var(--line);
   border-radius:8px;
-  font-size:12px;
+  color:var(--muted);
+  font-size:11px;
+}
+.offline-item:before {
+  content:"";
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:#5d6a67;
+  flex:0 0 auto;
+}
+.offline-name {
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.offline-item .source-link {
+  margin-left:auto;
+  font-size:10px;
 }
 
 .footer-credit {
@@ -684,20 +712,19 @@ body:before { display:none; }
 .brand { display:flex; align-items:center; gap:9px; font-size:14px; font-weight:700; }
 .brand-mark { color:var(--mint); font-size:18px; }
 .header-search { flex:1; max-width:300px; margin-left:8px; }
+.header-filters { display:flex; align-items:center; gap:6px; }
 .header-actions { display:flex; align-items:center; gap:16px; margin-left:auto; min-width:0; }
 .live-status { display:flex; align-items:center; gap:4px; color:var(--muted); font-size:12px; white-space:nowrap; }
 .live-status:before { content:""; width:7px; height:7px; border-radius:50%; background:#5ce09b; box-shadow:0 0 0 5px rgba(92,224,155,.1); }
 .refresh-all-icon { width:30px; height:30px; border:1px solid var(--line); border-radius:6px; color:var(--ink); background:transparent; transition:.2s; }
 .refresh-all-icon:hover { border-color:var(--mint); color:var(--mint); }
-.toolbar { max-width:1440px; margin:0 auto; padding:18px clamp(16px,3vw,40px) 12px; display:flex; align-items:center; gap:8px; }
 .search-wrap { position:relative; width:100%; }
 .search-wrap span { position:absolute; left:11px; top:8px; color:var(--muted); }
 #cam-search { width:100%; height:34px; padding:0 12px 0 32px; border:1px solid var(--line); border-radius:6px; outline:none; background:var(--panel); color:var(--ink); font:12px Arial,sans-serif; }
 #cam-search:focus { border-color:var(--mint); box-shadow:0 0 0 3px rgba(132,224,198,.09); }
 .filter-chip { height:34px; padding:0 12px; border:1px solid var(--line); border-radius:6px; background:transparent; color:var(--muted); cursor:pointer; font:12px Arial,sans-serif; }
 .filter-chip.active { border-color:var(--mint); background:var(--mint); color:#08211d; font-weight:700; }
-.section-heading { max-width:1440px; margin:0 auto !important; padding:8px clamp(16px,3vw,40px) 12px !important; font-size:11px !important; color:var(--muted); letter-spacing:.1em; text-transform:uppercase; }
-.grid { max-width:1440px; margin:0 auto; padding:0 clamp(16px,3vw,40px) 40px; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+.grid { max-width:1440px; margin:0 auto; padding:18px clamp(16px,3vw,40px) 40px; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
 .cam { position:relative; background:var(--panel); border:1px solid var(--line); border-radius:8px; transition:border-color .2s; }
 .cam:hover { border-color:rgba(132,224,198,.3); }
 .cam.is-pumping:before { content:"GOOD NOW"; position:absolute; top:42px; right:8px; z-index:2; padding:5px 7px; border-radius:7px; background:var(--mint); color:#06201b; font-size:9px; font-weight:900; letter-spacing:.08em; }
@@ -720,11 +747,12 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
 .forecast-modal-content { width:min(420px,92vw); padding:24px; border:1px solid var(--line); background:#102421; border-radius:20px; }
 .modal-row { padding:11px 0; border-color:var(--line); }
 .direction-icon { display:inline-grid; place-items:center; width:22px; height:22px; margin-right:7px; border:1px solid var(--line); border-radius:50%; color:var(--mint); font-size:13px; line-height:1; transform:rotate(var(--direction)); vertical-align:middle; }
-.offline-list,.footer-credit { max-width:1400px; margin:0 auto; }
+.footer-credit { max-width:1400px; margin:0 auto; }
 #empty-state { margin:10px auto 50px; color:var(--muted); text-align:center; }
 [hidden] { display:none !important; }
 @media (max-width:980px) { .grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
-@media (max-width:700px) { .header-bar { height:auto; min-height:52px; padding:8px 12px; gap:10px; flex-wrap:wrap; } .brand { flex:1; } .header-actions { gap:10px; margin-left:0; } .live-status { font-size:11px; } .live-status:before { width:6px; height:6px; box-shadow:none; } .refresh-all-icon { width:28px; height:28px; } .header-search { order:3; flex-basis:100%; max-width:none; margin-left:0; } .toolbar { padding:12px 12px 10px; } .filter-chip { flex:1; padding:0 8px; } .grid { grid-template-columns:1fr; gap:10px; padding:0 10px 32px; } .cam h2 { padding:8px 10px; font-size:12px; } .cam-footer { padding:7px 9px; font-size:9px; overflow-x:visible; } .source-link { margin-left:auto; } video { min-height:0; } }
+@media (max-width:980px) { .offline-list { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:700px) { .header-bar { display:grid; grid-template-columns:1fr auto; height:auto; min-height:52px; padding:8px 10px; gap:8px 10px; } .brand { min-width:0; } .header-actions { grid-column:2; grid-row:1; gap:8px; margin-left:0; } .live-status { font-size:11px; } .live-status:before { width:6px; height:6px; box-shadow:none; } .refresh-all-icon { width:28px; height:28px; } .header-search { grid-column:1; grid-row:2; width:100%; max-width:none; margin-left:0; } .header-filters { grid-column:2; grid-row:2; gap:3px; } .filter-chip { height:34px; padding:0 5px; font-size:10px; } .grid { grid-template-columns:1fr; gap:10px; padding:12px 10px 28px; } .cam h2 { padding:8px 10px; font-size:12px; } .cam-footer { padding:7px 9px; font-size:9px; overflow-x:visible; } .source-link { margin-left:auto; } video { min-height:0; } .offline-section { padding:0 10px 18px; } .offline-list { grid-template-columns:1fr; gap:6px; } .offline-heading { margin-bottom:7px; } .offline-item { padding:8px 9px; } }
 </style>
 </head>
 <body>
@@ -734,19 +762,17 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
   <div class="header-search">
     <label class="search-wrap"><span>⌕</span><input id="cam-search" type="search" placeholder="Find a spot…" aria-label="Find a surf spot" oninput="filterCams()"></label>
   </div>
+  <div class="header-filters">
+    <button class="filter-chip active" data-filter="all" onclick="setFilter(this)">All cameras</button>
+    <button class="filter-chip" data-filter="favorites" onclick="setFilter(this)">Favorites</button>
+    <button class="filter-chip" data-filter="best" onclick="setFilter(this)">Best now</button>
+  </div>
   <div class="header-actions">
     <span class="live-status"><span id="live-status-count">18</span>/<span id="total-camera-count">24</span> online</span>
     <button class="refresh-all-icon" onclick="refreshAll()" title="Refresh all cameras">↻</button>
   </div>
 </header>
 
-<div class="toolbar">
-  <button class="filter-chip active" data-filter="all" onclick="setFilter(this)">All cameras</button>
-  <button class="filter-chip" data-filter="favorites" onclick="setFilter(this)">Favorites</button>
-  <button class="filter-chip" data-filter="best" onclick="setFilter(this)">Best now</button>
-</div>
-
-<h2 class="section-heading">Live surf cameras</h2>
 <p id="empty-state" hidden>No spots found. Try another search.</p>
 <div class="grid">
 <!-- ONLINE_CAMS_START -->
@@ -1077,48 +1103,53 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
 <!-- ONLINE_CAMS_END -->
 </div>
 
-<h2 style="padding-left:12px">⚠️ Offline Cameras</h2>
-<div class="offline-list">
+<section class="offline-section" aria-labelledby="offline-title">
+  <div class="offline-heading" id="offline-title">
+    <span>Offline cameras</span>
+    <span class="offline-count">6 unavailable</span>
+  </div>
+  <div class="offline-list">
 <!-- OFFLINE_CAMS_START -->
 
 <div class="offline-item">
-  <span>Praia de Árvore - Areal HD</span>
+  <span class="offline-name">Cabedelo do Porto</span>
   <span class="sep">|</span>
-  <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/praia-da-arvore-areal" target="_blank">Surftotal</a>
+  <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabedelo-do-porto" target="_blank">Surftotal</a>
 </div>
 
 <div class="offline-item">
-  <span>Pedras do Corgo - Melanina HD</span>
+  <span class="offline-name">Leça - L'Kodak (Aterro) HD</span>
   <span class="sep">|</span>
-  <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/pedras-do-corgo" target="_blank">Surftotal</a>
+  <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-kodak-aterro" target="_blank">Surftotal</a>
 </div>
 
 <div class="offline-item">
-  <span>Leça - L'Kodak (Aterro) HD</span>
+  <span class="offline-name">Mira</span>
   <span class="sep">|</span>
-  <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-kodak-aterro" target="_blank">Surftotal</a>
+  <a class="source-link" href="https://surftotal.com/camaras-report/aveiro/mira" target="_blank">Surftotal</a>
 </div>
 
 <div class="offline-item">
-  <span>Cabedelo do Porto</span>
+  <span class="offline-name">Pedras do Corgo - Melanina HD</span>
   <span class="sep">|</span>
-  <a href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabedelo-do-porto" target="_blank">Surftotal</a>
+  <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/pedras-do-corgo" target="_blank">Surftotal</a>
 </div>
 
 <div class="offline-item">
-  <span>Praia da Barra Norte HD</span>
+  <span class="offline-name">Praia da Barra Norte HD</span>
   <span class="sep">|</span>
-  <a href="https://surftotal.com/camaras-report/aveiro/praia-da-barra-norte-hd" target="_blank">Surftotal</a>
+  <a class="source-link" href="https://surftotal.com/camaras-report/aveiro/praia-da-barra-norte-hd" target="_blank">Surftotal</a>
 </div>
 
 <div class="offline-item">
-  <span>Mira</span>
+  <span class="offline-name">Praia de Árvore - Areal HD</span>
   <span class="sep">|</span>
-  <a href="https://surftotal.com/camaras-report/aveiro/mira" target="_blank">Surftotal</a>
+  <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/praia-da-arvore-areal" target="_blank">Surftotal</a>
 </div>
 <!-- OFFLINE_CAMS_END -->
 
-</div>
+  </div>
+</section>
 
 <hr style="margin:20px 12px;border-color:#333">
 

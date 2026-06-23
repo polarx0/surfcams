@@ -66,9 +66,9 @@ def render_cam(name, idx, data):
 def render_offline(name, data):
     return f"""
 <div class="offline-item">
-  <span>{name}</span>
+  <span class="offline-name">{name}</span>
   <span class="sep">|</span>
-  <a href="{data["page"]}" target="_blank">Surftotal</a>
+  <a class="source-link" href="{data["page"]}" target="_blank">Surftotal</a>
 </div>
 """
 
@@ -543,7 +543,7 @@ html += """
 <div class="offline-list">
 """
 
-for name in offline_names:
+for name in sorted(offline_names, key=str.casefold):
     html += render_offline(name, CAMS[name])
 
 html += """
@@ -584,7 +584,7 @@ if template_path.exists():
     )
     offline_html = "".join(
         render_offline(name, CAMS[name])
-        for name in offline_names
+        for name in sorted(offline_names, key=str.casefold)
     )
     html = replace_generated_section(
         template,
