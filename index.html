@@ -503,9 +503,8 @@ function formatTidePhase(tide) {
   }
 
   if (phase === "falling") {
-    if (position >= 0.88) return "High";
-    if (position > 0.62) return "High → Mid";
-    if (position >= 0.38) return "Mid";
+    if (position >= 0.9) return "High";
+    if (position >= 0.78) return "High → Mid";
     if (position > 0.12) return "Mid → Low";
     return "Low";
   }
