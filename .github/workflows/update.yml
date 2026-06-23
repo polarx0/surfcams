@@ -23,8 +23,6 @@ jobs:
 
       - run: python generate_cams.py
 
-      - run: mv cams.html index.html
-
       - name: Commit changes
         run: |
           git config user.name github-actions

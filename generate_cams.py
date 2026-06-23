@@ -11,15 +11,15 @@ CAMS = {
     "Vila Praia de Âncora HD": {"key": "ancora", "page": "https://surftotal.com/camaras-report/minho/vila-praia-ancora", "stars": "★★★☆☆"},
     "Viana do Castelo HD": {"key": "viana_castelo", "page": "https://surftotal.com/camaras-report/minho/viana-do-castelo-hd", "stars": "★★★☆☆"},
     "Viana do Castelo | Cabedelo": {"key": "bc_viana_cabedelo", "forecast_key": "viana_castelo", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/viana-do-castelo-cabedelo/", "stars": "★★★☆☆"},
-    "Ofir": {"key": "ofir", "page": "https://surftotal.com/camaras-report/minho/ofir", "stars": "★★★★☆"},
     "Esposende": {"key": "bc_esposende", "forecast_key": "ofir", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/esposende/", "stars": "★★★☆☆"},
     "Esposende | Foz do Cávado": {"key": "bc_esposende_foz", "forecast_key": "ofir", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/esposende-foz-do-cavado/", "stars": "★★★☆☆"},
+    "Ofir": {"key": "ofir", "page": "https://surftotal.com/camaras-report/minho/ofir", "stars": "★★★★☆"},
     "Apúlia": {"key": "bc_apulia", "forecast_key": "ofir", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/apulia/", "stars": "★★★☆☆"},
 
     "Aguçadoura HD": {"key": "agucadoura", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/agucadoura", "stars": "★★★☆☆"},
     "Póvoa de Varzim - Ferrari HD": {"key": "ferrari", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/povoa-de-varzim-ferrari", "stars": "★★☆☆☆"},
-    "Azurara HD": {"key": "azurara", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/azurara", "stars": "★★★☆☆"},
     "Vila do Conde | Caxinas": {"key": "bc_caxinas", "forecast_key": "azurara", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/caxinas-macaco-17/", "stars": "★★★☆☆"},
+    "Azurara HD": {"key": "azurara", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/azurara", "stars": "★★★☆☆"},
     "Praia de Árvore - Areal HD": {"key": "arvore", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/praia-da-arvore-areal", "stars": "★★★☆☆"},
     "Mindelo": {"key": "mindelo", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo", "stars": "★★☆☆☆"},
     "Mindelo meia laranja HD": {"key": "mindelo_meia_laranja", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo-meia-laranja", "stars": "★★☆☆☆"},
@@ -32,11 +32,10 @@ CAMS = {
     "Porto | Homem do Leme": {"key": "bc_homem_do_leme", "forecast_key": "matosinhos", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/porto-homem-do-leme/", "stars": "★★★☆☆"},
     "Porto | Carneiro": {"key": "bc_carneiro", "forecast_key": "matosinhos", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/porto-carneiro/", "stars": "★★★☆☆"},
     "Cabedelo do Porto": {"key": "cabedelo", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabedelo-do-porto", "stars": "★★☆☆☆"},
+    "Praia Canide Norte/Sul": {"key": "canide", "forecast_key": "cabedelo", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/praia-canide-norte-sul/", "stars": "★★★☆☆"},
     "Espinho HD": {"key": "espinho", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-hd", "stars": "★★★☆☆"},
     "Espinho vista aérea HD": {"key": "espinho_aerea", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-vista-aerea", "stars": "★★★☆☆"},
     "Espinho - Silvalde HD": {"key": "silvalde", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-silvalde", "stars": "★★★★☆"},
-
-    "Praia Canide Norte/Sul": {"key": "canide", "forecast_key": "cabedelo", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/praia-canide-norte-sul/", "stars": "★★★☆☆"},
 
     "Esmoriz": {"key": "bc_esmoriz", "forecast_key": "silvalde", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/esmoriz/", "stars": "★★★☆☆"},
     "Cortegaça (Vila do Surf) HD": {"key": "cortegaca_vila", "page": "https://surftotal.com/camaras-report/aveiro/cortegaca-hd", "stars": "★★★☆☆"},
@@ -49,24 +48,61 @@ CAMS = {
     "Praia do Cabedelo (Figueira da Foz)": {"key": "figueira_cabedelo", "page": "https://surftotal.com/camaras-report/figueira-da-foz/praia-do-cabedelo-hd", "stars": "★★★☆☆"},
 }
 
+BEACHCAM_STREAMS = {
+    "bc_viana_cabedelo": "https://video-auth1.iol.pt/beachcam/bccabedeloviana/playlist.m3u8",
+    "bc_esposende": "https://video-auth1.iol.pt/beachcam/bcesposende/playlist.m3u8",
+    "bc_esposende_foz": "https://video-auth1.iol.pt/beachcam/bcfarolesposende/playlist.m3u8",
+    "bc_apulia": "https://video-auth1.iol.pt/beachcam/bcapulia/playlist.m3u8",
+    "bc_caxinas": "https://video-auth1.iol.pt/beachcam/bccaxinas/playlist.m3u8",
+    "bc_homem_do_leme": "https://video-auth1.iol.pt/beachcam/bchomemdoleme/playlist.m3u8",
+    "bc_carneiro": "https://video-auth1.iol.pt/beachcam/bccarneiro/playlist.m3u8",
+    "canide": "https://video-auth1.iol.pt/beachcam/bccanidelo/playlist.m3u8",
+    "bc_esmoriz": "https://video-auth1.iol.pt/beachcam/esmoriz/playlist.m3u8",
+    "bc_furadouro": "https://video-auth1.iol.pt/beachcam/furadouro/playlist.m3u8",
+    "bc_torreira": "https://video-auth1.iol.pt/beachcam/torreira/playlist.m3u8",
+    "bc_sao_jacinto": "https://video-auth1.iol.pt/beachcam/bcfarolbarra/playlist.m3u8",
+    "bc_costa_nova": "https://video-auth1.iol.pt/beachcam/costanova/playlist.m3u8",
+}
+
+for cam_data in CAMS.values():
+    if cam_data.get("source") == "beachcam":
+        cam_data["stream_url"] = BEACHCAM_STREAMS.get(cam_data["key"])
+
 def source_label(data):
     return "Beachcam" if data.get("source") == "beachcam" else "Surftotal"
 
 def data_attr(value):
     return json.dumps(value, ensure_ascii=False)
 
+def stream_is_live(stream_url, referer):
+    try:
+        res = requests.get(
+            stream_url,
+            headers={**HEADERS, "Referer": referer},
+            timeout=20,
+        )
+        return res.ok and "#EXTM3U" in res.text
+    except Exception as e:
+        print(f"ERROR checking stream: {stream_url}: {e}")
+        return False
+
 def find_m3u8(data):
     page_url = data["page"]
+    fallback_stream = data.get("stream_url")
     try:
         html = requests.get(page_url, headers={**HEADERS, "Referer": page_url}, timeout=20).text
         if data.get("source") == "beachcam":
             match = re.search(r'data-video-url=["\']([^"\']+?\.m3u8[^"\']*)["\']', html)
             if match:
-                return match.group(1).replace("\\/", "/")
+                stream_url = match.group(1).replace("\\/", "/")
+                return stream_url if stream_is_live(stream_url, page_url) else None
+            return fallback_stream
         matches = re.findall(r'https?://[^"\']+?\.m3u8[^"\']*', html)
         return matches[0].replace("\\/", "/") if matches else None
     except Exception as e:
         print(f"ERROR finding stream: {page_url}: {e}")
+        if data.get("source") == "beachcam":
+            return fallback_stream
         return None
 
 def render_cam(name, idx, data):
@@ -180,7 +216,19 @@ function initCam(videoId, src) {{
     hls.loadSource(src);
     hls.attachMedia(video);
     hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {{}}));
+    hls.on(Hls.Events.ERROR, (event, data) => {{
+      if (data.fatal) markCamFailed(videoId);
+    }});
   }}
+}}
+
+function markCamFailed(videoId) {{
+  const video = document.getElementById(videoId);
+  const card = video?.closest(".cam");
+  const el = card?.querySelector(".token-info");
+  if (el) el.textContent = "⏱ failed";
+  if (tokenTimers[videoId]) clearTimeout(tokenTimers[videoId]);
+  tokenTimers[videoId] = setTimeout(() => startOrRefreshCam(videoId), TOKEN_RETRY_SECONDS * 1000);
 }}
 
 function updateTokenInfo(videoId, generatedAt, servedAt) {{
@@ -671,7 +719,8 @@ if template_path.exists():
         offline_html,
     )
 
-Path("cams.html").write_text(html, encoding="utf-8")
-print("Generated: cams.html")
+output_path = template_path if template_path.exists() else Path("cams.html")
+output_path.write_text(html, encoding="utf-8")
+print(f"Generated: {output_path}")
 print(f"Online: {len(online_names)}")
 print(f"Offline: {len(offline_names)}")

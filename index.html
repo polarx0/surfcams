@@ -908,9 +908,25 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
   </div>
 </div>
 
-<div class="cam forecast-card" data-name="Ofir" data-key="ofir" data-forecast-key="ofir">
-  <h2>Ofir</h2>
+<div class="cam forecast-card" data-name="Viana do Castelo | Cabedelo" data-key="bc_viana_cabedelo" data-forecast-key="viana_castelo" data-direct-stream="https://video-auth1.iol.pt/beachcam/bccabedeloviana/playlist.m3u8">
+  <h2>Viana do Castelo | Cabedelo</h2>
   <video id="video3" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('viana_castelo')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('viana_castelo')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video3')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/viana-do-castelo-cabedelo/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Esposende" data-key="bc_esposende" data-forecast-key="ofir" data-direct-stream="https://video-auth1.iol.pt/beachcam/bcesposende/playlist.m3u8">
+  <h2>Esposende</h2>
+  <video id="video4" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <button class="forecast-pill" onclick="showForecast('ofir')" title="Forecast">☆☆☆☆☆</button>
     <span class="sep">|</span>
@@ -918,15 +934,63 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
     <span class="sep">|</span>
     <span class="wind-pill">-- m/s</span>
     <span class="sep">|</span>
-    <button class="refresh-icon" onclick="refreshCam('video3')" title="Refresh">↻</button>
+    <button class="refresh-icon" onclick="refreshCam('video4')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/esposende/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Esposende | Foz do Cávado" data-key="bc_esposende_foz" data-forecast-key="ofir" data-direct-stream="https://video-auth1.iol.pt/beachcam/bcfarolesposende/playlist.m3u8">
+  <h2>Esposende | Foz do Cávado</h2>
+  <video id="video5" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('ofir')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('ofir')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video5')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/esposende-foz-do-cavado/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Ofir" data-key="ofir" data-forecast-key="ofir">
+  <h2>Ofir</h2>
+  <video id="video6" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('ofir')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('ofir')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video6')" title="Refresh">↻</button>
     <span class="sep">|</span>
     <a class="source-link" href="https://surftotal.com/camaras-report/minho/ofir" target="_blank">Surftotal</a>
   </div>
 </div>
 
+<div class="cam forecast-card" data-name="Apúlia" data-key="bc_apulia" data-forecast-key="ofir" data-direct-stream="https://video-auth1.iol.pt/beachcam/bcapulia/playlist.m3u8">
+  <h2>Apúlia</h2>
+  <video id="video7" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('ofir')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('ofir')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video7')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/apulia/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
 <div class="cam forecast-card" data-name="Aguçadoura HD" data-key="agucadoura" data-forecast-key="agucadoura">
   <h2>Aguçadoura HD</h2>
-  <video id="video4" controls autoplay muted playsinline preload="none"></video>
+  <video id="video8" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <button class="forecast-pill" onclick="showForecast('agucadoura')" title="Forecast">☆☆☆☆☆</button>
     <span class="sep">|</span>
@@ -934,7 +998,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
     <span class="sep">|</span>
     <span class="wind-pill">-- m/s</span>
     <span class="sep">|</span>
-    <button class="refresh-icon" onclick="refreshCam('video4')" title="Refresh">↻</button>
+    <button class="refresh-icon" onclick="refreshCam('video8')" title="Refresh">↻</button>
     <span class="sep">|</span>
     <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/agucadoura" target="_blank">Surftotal</a>
   </div>
@@ -942,7 +1006,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
 
 <div class="cam forecast-card" data-name="Póvoa de Varzim - Ferrari HD" data-key="ferrari" data-forecast-key="ferrari">
   <h2>Póvoa de Varzim - Ferrari HD</h2>
-  <video id="video5" controls autoplay muted playsinline preload="none"></video>
+  <video id="video9" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <button class="forecast-pill" onclick="showForecast('ferrari')" title="Forecast">☆☆☆☆☆</button>
     <span class="sep">|</span>
@@ -950,15 +1014,15 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
     <span class="sep">|</span>
     <span class="wind-pill">-- m/s</span>
     <span class="sep">|</span>
-    <button class="refresh-icon" onclick="refreshCam('video5')" title="Refresh">↻</button>
+    <button class="refresh-icon" onclick="refreshCam('video9')" title="Refresh">↻</button>
     <span class="sep">|</span>
     <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/povoa-de-varzim-ferrari" target="_blank">Surftotal</a>
   </div>
 </div>
 
-<div class="cam forecast-card" data-name="Azurara HD" data-key="azurara" data-forecast-key="azurara">
-  <h2>Azurara HD</h2>
-  <video id="video6" controls autoplay muted playsinline preload="none"></video>
+<div class="cam forecast-card" data-name="Vila do Conde | Caxinas" data-key="bc_caxinas" data-forecast-key="azurara" data-direct-stream="https://video-auth1.iol.pt/beachcam/bccaxinas/playlist.m3u8">
+  <h2>Vila do Conde | Caxinas</h2>
+  <video id="video10" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <button class="forecast-pill" onclick="showForecast('azurara')" title="Forecast">☆☆☆☆☆</button>
     <span class="sep">|</span>
@@ -966,7 +1030,23 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
     <span class="sep">|</span>
     <span class="wind-pill">-- m/s</span>
     <span class="sep">|</span>
-    <button class="refresh-icon" onclick="refreshCam('video6')" title="Refresh">↻</button>
+    <button class="refresh-icon" onclick="refreshCam('video10')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/caxinas-macaco-17/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Azurara HD" data-key="azurara" data-forecast-key="azurara">
+  <h2>Azurara HD</h2>
+  <video id="video11" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('azurara')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('azurara')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video11')" title="Refresh">↻</button>
     <span class="sep">|</span>
     <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/azurara" target="_blank">Surftotal</a>
   </div>
@@ -974,7 +1054,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
 
 <div class="cam forecast-card" data-name="Mindelo" data-key="mindelo" data-forecast-key="mindelo">
   <h2>Mindelo</h2>
-  <video id="video7" controls autoplay muted playsinline preload="none"></video>
+  <video id="video12" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <button class="forecast-pill" onclick="showForecast('mindelo')" title="Forecast">☆☆☆☆☆</button>
     <span class="sep">|</span>
@@ -982,7 +1062,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
     <span class="sep">|</span>
     <span class="wind-pill">-- m/s</span>
     <span class="sep">|</span>
-    <button class="refresh-icon" onclick="refreshCam('video7')" title="Refresh">↻</button>
+    <button class="refresh-icon" onclick="refreshCam('video12')" title="Refresh">↻</button>
     <span class="sep">|</span>
     <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo" target="_blank">Surftotal</a>
   </div>
@@ -990,7 +1070,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
 
 <div class="cam forecast-card" data-name="Mindelo meia laranja HD" data-key="mindelo_meia_laranja" data-forecast-key="mindelo_meia_laranja">
   <h2>Mindelo meia laranja HD</h2>
-  <video id="video8" controls autoplay muted playsinline preload="none"></video>
+  <video id="video13" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <button class="forecast-pill" onclick="showForecast('mindelo_meia_laranja')" title="Forecast">☆☆☆☆☆</button>
     <span class="sep">|</span>
@@ -998,7 +1078,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
     <span class="sep">|</span>
     <span class="wind-pill">-- m/s</span>
     <span class="sep">|</span>
-    <button class="refresh-icon" onclick="refreshCam('video8')" title="Refresh">↻</button>
+    <button class="refresh-icon" onclick="refreshCam('video13')" title="Refresh">↻</button>
     <span class="sep">|</span>
     <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo-meia-laranja" target="_blank">Surftotal</a>
   </div>
@@ -1006,7 +1086,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
 
 <div class="cam forecast-card" data-name="Cabo do Mundo HD" data-key="cabo" data-forecast-key="cabo">
   <h2>Cabo do Mundo HD</h2>
-  <video id="video9" controls autoplay muted playsinline preload="none"></video>
+  <video id="video14" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <button class="forecast-pill" onclick="showForecast('cabo')" title="Forecast">☆☆☆☆☆</button>
     <span class="sep">|</span>
@@ -1014,7 +1094,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
     <span class="sep">|</span>
     <span class="wind-pill">-- m/s</span>
     <span class="sep">|</span>
-    <button class="refresh-icon" onclick="refreshCam('video9')" title="Refresh">↻</button>
+    <button class="refresh-icon" onclick="refreshCam('video14')" title="Refresh">↻</button>
     <span class="sep">|</span>
     <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabo-do-mundo-hd" target="_blank">Surftotal</a>
   </div>
@@ -1022,7 +1102,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
 
 <div class="cam forecast-card" data-name="Leça da Palmeira HD" data-key="leca" data-forecast-key="leca">
   <h2>Leça da Palmeira HD</h2>
-  <video id="video10" controls autoplay muted playsinline preload="none"></video>
+  <video id="video15" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <button class="forecast-pill" onclick="showForecast('leca')" title="Forecast">☆☆☆☆☆</button>
     <span class="sep">|</span>
@@ -1030,7 +1110,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
     <span class="sep">|</span>
     <span class="wind-pill">-- m/s</span>
     <span class="sep">|</span>
-    <button class="refresh-icon" onclick="refreshCam('video10')" title="Refresh">↻</button>
+    <button class="refresh-icon" onclick="refreshCam('video15')" title="Refresh">↻</button>
     <span class="sep">|</span>
     <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-da-palmeira" target="_blank">Surftotal</a>
   </div>
@@ -1038,7 +1118,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
 
 <div class="cam forecast-card" data-name="Matosinhos HD" data-key="matosinhos" data-forecast-key="matosinhos">
   <h2>Matosinhos HD</h2>
-  <video id="video11" controls autoplay muted playsinline preload="none"></video>
+  <video id="video16" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <button class="forecast-pill" onclick="showForecast('matosinhos')" title="Forecast">☆☆☆☆☆</button>
     <span class="sep">|</span>
@@ -1046,7 +1126,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
     <span class="sep">|</span>
     <span class="wind-pill">-- m/s</span>
     <span class="sep">|</span>
-    <button class="refresh-icon" onclick="refreshCam('video11')" title="Refresh">↻</button>
+    <button class="refresh-icon" onclick="refreshCam('video16')" title="Refresh">↻</button>
     <span class="sep">|</span>
     <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-hd" target="_blank">Surftotal</a>
   </div>
@@ -1054,7 +1134,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
 
 <div class="cam forecast-card" data-name="Matosinhos - Vagas Bar HD" data-key="vagas" data-forecast-key="vagas">
   <h2>Matosinhos - Vagas Bar HD</h2>
-  <video id="video12" controls autoplay muted playsinline preload="none"></video>
+  <video id="video17" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <button class="forecast-pill" onclick="showForecast('vagas')" title="Forecast">☆☆☆☆☆</button>
     <span class="sep">|</span>
@@ -1062,15 +1142,31 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
     <span class="sep">|</span>
     <span class="wind-pill">-- m/s</span>
     <span class="sep">|</span>
-    <button class="refresh-icon" onclick="refreshCam('video12')" title="Refresh">↻</button>
+    <button class="refresh-icon" onclick="refreshCam('video17')" title="Refresh">↻</button>
     <span class="sep">|</span>
     <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-vagas-bar" target="_blank">Surftotal</a>
   </div>
 </div>
 
+<div class="cam forecast-card" data-name="Praia Canide Norte/Sul" data-key="canide" data-forecast-key="cabedelo" data-direct-stream="https://video-auth1.iol.pt/beachcam/bccanidelo/playlist.m3u8">
+  <h2>Praia Canide Norte/Sul</h2>
+  <video id="video18" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('cabedelo')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('cabedelo')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video18')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/praia-canide-norte-sul/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
 <div class="cam forecast-card" data-name="Espinho HD" data-key="espinho" data-forecast-key="espinho">
   <h2>Espinho HD</h2>
-  <video id="video13" controls autoplay muted playsinline preload="none"></video>
+  <video id="video19" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <button class="forecast-pill" onclick="showForecast('espinho')" title="Forecast">☆☆☆☆☆</button>
     <span class="sep">|</span>
@@ -1078,7 +1174,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
     <span class="sep">|</span>
     <span class="wind-pill">-- m/s</span>
     <span class="sep">|</span>
-    <button class="refresh-icon" onclick="refreshCam('video13')" title="Refresh">↻</button>
+    <button class="refresh-icon" onclick="refreshCam('video19')" title="Refresh">↻</button>
     <span class="sep">|</span>
     <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-hd" target="_blank">Surftotal</a>
   </div>
@@ -1086,7 +1182,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
 
 <div class="cam forecast-card" data-name="Espinho vista aérea HD" data-key="espinho_aerea" data-forecast-key="espinho_aerea">
   <h2>Espinho vista aérea HD</h2>
-  <video id="video14" controls autoplay muted playsinline preload="none"></video>
+  <video id="video20" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <button class="forecast-pill" onclick="showForecast('espinho_aerea')" title="Forecast">☆☆☆☆☆</button>
     <span class="sep">|</span>
@@ -1094,7 +1190,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
     <span class="sep">|</span>
     <span class="wind-pill">-- m/s</span>
     <span class="sep">|</span>
-    <button class="refresh-icon" onclick="refreshCam('video14')" title="Refresh">↻</button>
+    <button class="refresh-icon" onclick="refreshCam('video20')" title="Refresh">↻</button>
     <span class="sep">|</span>
     <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-vista-aerea" target="_blank">Surftotal</a>
   </div>
@@ -1102,7 +1198,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
 
 <div class="cam forecast-card" data-name="Espinho - Silvalde HD" data-key="silvalde" data-forecast-key="silvalde">
   <h2>Espinho - Silvalde HD</h2>
-  <video id="video15" controls autoplay muted playsinline preload="none"></video>
+  <video id="video21" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <button class="forecast-pill" onclick="showForecast('silvalde')" title="Forecast">☆☆☆☆☆</button>
     <span class="sep">|</span>
@@ -1110,15 +1206,31 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
     <span class="sep">|</span>
     <span class="wind-pill">-- m/s</span>
     <span class="sep">|</span>
-    <button class="refresh-icon" onclick="refreshCam('video15')" title="Refresh">↻</button>
+    <button class="refresh-icon" onclick="refreshCam('video21')" title="Refresh">↻</button>
     <span class="sep">|</span>
     <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-silvalde" target="_blank">Surftotal</a>
   </div>
 </div>
 
+<div class="cam forecast-card" data-name="Esmoriz" data-key="bc_esmoriz" data-forecast-key="silvalde" data-direct-stream="https://video-auth1.iol.pt/beachcam/esmoriz/playlist.m3u8">
+  <h2>Esmoriz</h2>
+  <video id="video22" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('silvalde')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('silvalde')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video22')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/esmoriz/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
 <div class="cam forecast-card" data-name="Cortegaça (Vila do Surf) HD" data-key="cortegaca_vila" data-forecast-key="cortegaca_vila">
   <h2>Cortegaça (Vila do Surf) HD</h2>
-  <video id="video16" controls autoplay muted playsinline preload="none"></video>
+  <video id="video23" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <button class="forecast-pill" onclick="showForecast('cortegaca_vila')" title="Forecast">☆☆☆☆☆</button>
     <span class="sep">|</span>
@@ -1126,15 +1238,63 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
     <span class="sep">|</span>
     <span class="wind-pill">-- m/s</span>
     <span class="sep">|</span>
-    <button class="refresh-icon" onclick="refreshCam('video16')" title="Refresh">↻</button>
+    <button class="refresh-icon" onclick="refreshCam('video23')" title="Refresh">↻</button>
     <span class="sep">|</span>
     <a class="source-link" href="https://surftotal.com/camaras-report/aveiro/cortegaca-hd" target="_blank">Surftotal</a>
   </div>
 </div>
 
+<div class="cam forecast-card" data-name="Praia da Torreira" data-key="bc_torreira" data-forecast-key="barra_norte" data-direct-stream="https://video-auth1.iol.pt/beachcam/torreira/playlist.m3u8">
+  <h2>Praia da Torreira</h2>
+  <video id="video24" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('barra_norte')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('barra_norte')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video24')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/praia-da-torreira/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Praia de São Jacinto | Barra" data-key="bc_sao_jacinto" data-forecast-key="barra_norte" data-direct-stream="https://video-auth1.iol.pt/beachcam/bcfarolbarra/playlist.m3u8">
+  <h2>Praia de São Jacinto | Barra</h2>
+  <video id="video25" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('barra_norte')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('barra_norte')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video25')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/praia-de-sao-jacinto-barra/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Costa Nova" data-key="bc_costa_nova" data-forecast-key="barra_norte" data-direct-stream="https://video-auth1.iol.pt/beachcam/costanova/playlist.m3u8">
+  <h2>Costa Nova</h2>
+  <video id="video26" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('barra_norte')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('barra_norte')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video26')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/costa-nova/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
 <div class="cam forecast-card" data-name="Praia do Cabedelo (Figueira da Foz)" data-key="figueira_cabedelo" data-forecast-key="figueira_cabedelo">
   <h2>Praia do Cabedelo (Figueira da Foz)</h2>
-  <video id="video17" controls autoplay muted playsinline preload="none"></video>
+  <video id="video27" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
     <button class="forecast-pill" onclick="showForecast('figueira_cabedelo')" title="Forecast">☆☆☆☆☆</button>
     <span class="sep">|</span>
@@ -1142,7 +1302,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
     <span class="sep">|</span>
     <span class="wind-pill">-- m/s</span>
     <span class="sep">|</span>
-    <button class="refresh-icon" onclick="refreshCam('video17')" title="Refresh">↻</button>
+    <button class="refresh-icon" onclick="refreshCam('video27')" title="Refresh">↻</button>
     <span class="sep">|</span>
     <a class="source-link" href="https://surftotal.com/camaras-report/figueira-da-foz/praia-do-cabedelo-hd" target="_blank">Surftotal</a>
   </div>
@@ -1157,66 +1317,6 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
   </div>
   <div class="offline-list">
 <!-- OFFLINE_CAMS_START -->
-
-<div class="offline-item forecast-card" data-name="Viana do Castelo | Cabedelo" data-key="bc_viana_cabedelo" data-forecast-key="viana_castelo">
-  <div class="offline-main">
-    <span class="offline-name">Viana do Castelo | Cabedelo</span>
-    <a class="source-link" href="https://beachcam.meo.pt/livecams/viana-do-castelo-cabedelo/" target="_blank">Beachcam</a>
-  </div>
-  <div class="offline-stats">
-    <button class="forecast-pill" onclick="showForecast('viana_castelo')" title="Forecast">☆☆☆☆☆</button>
-    <button class="energy-pill" onclick="showForecast('viana_castelo')" title="Forecast energy">-- kJ</button>
-    <span class="wind-pill">-- m/s</span>
-  </div>
-</div>
-
-<div class="offline-item forecast-card" data-name="Esposende" data-key="bc_esposende" data-forecast-key="ofir">
-  <div class="offline-main">
-    <span class="offline-name">Esposende</span>
-    <a class="source-link" href="https://beachcam.meo.pt/livecams/esposende/" target="_blank">Beachcam</a>
-  </div>
-  <div class="offline-stats">
-    <button class="forecast-pill" onclick="showForecast('ofir')" title="Forecast">☆☆☆☆☆</button>
-    <button class="energy-pill" onclick="showForecast('ofir')" title="Forecast energy">-- kJ</button>
-    <span class="wind-pill">-- m/s</span>
-  </div>
-</div>
-
-<div class="offline-item forecast-card" data-name="Esposende | Foz do Cávado" data-key="bc_esposende_foz" data-forecast-key="ofir">
-  <div class="offline-main">
-    <span class="offline-name">Esposende | Foz do Cávado</span>
-    <a class="source-link" href="https://beachcam.meo.pt/livecams/esposende-foz-do-cavado/" target="_blank">Beachcam</a>
-  </div>
-  <div class="offline-stats">
-    <button class="forecast-pill" onclick="showForecast('ofir')" title="Forecast">☆☆☆☆☆</button>
-    <button class="energy-pill" onclick="showForecast('ofir')" title="Forecast energy">-- kJ</button>
-    <span class="wind-pill">-- m/s</span>
-  </div>
-</div>
-
-<div class="offline-item forecast-card" data-name="Apúlia" data-key="bc_apulia" data-forecast-key="ofir">
-  <div class="offline-main">
-    <span class="offline-name">Apúlia</span>
-    <a class="source-link" href="https://beachcam.meo.pt/livecams/apulia/" target="_blank">Beachcam</a>
-  </div>
-  <div class="offline-stats">
-    <button class="forecast-pill" onclick="showForecast('ofir')" title="Forecast">☆☆☆☆☆</button>
-    <button class="energy-pill" onclick="showForecast('ofir')" title="Forecast energy">-- kJ</button>
-    <span class="wind-pill">-- m/s</span>
-  </div>
-</div>
-
-<div class="offline-item forecast-card" data-name="Vila do Conde | Caxinas" data-key="bc_caxinas" data-forecast-key="azurara">
-  <div class="offline-main">
-    <span class="offline-name">Vila do Conde | Caxinas</span>
-    <a class="source-link" href="https://beachcam.meo.pt/livecams/caxinas-macaco-17/" target="_blank">Beachcam</a>
-  </div>
-  <div class="offline-stats">
-    <button class="forecast-pill" onclick="showForecast('azurara')" title="Forecast">☆☆☆☆☆</button>
-    <button class="energy-pill" onclick="showForecast('azurara')" title="Forecast energy">-- kJ</button>
-    <span class="wind-pill">-- m/s</span>
-  </div>
-</div>
 
 <div class="offline-item forecast-card" data-name="Praia de Árvore - Areal HD" data-key="arvore" data-forecast-key="arvore">
   <div class="offline-main">
@@ -1290,30 +1390,6 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
   </div>
 </div>
 
-<div class="offline-item forecast-card" data-name="Praia Canide Norte/Sul" data-key="canide" data-forecast-key="cabedelo">
-  <div class="offline-main">
-    <span class="offline-name">Praia Canide Norte/Sul</span>
-    <a class="source-link" href="https://beachcam.meo.pt/livecams/praia-canide-norte-sul/" target="_blank">Beachcam</a>
-  </div>
-  <div class="offline-stats">
-    <button class="forecast-pill" onclick="showForecast('cabedelo')" title="Forecast">☆☆☆☆☆</button>
-    <button class="energy-pill" onclick="showForecast('cabedelo')" title="Forecast energy">-- kJ</button>
-    <span class="wind-pill">-- m/s</span>
-  </div>
-</div>
-
-<div class="offline-item forecast-card" data-name="Esmoriz" data-key="bc_esmoriz" data-forecast-key="silvalde">
-  <div class="offline-main">
-    <span class="offline-name">Esmoriz</span>
-    <a class="source-link" href="https://beachcam.meo.pt/livecams/esmoriz/" target="_blank">Beachcam</a>
-  </div>
-  <div class="offline-stats">
-    <button class="forecast-pill" onclick="showForecast('silvalde')" title="Forecast">☆☆☆☆☆</button>
-    <button class="energy-pill" onclick="showForecast('silvalde')" title="Forecast energy">-- kJ</button>
-    <span class="wind-pill">-- m/s</span>
-  </div>
-</div>
-
 <div class="offline-item forecast-card" data-name="Furadouro" data-key="bc_furadouro" data-forecast-key="cortegaca_vila">
   <div class="offline-main">
     <span class="offline-name">Furadouro</span>
@@ -1326,46 +1402,10 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
   </div>
 </div>
 
-<div class="offline-item forecast-card" data-name="Praia da Torreira" data-key="bc_torreira" data-forecast-key="barra_norte">
-  <div class="offline-main">
-    <span class="offline-name">Praia da Torreira</span>
-    <a class="source-link" href="https://beachcam.meo.pt/livecams/praia-da-torreira/" target="_blank">Beachcam</a>
-  </div>
-  <div class="offline-stats">
-    <button class="forecast-pill" onclick="showForecast('barra_norte')" title="Forecast">☆☆☆☆☆</button>
-    <button class="energy-pill" onclick="showForecast('barra_norte')" title="Forecast energy">-- kJ</button>
-    <span class="wind-pill">-- m/s</span>
-  </div>
-</div>
-
-<div class="offline-item forecast-card" data-name="Praia de São Jacinto | Barra" data-key="bc_sao_jacinto" data-forecast-key="barra_norte">
-  <div class="offline-main">
-    <span class="offline-name">Praia de São Jacinto | Barra</span>
-    <a class="source-link" href="https://beachcam.meo.pt/livecams/praia-de-sao-jacinto-barra/" target="_blank">Beachcam</a>
-  </div>
-  <div class="offline-stats">
-    <button class="forecast-pill" onclick="showForecast('barra_norte')" title="Forecast">☆☆☆☆☆</button>
-    <button class="energy-pill" onclick="showForecast('barra_norte')" title="Forecast energy">-- kJ</button>
-    <span class="wind-pill">-- m/s</span>
-  </div>
-</div>
-
 <div class="offline-item forecast-card" data-name="Praia da Barra Norte HD" data-key="barra_norte" data-forecast-key="barra_norte">
   <div class="offline-main">
     <span class="offline-name">Praia da Barra Norte HD</span>
     <a class="source-link" href="https://surftotal.com/camaras-report/aveiro/praia-da-barra-norte-hd" target="_blank">Surftotal</a>
-  </div>
-  <div class="offline-stats">
-    <button class="forecast-pill" onclick="showForecast('barra_norte')" title="Forecast">☆☆☆☆☆</button>
-    <button class="energy-pill" onclick="showForecast('barra_norte')" title="Forecast energy">-- kJ</button>
-    <span class="wind-pill">-- m/s</span>
-  </div>
-</div>
-
-<div class="offline-item forecast-card" data-name="Costa Nova" data-key="bc_costa_nova" data-forecast-key="barra_norte">
-  <div class="offline-main">
-    <span class="offline-name">Costa Nova</span>
-    <a class="source-link" href="https://beachcam.meo.pt/livecams/costa-nova/" target="_blank">Beachcam</a>
   </div>
   <div class="offline-stats">
     <button class="forecast-pill" onclick="showForecast('barra_norte')" title="Forecast">☆☆☆☆☆</button>
