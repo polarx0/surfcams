@@ -74,17 +74,21 @@ def source_label(data):
 def data_attr(value):
     return json.dumps(value, ensure_ascii=False)
 
-def stream_is_live(stream_url, referer):
+def beachcam_stream_status(stream_url, referer):
     try:
         res = requests.get(
             stream_url,
             headers={**HEADERS, "Referer": referer},
             timeout=20,
         )
-        return res.ok and "#EXTM3U" in res.text
+        if res.status_code in (404, 410):
+            return "dead"
+        if res.ok and "#EXTM3U" in res.text:
+            return "live"
+        return "unknown"
     except Exception as e:
         print(f"ERROR checking stream: {stream_url}: {e}")
-        return False
+        return "unknown"
 
 def find_m3u8(data):
     page_url = data["page"]
@@ -95,7 +99,7 @@ def find_m3u8(data):
             match = re.search(r'data-video-url=["\']([^"\']+?\.m3u8[^"\']*)["\']', html)
             if match:
                 stream_url = match.group(1).replace("\\/", "/")
-                return stream_url if stream_is_live(stream_url, page_url) else None
+                return None if beachcam_stream_status(stream_url, page_url) == "dead" else stream_url
             return fallback_stream
         matches = re.findall(r'https?://[^"\']+?\.m3u8[^"\']*', html)
         return matches[0].replace("\\/", "/") if matches else None
