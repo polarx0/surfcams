@@ -428,8 +428,8 @@ async function showForecast(spotKey) {{
     '</span></div>' +
 
     '<div class="modal-row"><b>Tide</b><span>' +
-      (data.tide?.state || "unknown") +
-      (data.tide?.heightM != null ? " (" + data.tide.heightM + " m)" : "") +
+      formatTidePhase(data.tide) +
+      (data.tide?.heightM != null ? " · " + data.tide.heightM + " m" : "") +
     '</span></div>' +
 
     '<div class="modal-row"><b>Updated</b><span>' +
@@ -445,6 +445,34 @@ function closeForecastModal() {{
 
 function fmt(value, suffix) {{
   return value == null ? "--" : value + suffix;
+}}
+
+function formatTidePhase(tide) {{
+  if (!tide) return "unknown";
+  const phase = String(tide.phase || tide.state || "").toLowerCase().replaceAll("_", "-");
+  const height = Number(tide.heightM);
+  if (!Number.isFinite(height)) return tide.state || "unknown";
+  const suppliedPosition = Number(tide.normalizedHeight ?? tide.position);
+  const position = Number.isFinite(suppliedPosition)
+    ? Math.max(0, Math.min(1, suppliedPosition))
+    : Math.max(0, Math.min(1, (height - 0.6) / (3.4 - 0.6)));
+
+  if (phase === "rising") {{
+    if (position <= 0.12) return "Low →";
+    if (position < 0.38) return "Low → Mid";
+    if (position <= 0.62) return "Mid";
+    if (position < 0.88) return "Mid → High";
+    return "High";
+  }}
+
+  if (phase === "falling") {{
+    if (position >= 0.9) return "High";
+    if (position >= 0.78) return "High → Mid";
+    if (position > 0.12) return "Mid → Low";
+    return "Low";
+  }}
+
+  return tide.state || "unknown";
 }}
 
 window.addEventListener("load", () => {{
