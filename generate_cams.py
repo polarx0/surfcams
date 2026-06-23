@@ -10,11 +10,16 @@ CAMS = {
     "Moledo HD": {"key": "moledo", "page": "https://surftotal.com/camaras-report/minho/moledo", "stars": "★★★★☆"},
     "Vila Praia de Âncora HD": {"key": "ancora", "page": "https://surftotal.com/camaras-report/minho/vila-praia-ancora", "stars": "★★★☆☆"},
     "Viana do Castelo HD": {"key": "viana_castelo", "page": "https://surftotal.com/camaras-report/minho/viana-do-castelo-hd", "stars": "★★★☆☆"},
+    "Viana do Castelo | Cabedelo": {"key": "bc_viana_cabedelo", "forecast_key": "viana_castelo", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/viana-do-castelo-cabedelo/", "stars": "★★★☆☆"},
     "Ofir": {"key": "ofir", "page": "https://surftotal.com/camaras-report/minho/ofir", "stars": "★★★★☆"},
+    "Esposende": {"key": "bc_esposende", "forecast_key": "ofir", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/esposende/", "stars": "★★★☆☆"},
+    "Esposende | Foz do Cávado": {"key": "bc_esposende_foz", "forecast_key": "ofir", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/esposende-foz-do-cavado/", "stars": "★★★☆☆"},
+    "Apúlia": {"key": "bc_apulia", "forecast_key": "ofir", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/apulia/", "stars": "★★★☆☆"},
 
     "Aguçadoura HD": {"key": "agucadoura", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/agucadoura", "stars": "★★★☆☆"},
     "Póvoa de Varzim - Ferrari HD": {"key": "ferrari", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/povoa-de-varzim-ferrari", "stars": "★★☆☆☆"},
     "Azurara HD": {"key": "azurara", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/azurara", "stars": "★★★☆☆"},
+    "Vila do Conde | Caxinas": {"key": "bc_caxinas", "forecast_key": "azurara", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/caxinas-macaco-17/", "stars": "★★★☆☆"},
     "Praia de Árvore - Areal HD": {"key": "arvore", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/praia-da-arvore-areal", "stars": "★★★☆☆"},
     "Mindelo": {"key": "mindelo", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo", "stars": "★★☆☆☆"},
     "Mindelo meia laranja HD": {"key": "mindelo_meia_laranja", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo-meia-laranja", "stars": "★★☆☆☆"},
@@ -24,6 +29,8 @@ CAMS = {
     "Leça da Palmeira HD": {"key": "leca", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-da-palmeira", "stars": "★★☆☆☆"},
     "Matosinhos HD": {"key": "matosinhos", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-hd", "stars": "★★☆☆☆"},
     "Matosinhos - Vagas Bar HD": {"key": "vagas", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-vagas-bar", "stars": "★★★☆☆"},
+    "Porto | Homem do Leme": {"key": "bc_homem_do_leme", "forecast_key": "matosinhos", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/porto-homem-do-leme/", "stars": "★★★☆☆"},
+    "Porto | Carneiro": {"key": "bc_carneiro", "forecast_key": "matosinhos", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/porto-carneiro/", "stars": "★★★☆☆"},
     "Cabedelo do Porto": {"key": "cabedelo", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabedelo-do-porto", "stars": "★★☆☆☆"},
     "Espinho HD": {"key": "espinho", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-hd", "stars": "★★★☆☆"},
     "Espinho vista aérea HD": {"key": "espinho_aerea", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-vista-aerea", "stars": "★★★☆☆"},
@@ -31,14 +38,22 @@ CAMS = {
 
     "Praia Canide Norte/Sul": {"key": "canide", "forecast_key": "cabedelo", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/praia-canide-norte-sul/", "stars": "★★★☆☆"},
 
+    "Esmoriz": {"key": "bc_esmoriz", "forecast_key": "silvalde", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/esmoriz/", "stars": "★★★☆☆"},
     "Cortegaça (Vila do Surf) HD": {"key": "cortegaca_vila", "page": "https://surftotal.com/camaras-report/aveiro/cortegaca-hd", "stars": "★★★☆☆"},
+    "Furadouro": {"key": "bc_furadouro", "forecast_key": "cortegaca_vila", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/furadouro/", "stars": "★★★☆☆"},
+    "Praia da Torreira": {"key": "bc_torreira", "forecast_key": "barra_norte", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/praia-da-torreira/", "stars": "★★★☆☆"},
+    "Praia de São Jacinto | Barra": {"key": "bc_sao_jacinto", "forecast_key": "barra_norte", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/praia-de-sao-jacinto-barra/", "stars": "★★★☆☆"},
     "Praia da Barra Norte HD": {"key": "barra_norte", "page": "https://surftotal.com/camaras-report/aveiro/praia-da-barra-norte-hd", "stars": "★★★☆☆"},
+    "Costa Nova": {"key": "bc_costa_nova", "forecast_key": "barra_norte", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/costa-nova/", "stars": "★★★☆☆"},
     "Mira": {"key": "mira", "page": "https://surftotal.com/camaras-report/aveiro/mira", "stars": "★★★☆☆"},
     "Praia do Cabedelo (Figueira da Foz)": {"key": "figueira_cabedelo", "page": "https://surftotal.com/camaras-report/figueira-da-foz/praia-do-cabedelo-hd", "stars": "★★★☆☆"},
 }
 
 def source_label(data):
     return "Beachcam" if data.get("source") == "beachcam" else "Surftotal"
+
+def data_attr(value):
+    return json.dumps(value, ensure_ascii=False)
 
 def find_m3u8(data):
     page_url = data["page"]
@@ -57,10 +72,10 @@ def find_m3u8(data):
 def render_cam(name, idx, data):
     forecast_key = data.get("forecast_key", data["key"])
     direct_stream = data.get("stream_url")
-    direct_attr = f" data-direct-stream={json.dumps(direct_stream)}" if direct_stream and data.get("source") == "beachcam" else ""
+    direct_attr = f" data-direct-stream={data_attr(direct_stream)}" if direct_stream and data.get("source") == "beachcam" else ""
     label = source_label(data)
     return f"""
-<div class="cam forecast-card" data-name={json.dumps(name)} data-key={json.dumps(data["key"])} data-forecast-key={json.dumps(forecast_key)}{direct_attr}>
+<div class="cam forecast-card" data-name={data_attr(name)} data-key={data_attr(data["key"])} data-forecast-key={data_attr(forecast_key)}{direct_attr}>
   <h2>{name}</h2>
   <video id="video{idx}" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
@@ -81,7 +96,7 @@ def render_offline(name, data):
     forecast_key = data.get("forecast_key", data["key"])
     label = source_label(data)
     return f"""
-<div class="offline-item forecast-card" data-name={json.dumps(name)} data-key={json.dumps(data["key"])} data-forecast-key={json.dumps(forecast_key)}>
+<div class="offline-item forecast-card" data-name={data_attr(name)} data-key={data_attr(data["key"])} data-forecast-key={data_attr(forecast_key)}>
   <div class="offline-main">
     <span class="offline-name">{name}</span>
     <a class="source-link" href="{data["page"]}" target="_blank">{label}</a>
@@ -209,6 +224,7 @@ async function startOrRefreshCam(videoId) {{
   const directStream = card?.dataset.directStream;
   const el = card?.querySelector(".token-info");
   if (!video || !camKey) return;
+  video.dataset.started = "true";
 
   if (directStream) {{
     initCam(videoId, directStream);
@@ -243,6 +259,30 @@ async function refreshCam(videoId) {{
 async function refreshAll() {{
   const videos = Array.from(document.querySelectorAll(".cam video"));
   await Promise.allSettled(videos.map(video => startOrRefreshCam(video.id)));
+}}
+
+async function refreshStartedCams() {{
+  const videos = Array.from(document.querySelectorAll('.cam video[data-started="true"]'));
+  await Promise.allSettled(videos.map(video => startOrRefreshCam(video.id)));
+}}
+
+function setupLazyCams() {{
+  const videos = Array.from(document.querySelectorAll(".cam video"));
+  if (!("IntersectionObserver" in window)) {{
+    videos.slice(0, 6).forEach(video => startOrRefreshCam(video.id));
+    return;
+  }}
+
+  const observer = new IntersectionObserver(entries => {{
+    entries.forEach(entry => {{
+      if (!entry.isIntersecting) return;
+      const video = entry.target;
+      observer.unobserve(video);
+      startOrRefreshCam(video.id);
+    }});
+  }}, {{ rootMargin: "500px 0px" }});
+
+  videos.forEach(video => observer.observe(video));
 }}
 
 
@@ -356,9 +396,9 @@ function fmt(value, suffix) {{
 }}
 
 window.addEventListener("load", () => {{
-  refreshAll();
+  setupLazyCams();
   loadAllForecasts();
-  setInterval(refreshAll, AUTO_REFRESH_SECONDS * 1000);
+  setInterval(refreshStartedCams, AUTO_REFRESH_SECONDS * 1000);
   setInterval(loadAllForecasts, 60 * 60 * 1000);
 }});
 </script>
@@ -605,7 +645,7 @@ if template_path.exists():
     def replace_generated_section(source, start_marker, end_marker, content):
         pattern = re.escape(start_marker) + r".*?" + re.escape(end_marker)
         replacement = f"{start_marker}\n{content.rstrip()}\n{end_marker}"
-        updated, count = re.subn(pattern, replacement, source, count=1, flags=re.S)
+        updated, count = re.subn(pattern, lambda _: replacement, source, count=1, flags=re.S)
         if count != 1:
             raise RuntimeError(f"Missing generated section: {start_marker}")
         return updated
