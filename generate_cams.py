@@ -29,15 +29,25 @@ CAMS = {
     "Espinho vista aérea HD": {"key": "espinho_aerea", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-vista-aerea", "stars": "★★★☆☆"},
     "Espinho - Silvalde HD": {"key": "silvalde", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-silvalde", "stars": "★★★★☆"},
 
+    "Praia Canide Norte/Sul": {"key": "canide", "forecast_key": "cabedelo", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/praia-canide-norte-sul/", "stars": "★★★☆☆"},
+
     "Cortegaça (Vila do Surf) HD": {"key": "cortegaca_vila", "page": "https://surftotal.com/camaras-report/aveiro/cortegaca-hd", "stars": "★★★☆☆"},
     "Praia da Barra Norte HD": {"key": "barra_norte", "page": "https://surftotal.com/camaras-report/aveiro/praia-da-barra-norte-hd", "stars": "★★★☆☆"},
     "Mira": {"key": "mira", "page": "https://surftotal.com/camaras-report/aveiro/mira", "stars": "★★★☆☆"},
     "Praia do Cabedelo (Figueira da Foz)": {"key": "figueira_cabedelo", "page": "https://surftotal.com/camaras-report/figueira-da-foz/praia-do-cabedelo-hd", "stars": "★★★☆☆"},
 }
 
-def find_m3u8(page_url):
+def source_label(data):
+    return "Beachcam" if data.get("source") == "beachcam" else "Surftotal"
+
+def find_m3u8(data):
+    page_url = data["page"]
     try:
         html = requests.get(page_url, headers={**HEADERS, "Referer": page_url}, timeout=20).text
+        if data.get("source") == "beachcam":
+            match = re.search(r'data-video-url=["\']([^"\']+?\.m3u8[^"\']*)["\']', html)
+            if match:
+                return match.group(1).replace("\\/", "/")
         matches = re.findall(r'https?://[^"\']+?\.m3u8[^"\']*', html)
         return matches[0].replace("\\/", "/") if matches else None
     except Exception as e:
@@ -45,34 +55,40 @@ def find_m3u8(page_url):
         return None
 
 def render_cam(name, idx, data):
+    forecast_key = data.get("forecast_key", data["key"])
+    direct_stream = data.get("stream_url")
+    direct_attr = f" data-direct-stream={json.dumps(direct_stream)}" if direct_stream and data.get("source") == "beachcam" else ""
+    label = source_label(data)
     return f"""
-<div class="cam forecast-card" data-name={json.dumps(name)} data-key={json.dumps(data["key"])}>
+<div class="cam forecast-card" data-name={json.dumps(name)} data-key={json.dumps(data["key"])} data-forecast-key={json.dumps(forecast_key)}{direct_attr}>
   <h2>{name}</h2>
   <video id="video{idx}" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
-    <button class="forecast-pill" onclick="showForecast('{data["key"]}')" title="Forecast">☆☆☆☆☆</button>
+    <button class="forecast-pill" onclick="showForecast('{forecast_key}')" title="Forecast">☆☆☆☆☆</button>
     <span class="sep">|</span>
-    <button class="energy-pill" onclick="showForecast('{data["key"]}')" title="Forecast energy">-- kJ</button>
+    <button class="energy-pill" onclick="showForecast('{forecast_key}')" title="Forecast energy">-- kJ</button>
     <span class="sep">|</span>
     <span class="wind-pill">-- m/s</span>
     <span class="sep">|</span>
     <button class="refresh-icon" onclick="refreshCam('video{idx}')" title="Refresh">↻</button>
     <span class="sep">|</span>
-    <a class="source-link" href="{data["page"]}" target="_blank">Surftotal</a>
+    <a class="source-link" href="{data["page"]}" target="_blank">{label}</a>
   </div>
 </div>
 """
 
 def render_offline(name, data):
+    forecast_key = data.get("forecast_key", data["key"])
+    label = source_label(data)
     return f"""
-<div class="offline-item forecast-card" data-name={json.dumps(name)} data-key={json.dumps(data["key"])}>
+<div class="offline-item forecast-card" data-name={json.dumps(name)} data-key={json.dumps(data["key"])} data-forecast-key={json.dumps(forecast_key)}>
   <div class="offline-main">
     <span class="offline-name">{name}</span>
-    <a class="source-link" href="{data["page"]}" target="_blank">Surftotal</a>
+    <a class="source-link" href="{data["page"]}" target="_blank">{label}</a>
   </div>
   <div class="offline-stats">
-    <button class="forecast-pill" onclick="showForecast('{data["key"]}')" title="Forecast">☆☆☆☆☆</button>
-    <button class="energy-pill" onclick="showForecast('{data["key"]}')" title="Forecast energy">-- kJ</button>
+    <button class="forecast-pill" onclick="showForecast('{forecast_key}')" title="Forecast">☆☆☆☆☆</button>
+    <button class="energy-pill" onclick="showForecast('{forecast_key}')" title="Forecast energy">-- kJ</button>
     <span class="wind-pill">-- m/s</span>
   </div>
 </div>
@@ -82,7 +98,9 @@ online_names = []
 offline_names = []
 
 for name, data in CAMS.items():
-    if find_m3u8(data["page"]):
+    stream_url = find_m3u8(data)
+    data["stream_url"] = stream_url
+    if stream_url:
         online_names.append(name)
         print(f"{name}: ONLINE")
     else:
@@ -188,8 +206,15 @@ async function startOrRefreshCam(videoId) {{
   const video = document.getElementById(videoId);
   const card = video?.closest(".cam");
   const camKey = card?.dataset.key;
+  const directStream = card?.dataset.directStream;
   const el = card?.querySelector(".token-info");
   if (!video || !camKey) return;
+
+  if (directStream) {{
+    initCam(videoId, directStream);
+    if (el) el.textContent = "⏱ live";
+    return;
+  }}
 
   streamRefreshes[videoId] = (async () => {{
     try {{
@@ -245,7 +270,7 @@ function updateForecastInCard(card, data) {{
 }}
 
 async function loadForecastForCard(card) {{
-  const spotKey = card?.dataset.key;
+  const spotKey = card?.dataset.forecastKey || card?.dataset.key;
   if (!spotKey) return;
 
   try {{
@@ -559,7 +584,8 @@ html += """
 
 <div class="footer-credit">
   Camera data courtesy of
-  <a href="https://surftotal.com" target="_blank">Surftotal</a>.
+  <a href="https://surftotal.com" target="_blank">Surftotal</a>
+  and <a href="https://beachcam.meo.pt" target="_blank">Beachcam</a>.
 </div>
 <div id="forecast-modal" class="forecast-modal" onclick="closeForecastModal()">
   <div class="forecast-modal-content" onclick="event.stopPropagation()">
