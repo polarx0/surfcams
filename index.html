@@ -283,7 +283,7 @@ async function loadForecastForCard(card) {
 }
 
 async function loadAllForecasts() {
-  const cards = Array.from(document.querySelectorAll(".cam"));
+  const cards = Array.from(document.querySelectorAll(".forecast-card"));
   for (const card of cards) {
     await loadForecastForCard(card);
   }
@@ -293,7 +293,7 @@ async function showForecast(spotKey) {
   let data = forecastCache[spotKey];
 
   if (!data) {
-    const card = document.querySelector('.cam[data-key="' + spotKey + '"]');
+    const card = document.querySelector('.forecast-card[data-key="' + spotKey + '"]');
     await loadForecastForCard(card);
     data = forecastCache[spotKey];
   }
@@ -653,17 +653,25 @@ a { color:#8ecbff; }
 .offline-list { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; padding:0; }
 .offline-item {
   display:flex;
-  align-items:center;
+  flex-direction:column;
+  align-items:stretch;
   gap:8px;
   min-width:0;
-  padding:9px 10px;
+  padding:10px;
   background:var(--panel);
   border:1px solid var(--line);
   border-radius:8px;
   color:var(--muted);
   font-size:11px;
 }
-.offline-item:before {
+.offline-item.is-pumping { border-color:rgba(132,224,198,.3); }
+.offline-main {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+}
+.offline-main:before {
   content:"";
   width:7px;
   height:7px;
@@ -679,6 +687,17 @@ a { color:#8ecbff; }
 }
 .offline-item .source-link {
   margin-left:auto;
+  font-size:10px;
+}
+.offline-stats {
+  display:flex;
+  align-items:center;
+  gap:6px;
+  min-width:0;
+}
+.offline-stats .forecast-pill,
+.offline-stats .energy-pill,
+.offline-stats .wind-pill {
   font-size:10px;
 }
 
@@ -777,7 +796,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
 <div class="grid">
 <!-- ONLINE_CAMS_START -->
 
-<div class="cam" data-name="Moledo HD" data-key="moledo">
+<div class="cam forecast-card" data-name="Moledo HD" data-key="moledo">
   <h2>Moledo HD</h2>
   <video id="video0" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
@@ -795,7 +814,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
   </div>
 </div>
 
-<div class="cam" data-name="Vila Praia de \u00c2ncora HD" data-key="ancora">
+<div class="cam forecast-card" data-name="Vila Praia de \u00c2ncora HD" data-key="ancora">
   <h2>Vila Praia de Âncora HD</h2>
   <video id="video1" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
@@ -813,7 +832,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
   </div>
 </div>
 
-<div class="cam" data-name="Viana do Castelo HD" data-key="viana_castelo">
+<div class="cam forecast-card" data-name="Viana do Castelo HD" data-key="viana_castelo">
   <h2>Viana do Castelo HD</h2>
   <video id="video2" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
@@ -831,7 +850,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
   </div>
 </div>
 
-<div class="cam" data-name="Ofir" data-key="ofir">
+<div class="cam forecast-card" data-name="Ofir" data-key="ofir">
   <h2>Ofir</h2>
   <video id="video3" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
@@ -849,7 +868,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
   </div>
 </div>
 
-<div class="cam" data-name="Agu\u00e7adoura HD" data-key="agucadoura">
+<div class="cam forecast-card" data-name="Agu\u00e7adoura HD" data-key="agucadoura">
   <h2>Aguçadoura HD</h2>
   <video id="video4" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
@@ -867,7 +886,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
   </div>
 </div>
 
-<div class="cam" data-name="P\u00f3voa de Varzim - Ferrari HD" data-key="ferrari">
+<div class="cam forecast-card" data-name="P\u00f3voa de Varzim - Ferrari HD" data-key="ferrari">
   <h2>Póvoa de Varzim - Ferrari HD</h2>
   <video id="video5" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
@@ -885,7 +904,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
   </div>
 </div>
 
-<div class="cam" data-name="Azurara HD" data-key="azurara">
+<div class="cam forecast-card" data-name="Azurara HD" data-key="azurara">
   <h2>Azurara HD</h2>
   <video id="video6" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
@@ -903,7 +922,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
   </div>
 </div>
 
-<div class="cam" data-name="Mindelo" data-key="mindelo">
+<div class="cam forecast-card" data-name="Mindelo" data-key="mindelo">
   <h2>Mindelo</h2>
   <video id="video7" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
@@ -921,7 +940,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
   </div>
 </div>
 
-<div class="cam" data-name="Mindelo meia laranja HD" data-key="mindelo_meia_laranja">
+<div class="cam forecast-card" data-name="Mindelo meia laranja HD" data-key="mindelo_meia_laranja">
   <h2>Mindelo meia laranja HD</h2>
   <video id="video8" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
@@ -939,7 +958,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
   </div>
 </div>
 
-<div class="cam" data-name="Cabo do Mundo HD" data-key="cabo">
+<div class="cam forecast-card" data-name="Cabo do Mundo HD" data-key="cabo">
   <h2>Cabo do Mundo HD</h2>
   <video id="video9" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
@@ -957,7 +976,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
   </div>
 </div>
 
-<div class="cam" data-name="Le\u00e7a da Palmeira HD" data-key="leca">
+<div class="cam forecast-card" data-name="Le\u00e7a da Palmeira HD" data-key="leca">
   <h2>Leça da Palmeira HD</h2>
   <video id="video10" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
@@ -975,7 +994,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
   </div>
 </div>
 
-<div class="cam" data-name="Matosinhos HD" data-key="matosinhos">
+<div class="cam forecast-card" data-name="Matosinhos HD" data-key="matosinhos">
   <h2>Matosinhos HD</h2>
   <video id="video11" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
@@ -993,7 +1012,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
   </div>
 </div>
 
-<div class="cam" data-name="Matosinhos - Vagas Bar HD" data-key="vagas">
+<div class="cam forecast-card" data-name="Matosinhos - Vagas Bar HD" data-key="vagas">
   <h2>Matosinhos - Vagas Bar HD</h2>
   <video id="video12" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
@@ -1011,7 +1030,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
   </div>
 </div>
 
-<div class="cam" data-name="Espinho HD" data-key="espinho">
+<div class="cam forecast-card" data-name="Espinho HD" data-key="espinho">
   <h2>Espinho HD</h2>
   <video id="video13" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
@@ -1029,7 +1048,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
   </div>
 </div>
 
-<div class="cam" data-name="Espinho vista a\u00e9rea HD" data-key="espinho_aerea">
+<div class="cam forecast-card" data-name="Espinho vista a\u00e9rea HD" data-key="espinho_aerea">
   <h2>Espinho vista aérea HD</h2>
   <video id="video14" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
@@ -1047,7 +1066,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
   </div>
 </div>
 
-<div class="cam" data-name="Espinho - Silvalde HD" data-key="silvalde">
+<div class="cam forecast-card" data-name="Espinho - Silvalde HD" data-key="silvalde">
   <h2>Espinho - Silvalde HD</h2>
   <video id="video15" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
@@ -1065,7 +1084,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
   </div>
 </div>
 
-<div class="cam" data-name="Cortega\u00e7a (Vila do Surf) HD" data-key="cortegaca_vila">
+<div class="cam forecast-card" data-name="Cortega\u00e7a (Vila do Surf) HD" data-key="cortegaca_vila">
   <h2>Cortegaça (Vila do Surf) HD</h2>
   <video id="video16" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
@@ -1083,7 +1102,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
   </div>
 </div>
 
-<div class="cam" data-name="Praia do Cabedelo (Figueira da Foz)" data-key="figueira_cabedelo">
+<div class="cam forecast-card" data-name="Praia do Cabedelo (Figueira da Foz)" data-key="figueira_cabedelo">
   <h2>Praia do Cabedelo (Figueira da Foz)</h2>
   <video id="video17" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
@@ -1111,40 +1130,76 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
   <div class="offline-list">
 <!-- OFFLINE_CAMS_START -->
 
-<div class="offline-item">
-  <span class="offline-name">Cabedelo do Porto</span>
-  <span class="sep">|</span>
-  <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabedelo-do-porto" target="_blank">Surftotal</a>
+<div class="offline-item forecast-card" data-name="Praia de Árvore - Areal HD" data-key="arvore">
+  <div class="offline-main">
+    <span class="offline-name">Praia de Árvore - Areal HD</span>
+    <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/praia-da-arvore-areal" target="_blank">Surftotal</a>
+  </div>
+  <div class="offline-stats">
+    <button class="forecast-pill" onclick="showForecast('arvore')" title="Forecast">☆☆☆☆☆</button>
+    <button class="energy-pill" onclick="showForecast('arvore')" title="Forecast energy">-- kJ</button>
+    <span class="wind-pill">-- m/s</span>
+  </div>
 </div>
 
-<div class="offline-item">
-  <span class="offline-name">Leça - L'Kodak (Aterro) HD</span>
-  <span class="sep">|</span>
-  <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-kodak-aterro" target="_blank">Surftotal</a>
+<div class="offline-item forecast-card" data-name="Pedras do Corgo - Melanina HD" data-key="pedras">
+  <div class="offline-main">
+    <span class="offline-name">Pedras do Corgo - Melanina HD</span>
+    <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/pedras-do-corgo" target="_blank">Surftotal</a>
+  </div>
+  <div class="offline-stats">
+    <button class="forecast-pill" onclick="showForecast('pedras')" title="Forecast">☆☆☆☆☆</button>
+    <button class="energy-pill" onclick="showForecast('pedras')" title="Forecast energy">-- kJ</button>
+    <span class="wind-pill">-- m/s</span>
+  </div>
 </div>
 
-<div class="offline-item">
-  <span class="offline-name">Mira</span>
-  <span class="sep">|</span>
-  <a class="source-link" href="https://surftotal.com/camaras-report/aveiro/mira" target="_blank">Surftotal</a>
+<div class="offline-item forecast-card" data-name="Leça - L'Kodak (Aterro) HD" data-key="leca_aterro">
+  <div class="offline-main">
+    <span class="offline-name">Leça - L'Kodak (Aterro) HD</span>
+    <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-kodak-aterro" target="_blank">Surftotal</a>
+  </div>
+  <div class="offline-stats">
+    <button class="forecast-pill" onclick="showForecast('leca_aterro')" title="Forecast">☆☆☆☆☆</button>
+    <button class="energy-pill" onclick="showForecast('leca_aterro')" title="Forecast energy">-- kJ</button>
+    <span class="wind-pill">-- m/s</span>
+  </div>
 </div>
 
-<div class="offline-item">
-  <span class="offline-name">Pedras do Corgo - Melanina HD</span>
-  <span class="sep">|</span>
-  <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/pedras-do-corgo" target="_blank">Surftotal</a>
+<div class="offline-item forecast-card" data-name="Cabedelo do Porto" data-key="cabedelo">
+  <div class="offline-main">
+    <span class="offline-name">Cabedelo do Porto</span>
+    <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabedelo-do-porto" target="_blank">Surftotal</a>
+  </div>
+  <div class="offline-stats">
+    <button class="forecast-pill" onclick="showForecast('cabedelo')" title="Forecast">☆☆☆☆☆</button>
+    <button class="energy-pill" onclick="showForecast('cabedelo')" title="Forecast energy">-- kJ</button>
+    <span class="wind-pill">-- m/s</span>
+  </div>
 </div>
 
-<div class="offline-item">
-  <span class="offline-name">Praia da Barra Norte HD</span>
-  <span class="sep">|</span>
-  <a class="source-link" href="https://surftotal.com/camaras-report/aveiro/praia-da-barra-norte-hd" target="_blank">Surftotal</a>
+<div class="offline-item forecast-card" data-name="Praia da Barra Norte HD" data-key="barra_norte">
+  <div class="offline-main">
+    <span class="offline-name">Praia da Barra Norte HD</span>
+    <a class="source-link" href="https://surftotal.com/camaras-report/aveiro/praia-da-barra-norte-hd" target="_blank">Surftotal</a>
+  </div>
+  <div class="offline-stats">
+    <button class="forecast-pill" onclick="showForecast('barra_norte')" title="Forecast">☆☆☆☆☆</button>
+    <button class="energy-pill" onclick="showForecast('barra_norte')" title="Forecast energy">-- kJ</button>
+    <span class="wind-pill">-- m/s</span>
+  </div>
 </div>
 
-<div class="offline-item">
-  <span class="offline-name">Praia de Árvore - Areal HD</span>
-  <span class="sep">|</span>
-  <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/praia-da-arvore-areal" target="_blank">Surftotal</a>
+<div class="offline-item forecast-card" data-name="Mira" data-key="mira">
+  <div class="offline-main">
+    <span class="offline-name">Mira</span>
+    <a class="source-link" href="https://surftotal.com/camaras-report/aveiro/mira" target="_blank">Surftotal</a>
+  </div>
+  <div class="offline-stats">
+    <button class="forecast-pill" onclick="showForecast('mira')" title="Forecast">☆☆☆☆☆</button>
+    <button class="energy-pill" onclick="showForecast('mira')" title="Forecast energy">-- kJ</button>
+    <span class="wind-pill">-- m/s</span>
+  </div>
 </div>
 <!-- OFFLINE_CAMS_END -->
 

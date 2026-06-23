@@ -46,7 +46,7 @@ def find_m3u8(page_url):
 
 def render_cam(name, idx, data):
     return f"""
-<div class="cam" data-name={json.dumps(name)} data-key={json.dumps(data["key"])}>
+<div class="cam forecast-card" data-name={json.dumps(name)} data-key={json.dumps(data["key"])}>
   <h2>{name}</h2>
   <video id="video{idx}" controls autoplay muted playsinline preload="none"></video>
   <div class="cam-footer">
@@ -65,10 +65,16 @@ def render_cam(name, idx, data):
 
 def render_offline(name, data):
     return f"""
-<div class="offline-item">
-  <span class="offline-name">{name}</span>
-  <span class="sep">|</span>
-  <a class="source-link" href="{data["page"]}" target="_blank">Surftotal</a>
+<div class="offline-item forecast-card" data-name={json.dumps(name)} data-key={json.dumps(data["key"])}>
+  <div class="offline-main">
+    <span class="offline-name">{name}</span>
+    <a class="source-link" href="{data["page"]}" target="_blank">Surftotal</a>
+  </div>
+  <div class="offline-stats">
+    <button class="forecast-pill" onclick="showForecast('{data["key"]}')" title="Forecast">☆☆☆☆☆</button>
+    <button class="energy-pill" onclick="showForecast('{data["key"]}')" title="Forecast energy">-- kJ</button>
+    <span class="wind-pill">-- m/s</span>
+  </div>
 </div>
 """
 
@@ -257,7 +263,7 @@ async function loadForecastForCard(card) {{
 }}
 
 async function loadAllForecasts() {{
-  const cards = Array.from(document.querySelectorAll(".cam"));
+  const cards = Array.from(document.querySelectorAll(".forecast-card"));
   for (const card of cards) {{
     await loadForecastForCard(card);
   }}
@@ -267,7 +273,7 @@ async function showForecast(spotKey) {{
   let data = forecastCache[spotKey];
 
   if (!data) {{
-    const card = document.querySelector('.cam[data-key="' + spotKey + '"]');
+    const card = document.querySelector('.forecast-card[data-key="' + spotKey + '"]');
     await loadForecastForCard(card);
     data = forecastCache[spotKey];
   }}
@@ -543,7 +549,7 @@ html += """
 <div class="offline-list">
 """
 
-for name in sorted(offline_names, key=str.casefold):
+for name in offline_names:
     html += render_offline(name, CAMS[name])
 
 html += """
@@ -584,7 +590,7 @@ if template_path.exists():
     )
     offline_html = "".join(
         render_offline(name, CAMS[name])
-        for name in sorted(offline_names, key=str.casefold)
+        for name in offline_names
     )
     html = replace_generated_section(
         template,
