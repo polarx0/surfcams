@@ -489,10 +489,7 @@ function formatTidePhase(tide) {
 
   const height = Number(tide.heightM);
   if (!Number.isFinite(height)) return tide.state || "unknown";
-  const suppliedPosition = Number(tide.normalizedHeight ?? tide.position);
-  const position = Number.isFinite(suppliedPosition)
-    ? Math.max(0, Math.min(1, suppliedPosition))
-    : Math.max(0, Math.min(1, (height - 0.6) / (3.4 - 0.6)));
+  const position = tidePosition(tide, height);
 
   if (phase === "rising") {
     if (position <= 0.12) return "Low →";
@@ -510,6 +507,50 @@ function formatTidePhase(tide) {
   }
 
   return tide.state || "unknown";
+}
+
+function tidePosition(tide, height) {
+  const suppliedPosition = Number(tide.normalizedHeight ?? tide.position);
+  if (Number.isFinite(suppliedPosition)) return clamp01(suppliedPosition);
+
+  const low = firstFinite(
+    tide.lowHeightM,
+    tide.lowHeight,
+    tide.low?.heightM,
+    tide.low?.height,
+    tide.previousLow?.heightM,
+    tide.previousLow?.height,
+    tide.range?.lowM,
+    tide.range?.lowHeightM
+  );
+  const high = firstFinite(
+    tide.highHeightM,
+    tide.highHeight,
+    tide.high?.heightM,
+    tide.high?.height,
+    tide.previousHigh?.heightM,
+    tide.previousHigh?.height,
+    tide.range?.highM,
+    tide.range?.highHeightM
+  );
+
+  if (Number.isFinite(low) && Number.isFinite(high) && high > low) {
+    return clamp01((height - low) / (high - low));
+  }
+
+  return clamp01((height - 0.6) / (3.4 - 0.6));
+}
+
+function firstFinite(...values) {
+  for (const value of values) {
+    const number = Number(value);
+    if (Number.isFinite(number)) return number;
+  }
+  return NaN;
+}
+
+function clamp01(value) {
+  return Math.max(0, Math.min(1, value));
 }
 
 function setupAnalytics() {
