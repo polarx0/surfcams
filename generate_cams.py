@@ -9,10 +9,12 @@ WORKER_URL = "https://surfcams.polarx0.workers.dev"
 CAMS = {
     "Moledo HD": {"key": "moledo", "page": "https://surftotal.com/camaras-report/minho/moledo", "stars": "★★★★☆"},
     "Vila Praia de Âncora HD": {"key": "ancora", "page": "https://surftotal.com/camaras-report/minho/vila-praia-ancora", "stars": "★★★☆☆"},
+    "Vila Praia de Âncora | Beachcam": {"key": "bc_ancora", "forecast_key": "ancora", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/vila-praia-de-ancora/", "stars": "★★★☆☆"},
     "Viana do Castelo HD": {"key": "viana_castelo", "page": "https://surftotal.com/camaras-report/minho/viana-do-castelo-hd", "stars": "★★★☆☆"},
     "Viana do Castelo | Cabedelo": {"key": "bc_viana_cabedelo", "forecast_key": "viana_castelo", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/viana-do-castelo-cabedelo/", "stars": "★★★☆☆"},
     "Esposende": {"key": "bc_esposende", "forecast_key": "ofir", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/esposende/", "stars": "★★★☆☆"},
     "Esposende | Foz do Cávado": {"key": "bc_esposende_foz", "forecast_key": "ofir", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/esposende-foz-do-cavado/", "stars": "★★★☆☆"},
+    "Ofir | Beachcam": {"key": "bc_ofir", "forecast_key": "ofir", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/ofir/", "stars": "★★★☆☆"},
     "Ofir": {"key": "ofir", "page": "https://surftotal.com/camaras-report/minho/ofir", "stars": "★★★★☆"},
     "Apúlia": {"key": "bc_apulia", "forecast_key": "ofir", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/apulia/", "stars": "★★★☆☆"},
 
@@ -26,15 +28,20 @@ CAMS = {
     "Pedras do Corgo - Melanina HD": {"key": "pedras", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/pedras-do-corgo", "stars": "★★☆☆☆"},
     "Cabo do Mundo HD": {"key": "cabo", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabo-do-mundo-hd", "stars": "★★☆☆☆"},
     "Leça - L'Kodak (Aterro) HD": {"key": "leca_aterro", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-kodak-aterro", "stars": "★★☆☆☆"},
+    "Leça da Palmeira | Panorâmica Aterro": {"key": "bc_leca_aterro", "forecast_key": "leca_aterro", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/leca-da-palmeira-panoraminca-aterro/", "stars": "★★★☆☆"},
     "Leça da Palmeira HD": {"key": "leca", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-da-palmeira", "stars": "★★☆☆☆"},
+    "Leça da Palmeira | Beachcam": {"key": "bc_leca", "forecast_key": "leca", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/leca-da-palmeira/", "stars": "★★★☆☆"},
+    "Matosinhos | Beachcam": {"key": "bc_matosinhos", "forecast_key": "matosinhos", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/praia-de-matosinhos/", "stars": "★★★☆☆"},
     "Matosinhos HD": {"key": "matosinhos", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-hd", "stars": "★★☆☆☆"},
     "Matosinhos - Vagas Bar HD": {"key": "vagas", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-vagas-bar", "stars": "★★★☆☆"},
     "Porto | Homem do Leme": {"key": "bc_homem_do_leme", "forecast_key": "matosinhos", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/porto-homem-do-leme/", "stars": "★★★☆☆"},
     "Porto | Carneiro": {"key": "bc_carneiro", "forecast_key": "matosinhos", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/porto-carneiro/", "stars": "★★★☆☆"},
     "Cabedelo do Porto": {"key": "cabedelo", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabedelo-do-porto", "stars": "★★☆☆☆"},
     "Praia Canide Norte/Sul": {"key": "canide", "forecast_key": "cabedelo", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/praia-canide-norte-sul/", "stars": "★★★☆☆"},
+    "Espinho | Panorâmica": {"key": "bc_espinho", "forecast_key": "espinho", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/praia-de-espinho/", "stars": "★★★☆☆"},
     "Espinho HD": {"key": "espinho", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-hd", "stars": "★★★☆☆"},
     "Espinho vista aérea HD": {"key": "espinho_aerea", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-vista-aerea", "stars": "★★★☆☆"},
+    "Espinho | Silvalde Beachcam": {"key": "bc_silvalde", "forecast_key": "silvalde", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/espinho-silvalde/", "stars": "★★★☆☆"},
     "Espinho - Silvalde HD": {"key": "silvalde", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-silvalde", "stars": "★★★★☆"},
 
     "Esmoriz": {"key": "bc_esmoriz", "forecast_key": "silvalde", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/esmoriz/", "stars": "★★★☆☆"},
@@ -43,25 +50,46 @@ CAMS = {
     "Praia da Torreira": {"key": "bc_torreira", "forecast_key": "barra_norte", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/praia-da-torreira/", "stars": "★★★☆☆"},
     "Praia de São Jacinto | Barra": {"key": "bc_sao_jacinto", "forecast_key": "barra_norte", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/praia-de-sao-jacinto-barra/", "stars": "★★★☆☆"},
     "Praia da Barra Norte HD": {"key": "barra_norte", "page": "https://surftotal.com/camaras-report/aveiro/praia-da-barra-norte-hd", "stars": "★★★☆☆"},
+    "Praia da Barra | Beachcam": {"key": "bc_barra", "forecast_key": "barra_norte", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/praia-da-barra/", "stars": "★★★☆☆"},
     "Costa Nova": {"key": "bc_costa_nova", "forecast_key": "barra_norte", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/costa-nova/", "stars": "★★★☆☆"},
     "Mira": {"key": "mira", "page": "https://surftotal.com/camaras-report/aveiro/mira", "stars": "★★★☆☆"},
+    "Praia de Mira | Beachcam": {"key": "bc_mira", "forecast_key": "mira", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/praia-de-mira/", "stars": "★★★☆☆"},
+    "Praia da Tocha": {"key": "bc_tocha", "forecast_key": "mira", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/praia-da-tocha/", "stars": "★★★☆☆"},
+    "Murtinheira": {"key": "bc_murtinheira", "forecast_key": "figueira_cabedelo", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/murtinheira/", "stars": "★★★☆☆"},
+    "Figueira da Foz | Buarcos": {"key": "bc_figueira_buarcos", "forecast_key": "figueira_cabedelo", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/figueira-da-foz-tamargueira/", "stars": "★★★☆☆"},
+    "Figueira da Foz | Panorâmica": {"key": "bc_figueira_panoramica", "forecast_key": "figueira_cabedelo", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/figueira-da-foz-cabedelo-buarcos/", "stars": "★★★☆☆"},
     "Praia do Cabedelo (Figueira da Foz)": {"key": "figueira_cabedelo", "page": "https://surftotal.com/camaras-report/figueira-da-foz/praia-do-cabedelo-hd", "stars": "★★★☆☆"},
+    "Figueira da Foz | Cabedelo Beachcam": {"key": "bc_figueira_cabedelo", "forecast_key": "figueira_cabedelo", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/figueira-da-foz-cabedelo/", "stars": "★★★☆☆"},
 }
 
 BEACHCAM_STREAMS = {
+    "bc_ancora": "https://video-auth1.iol.pt/beachcam/bcvilapraiadeancora/playlist.m3u8",
     "bc_viana_cabedelo": "https://video-auth1.iol.pt/beachcam/bccabedeloviana/playlist.m3u8",
     "bc_esposende": "https://video-auth1.iol.pt/beachcam/bcesposende/playlist.m3u8",
     "bc_esposende_foz": "https://video-auth1.iol.pt/beachcam/bcfarolesposende/playlist.m3u8",
+    "bc_ofir": "https://video-auth1.iol.pt/beachcam/bcofir/playlist.m3u8",
     "bc_apulia": "https://video-auth1.iol.pt/beachcam/bcapulia/playlist.m3u8",
     "bc_caxinas": "https://video-auth1.iol.pt/beachcam/bccaxinas/playlist.m3u8",
+    "bc_leca_aterro": "https://video-auth1.iol.pt/beachcam/bcfarolleca/playlist.m3u8",
+    "bc_leca": "https://video-auth1.iol.pt/beachcam/lecadapalmeira/playlist.m3u8",
+    "bc_matosinhos": "https://video-auth1.iol.pt/beachcam/matosinhos/playlist.m3u8",
     "bc_homem_do_leme": "https://video-auth1.iol.pt/beachcam/bchomemdoleme/playlist.m3u8",
     "bc_carneiro": "https://video-auth1.iol.pt/beachcam/bccarneiro/playlist.m3u8",
     "canide": "https://video-auth1.iol.pt/beachcam/bccanidelo/playlist.m3u8",
+    "bc_espinho": "https://video-auth1.iol.pt/beachcam/espinho/playlist.m3u8",
+    "bc_silvalde": "https://video-auth1.iol.pt/beachcam/bcsilvade/playlist.m3u8",
     "bc_esmoriz": "https://video-auth1.iol.pt/beachcam/esmoriz/playlist.m3u8",
     "bc_furadouro": "https://video-auth1.iol.pt/beachcam/furadouro/playlist.m3u8",
     "bc_torreira": "https://video-auth1.iol.pt/beachcam/torreira/playlist.m3u8",
     "bc_sao_jacinto": "https://video-auth1.iol.pt/beachcam/bcfarolbarra/playlist.m3u8",
+    "bc_barra": "https://video-auth1.iol.pt/beachcam/aveiro/playlist.m3u8",
     "bc_costa_nova": "https://video-auth1.iol.pt/beachcam/costanova/playlist.m3u8",
+    "bc_mira": "https://video-auth1.iol.pt/beachcam/bcmira/playlist.m3u8",
+    "bc_tocha": "https://video-auth1.iol.pt/beachcam/bctocha/playlist.m3u8",
+    "bc_murtinheira": "https://video-auth1.iol.pt/beachcam/bcmurtinheira/playlist.m3u8",
+    "bc_figueira_buarcos": "https://video-auth1.iol.pt/beachcam/bcfigueiradois/playlist.m3u8",
+    "bc_figueira_panoramica": "https://video-auth1.iol.pt/beachcam/figueiradafoz/playlist.m3u8",
+    "bc_figueira_cabedelo": "https://video-auth1.iol.pt/beachcam/bcfigueiracabeledo/playlist.m3u8",
 }
 
 for cam_data in CAMS.values():
@@ -320,8 +348,12 @@ async function refreshStartedCams() {{
 
 function setupLazyCams() {{
   const videos = Array.from(document.querySelectorAll(".cam video"));
+  const rootMargin = window.matchMedia("(max-width: 700px)").matches
+    ? "120px 0px"
+    : "500px 0px";
   if (!("IntersectionObserver" in window)) {{
-    videos.slice(0, 6).forEach(video => startOrRefreshCam(video.id));
+    videos.slice(0, window.matchMedia("(max-width: 700px)").matches ? 4 : 6)
+      .forEach(video => startOrRefreshCam(video.id));
     return;
   }}
 
@@ -332,7 +364,7 @@ function setupLazyCams() {{
       observer.unobserve(video);
       startOrRefreshCam(video.id);
     }});
-  }}, {{ rootMargin: "500px 0px" }});
+  }}, {{ rootMargin }});
 
   videos.forEach(video => observer.observe(video));
 }}
