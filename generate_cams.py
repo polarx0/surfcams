@@ -455,17 +455,18 @@ function formatTidePhase(tide) {{
   const position = tidePosition(tide, height);
 
   if (phase === "rising") {{
-    if (position <= 0.12) return "Low →";
-    if (position < 0.38) return "Low → Mid";
-    if (position <= 0.62) return "Mid";
-    if (position < 0.88) return "Mid → High";
+    if (position <= 0.08) return "Low";
+    if (position < 0.48) return "Low → Mid";
+    if (position <= 0.52) return "Mid";
+    if (position < 0.92) return "Mid → High";
     return "High";
   }}
 
   if (phase === "falling") {{
-    if (position >= 0.9) return "High";
-    if (position >= 0.78) return "High → Mid";
-    if (position > 0.12) return "Mid → Low";
+    if (position >= 0.92) return "High";
+    if (position > 0.52) return "High → Mid";
+    if (position >= 0.48) return "Mid";
+    if (position > 0.08) return "Mid → Low";
     return "Low";
   }}
 
@@ -473,10 +474,8 @@ function formatTidePhase(tide) {{
 }}
 
 function tidePosition(tide, height) {{
-  const suppliedPosition = Number(tide.normalizedHeight ?? tide.position);
-  if (Number.isFinite(suppliedPosition)) return clamp01(suppliedPosition);
-
   const low = firstFinite(
+    extremeHeight(tide, "low"),
     tide.lowHeightM,
     tide.lowHeight,
     tide.low?.heightM,
@@ -487,6 +486,7 @@ function tidePosition(tide, height) {{
     tide.range?.lowHeightM
   );
   const high = firstFinite(
+    extremeHeight(tide, "high"),
     tide.highHeightM,
     tide.highHeight,
     tide.high?.heightM,
@@ -501,7 +501,18 @@ function tidePosition(tide, height) {{
     return clamp01((height - low) / (high - low));
   }}
 
+  const suppliedPosition = Number(tide.normalizedHeight ?? tide.position);
+  if (Number.isFinite(suppliedPosition)) return clamp01(suppliedPosition);
+
   return clamp01((height - 0.6) / (3.4 - 0.6));
+}}
+
+function extremeHeight(tide, type) {{
+  const extremes = [tide.previousExtreme, tide.nextExtreme];
+  const extreme = extremes.find(item =>
+    String(item?.type || "").toLowerCase() === type
+  );
+  return Number(extreme?.heightM ?? extreme?.height);
 }}
 
 function firstFinite(...values) {{
