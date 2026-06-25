@@ -151,7 +151,7 @@ async function handleForecast(request, env, ctx) {
   if (!spot) return json({ error: "Unknown spot", usage: "/forecast?spot=matosinhos", available: Object.keys(SPOTS) }, 400);
 
   const cacheUrl = new URL(request.url);
-  cacheUrl.search = `?spot=${encodeURIComponent(spotKey)}&v=tidecheck4`;
+  cacheUrl.search = `?spot=${encodeURIComponent(spotKey)}&v=tidecheck5`;
   const cacheKey = new Request(cacheUrl.toString(), { method: "GET" });
   const cache = caches.default;
   const cached = await cache.match(cacheKey);
@@ -322,7 +322,8 @@ function selectCurrentTide(raw) {
     : null;
 
   return {
-    state: calculateTideStateFromPoints(prev, current, next),
+    state: calculateTideStateFromExtremes(normalizedPrevious, normalizedNext)
+      || calculateTideStateFromPoints(prev, current, next),
     heightM: round2(current.height),
     datum: raw.datum || "LAT",
     updated: current.time,
@@ -339,6 +340,14 @@ function normalizeExtreme(extreme) {
     height: round2(Number(extreme.height)),
     type: String(extreme.type || "").toLowerCase(),
   };
+}
+
+function calculateTideStateFromExtremes(previousExtreme, nextExtreme) {
+  const previousType = String(previousExtreme?.type || "").toLowerCase();
+  const nextType = String(nextExtreme?.type || "").toLowerCase();
+  if (previousType === "low" && nextType === "high") return "rising";
+  if (previousType === "high" && nextType === "low") return "falling";
+  return null;
 }
 
 function calculateTideStateFromPoints(prev, current, next) {

@@ -486,7 +486,8 @@ function fmt(value, suffix) {{
 
 function formatTidePhase(tide) {{
   if (!tide) return "unknown";
-  const phase = String(tide.phase || tide.state || "").toLowerCase().replaceAll("_", "-");
+  const reportedPhase = String(tide.phase || tide.state || "").toLowerCase().replaceAll("_", "-");
+  const phase = tideDirectionFromExtremes(tide) || reportedPhase;
   const height = Number(tide.heightM);
   if (!Number.isFinite(height)) return tide.state || "unknown";
   const position = tidePosition(tide, height);
@@ -508,6 +509,14 @@ function formatTidePhase(tide) {{
   }}
 
   return tide.state || "unknown";
+}}
+
+function tideDirectionFromExtremes(tide) {{
+  const previousType = String(tide.previousExtreme?.type || "").toLowerCase();
+  const nextType = String(tide.nextExtreme?.type || "").toLowerCase();
+  if (previousType === "low" && nextType === "high") return "rising";
+  if (previousType === "high" && nextType === "low") return "falling";
+  return "";
 }}
 
 function tidePosition(tide, height) {{
