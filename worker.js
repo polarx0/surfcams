@@ -158,6 +158,20 @@ async function handleForecast(request, env, ctx) {
   if (cached) {
     try {
       const data = await cached.json();
+      const tide = await getTideForSpot(spot, env, ctx);
+      const tideScore = calculateTideScore(spotKey, data.energyKj, tide.heightM);
+      const rating = calculateRating({
+        waveHeight: data.wave?.heightM,
+        swellHeight: data.swell?.heightM,
+        swellPeriod: data.swell?.periodS,
+        windSpeed: data.wind?.speedMs,
+        windEffect: data.wind?.effect,
+        energyKj: data.energyKj,
+        tideScore,
+      });
+      data.tide = formatTideResponse(tide, tideScore);
+      data.rating = rating;
+      data.stars = stars(rating);
       data.servedAt = Math.floor(Date.now() / 1000);
       return json(data);
     } catch (e) {}
@@ -215,19 +229,7 @@ async function handleForecast(request, env, ctx) {
     wave: { heightM: round1(waveHeight), periodS: round1(wavePeriod), directionDeg: round0(waveDirection), directionText: compass(waveDirection) },
     swell: { heightM: round1(swellHeight), periodS: round1(swellPeriod), directionDeg: round0(swellDirection), directionText: compass(swellDirection) },
     wind: { speedMs: round1(windSpeed), directionDeg: round0(windDirection), directionText: compass(windDirection), effect: windEffect },
-    tide: {
-      state: tide.state,
-      heightM: round2(tide.heightM),
-      score: round2(tideScore),
-      datum: tide.datum,
-      source: tide.source,
-      station: tide.station,
-      anchor: tide.anchor,
-      updated: tide.updated,
-      previousExtreme: tide.previousExtreme,
-      nextExtreme: tide.nextExtreme,
-      midTideHeight: tide.midTideHeight,
-    },
+    tide: formatTideResponse(tide, tideScore),
     source: { marine: "Open-Meteo", weather: "Open-Meteo", tide: tide.source },
     updatedLocal: marine.hourly?.time?.[marineIndex] || null,
     generatedAt: now,
@@ -275,21 +277,36 @@ async function getNearestTideCheckStation(anchorKey, anchor, env, ctx) {
 
 async function getTideCheckHeights(anchorKey, station, env, ctx) {
   const today = new Date().toISOString().slice(0, 10);
-  const cacheUrl = new URL(`https://surfcams.local/tide-heights?anchor=${encodeURIComponent(anchorKey)}&station=${encodeURIComponent(station.id)}&date=${today}&v=2`);
+  const cacheUrl = new URL(`https://surfcams.local/tide-heights?anchor=${encodeURIComponent(anchorKey)}&station=${encodeURIComponent(station.id)}&date=${today}&v=3`);
   const cacheKey = new Request(cacheUrl.toString(), { method: "GET" });
   const cache = caches.default;
   const cached = await cache.match(cacheKey);
-  if (cached) return cached.json();
+  if (cached) return selectCurrentTide(await cached.json());
 
   const apiUrl = `https://tidecheck.com/api/station/${encodeURIComponent(station.id)}/tides?days=1`;
   const res = await fetch(apiUrl, { headers: { "X-API-Key": env.TIDECHECK_API_KEY, "Accept": "application/json" } });
   if (!res.ok) throw new Error(`TideCheck tides failed: ${res.status}`);
   const raw = await res.json();
-  const tide = selectCurrentTide(raw);
 
-  const responseToCache = json(tide, 200, { "Cache-Control": `public, max-age=${TIDE_CACHE_TTL_SECONDS}` });
+  const responseToCache = json(raw, 200, { "Cache-Control": `public, max-age=${TIDE_CACHE_TTL_SECONDS}` });
   ctx.waitUntil(cache.put(cacheKey, responseToCache.clone()));
-  return tide;
+  return selectCurrentTide(raw);
+}
+
+function formatTideResponse(tide, tideScore) {
+  return {
+    state: tide.state,
+    heightM: round2(tide.heightM),
+    score: round2(tideScore),
+    datum: tide.datum,
+    source: tide.source,
+    station: tide.station,
+    anchor: tide.anchor,
+    updated: tide.updated,
+    previousExtreme: tide.previousExtreme,
+    nextExtreme: tide.nextExtreme,
+    midTideHeight: tide.midTideHeight,
+  };
 }
 
 function selectCurrentTide(raw) {
