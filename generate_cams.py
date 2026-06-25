@@ -4,6 +4,7 @@ import requests
 from pathlib import Path
 
 HEADERS = {"User-Agent": "Mozilla/5.0"}
+REQUEST_TIMEOUT_SECONDS = 8
 WORKER_URL = "https://surfcams.polarx0.workers.dev"
 
 CAMS = {
@@ -12,6 +13,7 @@ CAMS = {
     "Vila Praia de Âncora | Beachcam": {"key": "bc_ancora", "forecast_key": "ancora", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/vila-praia-de-ancora/", "stars": "★★★☆☆"},
     "Viana do Castelo HD": {"key": "viana_castelo", "page": "https://surftotal.com/camaras-report/minho/viana-do-castelo-hd", "stars": "★★★☆☆"},
     "Viana do Castelo | Cabedelo": {"key": "bc_viana_cabedelo", "forecast_key": "viana_castelo", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/viana-do-castelo-cabedelo/", "stars": "★★★☆☆"},
+    "Viana do Castelo | Surfline": {"key": "sl_viana", "forecast_key": "viana_castelo", "source": "surfline", "page": "https://www.surfline.com/surf-report/viana-do-castelo/5842041f4e65fad6a7708e57?camId=5a4e62621c60d700101da59a", "stars": "★★★☆☆"},
     "Esposende": {"key": "bc_esposende", "forecast_key": "ofir", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/esposende/", "stars": "★★★☆☆"},
     "Esposende | Foz do Cávado": {"key": "bc_esposende_foz", "forecast_key": "ofir", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/esposende-foz-do-cavado/", "stars": "★★★☆☆"},
     "Ofir | Beachcam": {"key": "bc_ofir", "forecast_key": "ofir", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/ofir/", "stars": "★★★☆☆"},
@@ -34,6 +36,8 @@ CAMS = {
     "Matosinhos | Beachcam": {"key": "bc_matosinhos", "forecast_key": "matosinhos", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/praia-de-matosinhos/", "stars": "★★★☆☆"},
     "Matosinhos HD": {"key": "matosinhos", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-hd", "stars": "★★☆☆☆"},
     "Matosinhos - Vagas Bar HD": {"key": "vagas", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-vagas-bar", "stars": "★★★☆☆"},
+    "Matosinhos South | Surfline": {"key": "sl_matosinhos_south", "forecast_key": "matosinhos", "source": "surfline", "page": "https://www.surfline.com/surf-report/matosinhos/5842041f4e65fad6a7708e59?camId=6a2bc0fb0cf649103fb16530", "stars": "★★★☆☆"},
+    "Matosinhos | Surfline": {"key": "sl_matosinhos", "forecast_key": "matosinhos", "source": "surfline", "page": "https://www.surfline.com/surf-report/matosinhos/5842041f4e65fad6a7708e59?camId=5de9967239aa498859f55daa", "stars": "★★★☆☆"},
     "Porto | Homem do Leme": {"key": "bc_homem_do_leme", "forecast_key": "matosinhos", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/porto-homem-do-leme/", "stars": "★★★☆☆"},
     "Porto | Carneiro": {"key": "bc_carneiro", "forecast_key": "matosinhos", "source": "beachcam", "page": "https://beachcam.meo.pt/livecams/porto-carneiro/", "stars": "★★★☆☆"},
     "Cabedelo do Porto": {"key": "cabedelo", "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabedelo-do-porto", "stars": "★★☆☆☆"},
@@ -92,22 +96,33 @@ BEACHCAM_STREAMS = {
     "bc_figueira_cabedelo": "https://video-auth1.iol.pt/beachcam/bcfigueiracabeledo/playlist.m3u8",
 }
 
+SURFLINE_STREAMS = {
+    "sl_viana": "https://camstills.cdn-surfline.com/eu-west-1/pt-viana/latest_full.jpg",
+    "sl_matosinhos_south": "https://camstills.cdn-surfline.com/eu-west-1/pt-matosinhossouth/latest_full.jpg",
+    "sl_matosinhos": "https://camstills.cdn-surfline.com/eu-west-1/pt-matosinhos/latest_full.jpg",
+}
+
 for cam_data in CAMS.values():
     if cam_data.get("source") == "beachcam":
         cam_data["stream_url"] = BEACHCAM_STREAMS.get(cam_data["key"])
+    elif cam_data.get("source") == "surfline":
+        cam_data["image_url"] = SURFLINE_STREAMS.get(cam_data["key"])
 
 def source_label(data):
-    return "Beachcam" if data.get("source") == "beachcam" else "Surftotal"
+    return {
+        "beachcam": "Beachcam",
+        "surfline": "Surfline",
+    }.get(data.get("source"), "Surftotal")
 
 def data_attr(value):
     return json.dumps(value, ensure_ascii=False)
 
-def beachcam_stream_status(stream_url, referer):
+def direct_stream_status(stream_url, referer):
     try:
         res = requests.get(
             stream_url,
             headers={**HEADERS, "Referer": referer},
-            timeout=20,
+            timeout=REQUEST_TIMEOUT_SECONDS,
         )
         if res.status_code in (404, 410):
             return "dead"
@@ -121,19 +136,31 @@ def beachcam_stream_status(stream_url, referer):
 def find_m3u8(data):
     page_url = data["page"]
     fallback_stream = data.get("stream_url")
+    if data.get("source") == "surfline":
+        image_url = data.get("image_url")
+        try:
+            image_res = requests.get(image_url, headers=HEADERS, timeout=REQUEST_TIMEOUT_SECONDS)
+            return None if image_res.status_code in (404, 410) else image_url
+        except Exception as e:
+            print(f"ERROR checking Surfline still: {image_url}: {e}")
+            return image_url
     try:
-        html = requests.get(page_url, headers={**HEADERS, "Referer": page_url}, timeout=20).text
+        html = requests.get(
+            page_url,
+            headers={**HEADERS, "Referer": page_url},
+            timeout=REQUEST_TIMEOUT_SECONDS,
+        ).text
         if data.get("source") == "beachcam":
             match = re.search(r'data-video-url=["\']([^"\']+?\.m3u8[^"\']*)["\']', html)
             if match:
                 stream_url = match.group(1).replace("\\/", "/")
-                return None if beachcam_stream_status(stream_url, page_url) == "dead" else stream_url
+                return None if direct_stream_status(stream_url, page_url) == "dead" else stream_url
             return fallback_stream
         matches = re.findall(r'https?://[^"\']+?\.m3u8[^"\']*', html)
         return matches[0].replace("\\/", "/") if matches else None
     except Exception as e:
         print(f"ERROR finding stream: {page_url}: {e}")
-        if data.get("source") == "beachcam":
+        if data.get("source") in ("beachcam", "surfline"):
             return fallback_stream
         return None
 
@@ -142,10 +169,16 @@ def render_cam(name, idx, data):
     direct_stream = data.get("stream_url")
     direct_attr = f" data-direct-stream={data_attr(direct_stream)}" if direct_stream and data.get("source") == "beachcam" else ""
     label = source_label(data)
+    if data.get("source") == "surfline":
+        media = f'<img id="video{idx}" class="surfline-still" src="{data["image_url"]}?t=0" data-still-url="{data["image_url"]}" alt="{name}">'
+        refresh = f'<button class="refresh-icon" onclick="refreshSurflineStill(\'video{idx}\')" title="Refresh">↻</button>'
+    else:
+        media = f'<video id="video{idx}" controls autoplay muted playsinline preload="none"></video>'
+        refresh = f'<button class="refresh-icon" onclick="refreshCam(\'video{idx}\')" title="Refresh">↻</button>'
     return f"""
 <div class="cam forecast-card" data-name={data_attr(name)} data-key={data_attr(data["key"])} data-forecast-key={data_attr(forecast_key)}{direct_attr}>
   <h2>{name}</h2>
-  <video id="video{idx}" controls autoplay muted playsinline preload="none"></video>
+  {media}
   <div class="cam-footer">
     <button class="forecast-pill" onclick="showForecast('{forecast_key}')" title="Forecast">☆☆☆☆☆</button>
     <span class="sep">|</span>
@@ -153,7 +186,7 @@ def render_cam(name, idx, data):
     <span class="sep">|</span>
     <span class="wind-pill">-- m/s</span>
     <span class="sep">|</span>
-    <button class="refresh-icon" onclick="refreshCam('video{idx}')" title="Refresh">↻</button>
+    {refresh}
     <span class="sep">|</span>
     <a class="source-link" href="{data["page"]}" target="_blank">{label}</a>
   </div>
@@ -338,7 +371,18 @@ async function refreshCam(videoId) {{
 
 async function refreshAll() {{
   const videos = Array.from(document.querySelectorAll(".cam video"));
+  document.querySelectorAll(".surfline-still").forEach(image => refreshSurflineStill(image.id));
   await Promise.allSettled(videos.map(video => startOrRefreshCam(video.id)));
+}}
+
+function refreshSurflineStill(imageId) {{
+  const image = document.getElementById(imageId);
+  if (!image?.dataset.stillUrl) return;
+  image.src = image.dataset.stillUrl + "?t=" + Date.now();
+}}
+
+function refreshSurflineStills() {{
+  document.querySelectorAll(".surfline-still").forEach(image => refreshSurflineStill(image.id));
 }}
 
 async function refreshStartedCams() {{
@@ -563,6 +607,7 @@ window.addEventListener("load", () => {{
   setupLazyCams();
   loadAllForecasts();
   setInterval(refreshStartedCams, AUTO_REFRESH_SECONDS * 1000);
+  setInterval(refreshSurflineStills, 60 * 1000);
   setInterval(loadAllForecasts, 60 * 60 * 1000);
 }});
 </script>
@@ -788,8 +833,9 @@ html += """
 
 <div class="footer-credit">
   Camera data courtesy of
-  <a href="https://surftotal.com" target="_blank">Surftotal</a>
-  and <a href="https://beachcam.meo.pt" target="_blank">Beachcam</a>.
+  <a href="https://surftotal.com" target="_blank">Surftotal</a>,
+  <a href="https://beachcam.meo.pt" target="_blank">Beachcam</a>,
+  and <a href="https://www.surfline.com" target="_blank">Surfline</a>.
 </div>
 <div id="forecast-modal" class="forecast-modal" onclick="closeForecastModal()">
   <div class="forecast-modal-content" onclick="event.stopPropagation()">
