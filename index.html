@@ -239,6 +239,7 @@ function updateDashboardStats() {
 function filterCams() {
   const query = (document.getElementById("cam-search")?.value || "").trim().toLowerCase();
   const filter = document.querySelector(".filter-chip.active")?.dataset.filter || "all";
+  document.body.dataset.cameraFilter = filter;
   let visible = 0;
   document.querySelectorAll(".cam").forEach(card => {
     const matchesSearch = (card.dataset.name || "").toLowerCase().includes(query);
@@ -291,6 +292,7 @@ function saveFavorites() {
 
 function updateFavoriteButton(card, button) {
   const isFavorite = favoriteKeys.has(card.dataset.key);
+  card.classList.toggle("is-favorite", isFavorite);
   button.textContent = isFavorite ? "★" : "☆";
   button.classList.toggle("active", isFavorite);
   button.setAttribute("aria-pressed", String(isFavorite));
@@ -862,6 +864,8 @@ body:before { display:none; }
 .grid { max-width:1440px; margin:0 auto; padding:0 clamp(16px,3vw,40px) 40px; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
 .cam { position:relative; background:var(--panel); border:1px solid var(--line); border-radius:8px; transition:border-color .2s; }
 .cam:hover { border-color:rgba(132,224,198,.3); }
+.cam.is-favorite { background:#15221e; border-color:rgba(238,195,107,.18); }
+body[data-camera-filter="all"] .cam.is-favorite { background:#18251f; border-color:rgba(238,195,107,.34); box-shadow:inset 0 0 0 1px rgba(238,195,107,.05); }
 .cam.is-pumping:before { content:"GOOD NOW"; position:absolute; top:42px; right:8px; z-index:2; padding:5px 7px; border-radius:7px; background:var(--mint); color:#06201b; font-size:9px; font-weight:900; letter-spacing:.08em; }
 .cam h2 { display:flex; align-items:center; gap:8px; padding:8px 10px; font-size:12px; font-weight:600; letter-spacing:0; }
 .favorite-toggle { display:grid; place-items:center; width:24px; height:24px; margin:-4px -4px -4px auto; padding:0; border:0; background:transparent; color:var(--muted); font-size:18px; line-height:1; cursor:pointer; }
