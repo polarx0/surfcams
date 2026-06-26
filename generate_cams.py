@@ -591,7 +591,7 @@ html = f"""<!doctype html>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 {js}
 <style>
-body {{ margin:0; font-family:Arial,sans-serif; background:#111; color:#eee; }}
+body {{ margin:0; font-family:ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background:#111; color:#eee; }}
 
 .header-bar {{
   display:flex;

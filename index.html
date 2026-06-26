@@ -622,7 +622,7 @@ window.addEventListener("load", () => {
 </script>
 
 <style>
-body { margin:0; font-family:Arial,sans-serif; background:#111; color:#eee; }
+body { margin:0; font-family:ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background:#111; color:#eee; }
 
 .header-bar {
   display:flex;
@@ -850,9 +850,9 @@ a { color:#8ecbff; }
 }
 
 /* 2026 dashboard refresh */
-:root { color-scheme:dark; --ink:#edf3f2; --muted:#8b9b98; --panel:#101f1d; --line:rgba(210,235,230,.1); --mint:#8ad7c2; --sun:#eec36b; }
+:root { color-scheme:dark; --font-ui:ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; --ink:#edf3f2; --muted:#8b9b98; --panel:#101f1d; --line:rgba(210,235,230,.1); --mint:#8ad7c2; --sun:#eec36b; }
 * { box-sizing:border-box; }
-body { min-height:100vh; font-family:Arial,sans-serif; background:#0a1513; color:var(--ink); }
+body { min-height:100vh; font-family:var(--font-ui); background:#0a1513; color:var(--ink); }
 body:before { display:none; }
 .header-bar { height:58px; padding:0 clamp(16px,3vw,40px); justify-content:flex-start; gap:20px; background:#0a1513; border-bottom:1px solid var(--line); }
 .brand { display:flex; align-items:center; gap:9px; font-size:14px; font-weight:700; }
@@ -866,9 +866,9 @@ body:before { display:none; }
 .refresh-all-icon:hover { border-color:var(--mint); color:var(--mint); }
 .search-wrap { position:relative; width:100%; }
 .search-wrap span { position:absolute; left:11px; top:8px; color:var(--muted); }
-#cam-search { width:100%; height:34px; padding:0 12px 0 32px; border:1px solid var(--line); border-radius:6px; outline:none; background:var(--panel); color:var(--ink); font:12px Arial,sans-serif; }
+#cam-search { width:100%; height:34px; padding:0 12px 0 32px; border:1px solid var(--line); border-radius:6px; outline:none; background:var(--panel); color:var(--ink); font:12px var(--font-ui); }
 #cam-search:focus { border-color:var(--mint); box-shadow:0 0 0 3px rgba(132,224,198,.09); }
-.filter-chip { height:34px; padding:0 12px; border:1px solid var(--line); border-radius:6px; background:transparent; color:var(--muted); cursor:pointer; font:12px Arial,sans-serif; }
+.filter-chip { height:34px; padding:0 12px; border:1px solid var(--line); border-radius:6px; background:transparent; color:var(--muted); cursor:pointer; font:12px var(--font-ui); }
 .filter-chip.active { border-color:var(--mint); background:var(--mint); color:#08211d; font-weight:700; }
 .grid { max-width:1440px; margin:0 auto; padding:0 clamp(16px,3vw,40px) 40px; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
 .cam { position:relative; background:var(--panel); border:1px solid var(--line); border-radius:8px; transition:background .2s, border-color .2s, box-shadow .2s; }
