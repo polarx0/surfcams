@@ -871,10 +871,11 @@ body:before { display:none; }
 .filter-chip { height:34px; padding:0 12px; border:1px solid var(--line); border-radius:6px; background:transparent; color:var(--muted); cursor:pointer; font:12px Arial,sans-serif; }
 .filter-chip.active { border-color:var(--mint); background:var(--mint); color:#08211d; font-weight:700; }
 .grid { max-width:1440px; margin:0 auto; padding:0 clamp(16px,3vw,40px) 40px; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
-.cam { position:relative; background:var(--panel); border:1px solid var(--line); border-radius:8px; transition:border-color .2s; }
+.cam { position:relative; background:var(--panel); border:1px solid var(--line); border-radius:8px; transition:background .2s, border-color .2s, box-shadow .2s, transform .2s; }
 .cam:hover { border-color:rgba(132,224,198,.3); }
-.cam.is-favorite { background:#15221e; border-color:rgba(238,195,107,.18); }
-body[data-camera-filter="all"] .cam.is-favorite { background:#18251f; border-color:rgba(238,195,107,.34); box-shadow:inset 0 0 0 1px rgba(238,195,107,.05); }
+.cam.is-favorite { z-index:1; background:linear-gradient(180deg,#172822 0%,#13211e 100%); border-color:rgba(238,195,107,.28); box-shadow:0 10px 24px rgba(0,0,0,.22), 0 0 0 1px rgba(238,195,107,.08), inset 3px 0 0 rgba(238,195,107,.68); transform:translateY(-1px); }
+body[data-camera-filter="all"] .cam.is-favorite { background:linear-gradient(180deg,#1a2b24 0%,#14231f 100%); border-color:rgba(238,195,107,.42); box-shadow:0 12px 28px rgba(0,0,0,.28), 0 0 0 1px rgba(238,195,107,.14), inset 3px 0 0 rgba(238,195,107,.78); }
+.cam.is-favorite:hover { border-color:rgba(238,195,107,.58); box-shadow:0 16px 32px rgba(0,0,0,.32), 0 0 0 1px rgba(238,195,107,.18), inset 3px 0 0 rgba(238,195,107,.86); transform:translateY(-3px); }
 .cam.is-pumping:before { content:"GOOD NOW"; position:absolute; top:42px; right:8px; z-index:2; padding:5px 7px; border-radius:7px; background:var(--mint); color:#06201b; font-size:9px; font-weight:900; letter-spacing:.08em; }
 .cam h2 { display:flex; align-items:center; gap:8px; padding:8px 10px; font-size:12px; font-weight:600; letter-spacing:0; }
 .favorite-toggle { display:grid; place-items:center; width:24px; height:24px; margin:-4px -4px -4px auto; padding:0; border:0; background:transparent; color:var(--muted); font-size:18px; line-height:1; cursor:pointer; }
