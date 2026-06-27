@@ -506,7 +506,7 @@ function tideExtremeDetails(extreme) {
 
 function formatTideHeightCell(label, height, current = false) {
   return '<span class="tide-cell tide-height' + (current ? " tide-current" : "") + '">' +
-    '<small>' + label + ':</small><strong>' + (height || "--") + '</strong>' +
+    '<small>' + label + '</small><strong>' + (height || "--") + '</strong>' +
   '</span>';
 }
 
@@ -816,15 +816,20 @@ video { width:100%; background:#000; display:block; min-height:120px; }
 
 .tide-row { align-items:flex-start; flex-direction:column; gap:6px; }
 .tide-row > span { width:100%; text-align:left; }
-.tide-timeline { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:3px 0; align-items:center; }
-.tide-cell { min-width:0; padding:0 6px; text-align:center; }
+.tide-timeline { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); align-items:center; font-variant-numeric:tabular-nums; }
+.tide-cell { box-sizing:border-box; display:flex; min-width:0; min-height:16px; align-items:center; justify-content:center; padding:0 2px; text-align:center; }
 .tide-cell:nth-child(3n+2),.tide-cell:nth-child(3n+3) { border-left:1px solid #34413e; }
-.tide-height { display:flex; align-items:baseline; justify-content:center; gap:4px; white-space:nowrap; }
-.tide-height small { color:#82918d; font-size:9px; }
-.tide-height strong { color:#f2f5f4; font-size:11px; }
+.tide-height { gap:1px; white-space:nowrap; }
+.tide-height small { color:#82918d; font-size:8px; font-weight:700; letter-spacing:0; text-transform:uppercase; }
+.tide-height strong { color:#f2f5f4; font-size:10px; }
 .tide-current strong { color:#78e2bc; }
-.tide-state { color:#aab6b3; font-size:9px; line-height:1.25; }
+.tide-state { min-height:18px; padding-top:3px; border-top:1px solid rgba(96,113,109,.22); color:#aab6b3; font-size:9px; line-height:1.15; white-space:nowrap; }
 .tide-inline-height { color:#78e2bc; }
+
+@media (max-width:700px) {
+  .forecast-modal { padding:10px; }
+  .forecast-modal-content { box-sizing:border-box; width:min(360px, calc(100vw - 20px)); }
+}
 
 .source-link {
   color:#8ecbff;
