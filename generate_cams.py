@@ -464,9 +464,8 @@ async function showForecast(spotKey) {{
       (data.wind?.effect || "unknown") +
     '</span></div>' +
 
-    '<div class="modal-row"><b>Tide</b><span>' +
-      formatTidePhase(data.tide) +
-      (data.tide?.heightM != null ? " · " + data.tide.heightM + " m" : "") +
+    '<div class="modal-row tide-row"><b>Tide</b><span>' +
+      formatTideTimeline(data.tide) +
     '</span></div>' +
 
     '<div class="modal-row"><b>Updated</b><span>' +
@@ -482,6 +481,62 @@ function closeForecastModal() {{
 
 function fmt(value, suffix) {{
   return value == null ? "--" : value + suffix;
+}}
+
+function formatClock(value) {{
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value).slice(0, 5);
+  return new Intl.DateTimeFormat("en-GB", {{ hour: "2-digit", minute: "2-digit" }}).format(date);
+}}
+
+function formatTideTimeline(tide) {{
+  if (!tide) return "unknown";
+
+  const currentHeight = formatTideHeight(tide.heightM);
+  const previous = formatTideExtreme(tide.previousExtreme, "Previous");
+  const next = formatTideExtreme(tide.nextExtreme, "Next");
+
+  if (!previous || !next) {{
+    return escapeHtml(formatTidePhase(tide)) +
+      (currentHeight ? ' <strong class="tide-inline-height">(' + currentHeight + ')</strong>' : "");
+  }}
+
+  return '<span class="tide-timeline">' +
+    previous +
+    '<span class="tide-arrow" aria-hidden="true">→</span>' +
+    '<span class="tide-point tide-now">' +
+      '<small>Now</small>' +
+      '<strong>' + escapeHtml(formatTidePhase(tide)) + '</strong>' +
+      '<em>' + (currentHeight || "--") + '</em>' +
+    '</span>' +
+    '<span class="tide-arrow" aria-hidden="true">→</span>' +
+    next +
+  '</span>';
+}}
+
+function formatTideExtreme(extreme, positionLabel) {{
+  if (!extreme) return "";
+  const type = String(extreme.type || "").toLowerCase();
+  const label = type === "low" ? "Low" : type === "high" ? "High" : "Tide";
+  const height = formatTideHeight(extreme.heightM ?? extreme.height);
+  const time = formatClock(extreme.time);
+  return '<span class="tide-point">' +
+    '<small>' + positionLabel + '</small>' +
+    '<strong>' + label + '</strong>' +
+    '<em>' + (height || "--") + (time ? " · " + time : "") + '</em>' +
+  '</span>';
+}}
+
+function formatTideHeight(value) {{
+  const height = Number(value);
+  return Number.isFinite(height) ? height.toFixed(2).replace(/0$/, "").replace(/\.0$/, "") + " m" : "";
+}}
+
+function escapeHtml(value) {{
+  return String(value).replace(/[&<>"']/g, character => ({{
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }})[character]);
 }}
 
 function formatTidePhase(tide) {{
@@ -728,6 +783,18 @@ video {{ width:100%; background:#000; display:block; min-height:120px; }}
   text-align:right;
   color:#ddd;
 }}
+
+.tide-row {{ align-items:flex-start; flex-direction:column; gap:8px; }}
+.tide-row > span {{ width:100%; text-align:left; }}
+.tide-timeline {{ display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1.15fr) auto minmax(0,1fr); align-items:center; gap:7px; }}
+.tide-point {{ display:flex; min-width:0; flex-direction:column; gap:2px; padding:8px; border:1px solid #34413e; border-radius:9px; background:#17201e; text-align:center; }}
+.tide-point small {{ color:#82918d; font-size:9px; letter-spacing:.06em; text-transform:uppercase; }}
+.tide-point strong {{ color:#f2f5f4; font-size:11px; line-height:1.2; }}
+.tide-point em {{ color:#aab6b3; font-size:9px; font-style:normal; line-height:1.25; }}
+.tide-now {{ border-color:#4b9a83; background:#183029; box-shadow:inset 0 0 0 1px rgba(92,224,155,.08); }}
+.tide-now em {{ color:#78e2bc; font-size:12px; font-weight:700; }}
+.tide-arrow {{ color:#60716d; font-size:12px; }}
+.tide-inline-height {{ color:#78e2bc; }}
 
 .source-link {{
   color:#8ecbff;

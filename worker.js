@@ -151,7 +151,7 @@ async function handleForecast(request, env, ctx) {
   if (!spot) return json({ error: "Unknown spot", usage: "/forecast?spot=matosinhos", available: Object.keys(SPOTS) }, 400);
 
   const cacheUrl = new URL(request.url);
-  cacheUrl.search = `?spot=${encodeURIComponent(spotKey)}&v=tidecheck5`;
+  cacheUrl.search = `?spot=${encodeURIComponent(spotKey)}&v=tidecheck6`;
   const cacheKey = new Request(cacheUrl.toString(), { method: "GET" });
   const cache = caches.default;
   const cached = await cache.match(cacheKey);
@@ -277,13 +277,15 @@ async function getNearestTideCheckStation(anchorKey, anchor, env, ctx) {
 
 async function getTideCheckHeights(anchorKey, station, env, ctx) {
   const today = new Date().toISOString().slice(0, 10);
-  const cacheUrl = new URL(`https://surfcams.local/tide-heights?anchor=${encodeURIComponent(anchorKey)}&station=${encodeURIComponent(station.id)}&date=${today}&v=3`);
+  const cacheUrl = new URL(`https://surfcams.local/tide-heights?anchor=${encodeURIComponent(anchorKey)}&station=${encodeURIComponent(station.id)}&date=${today}&v=4`);
   const cacheKey = new Request(cacheUrl.toString(), { method: "GET" });
   const cache = caches.default;
   const cached = await cache.match(cacheKey);
   if (cached) return selectCurrentTide(await cached.json());
 
-  const apiUrl = `https://tidecheck.com/api/station/${encodeURIComponent(station.id)}/tides?days=1`;
+  // Two calendar days keep the next extreme available late in the evening,
+  // when the following high/low tide may already fall after midnight.
+  const apiUrl = `https://tidecheck.com/api/station/${encodeURIComponent(station.id)}/tides?days=2`;
   const res = await fetch(apiUrl, { headers: { "X-API-Key": env.TIDECHECK_API_KEY, "Accept": "application/json" } });
   if (!res.ok) throw new Error(`TideCheck tides failed: ${res.status}`);
   const raw = await res.json();
