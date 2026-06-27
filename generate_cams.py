@@ -494,8 +494,8 @@ function formatTideTimeline(tide) {{
   if (!tide) return "unknown";
 
   const currentHeight = formatTideHeight(tide.heightM);
-  const previous = formatTideExtreme(tide.previousExtreme, "Previous");
-  const next = formatTideExtreme(tide.nextExtreme, "Next");
+  const previous = tideExtremeDetails(tide.previousExtreme);
+  const next = tideExtremeDetails(tide.nextExtreme);
 
   if (!previous || !next) {{
     return escapeHtml(formatTidePhase(tide)) +
@@ -503,28 +503,34 @@ function formatTideTimeline(tide) {{
   }}
 
   return '<span class="tide-timeline">' +
-    previous +
-    '<span class="tide-arrow" aria-hidden="true">→</span>' +
-    '<span class="tide-point tide-now">' +
-      '<small>Now</small>' +
-      '<strong>' + escapeHtml(formatTidePhase(tide)) + '</strong>' +
-      '<em>' + (currentHeight || "--") + '</em>' +
-    '</span>' +
-    '<span class="tide-arrow" aria-hidden="true">→</span>' +
-    next +
+    formatTideHeightCell("Previous", previous.height) +
+    formatTideHeightCell("Now", currentHeight, true) +
+    formatTideHeightCell("Next", next.height) +
+    formatTideStateCell(previous.label, previous.time) +
+    formatTideStateCell(formatTidePhase(tide)) +
+    formatTideStateCell(next.label, next.time) +
   '</span>';
 }}
 
-function formatTideExtreme(extreme, positionLabel) {{
-  if (!extreme) return "";
+function tideExtremeDetails(extreme) {{
+  if (!extreme) return null;
   const type = String(extreme.type || "").toLowerCase();
-  const label = type === "low" ? "Low" : type === "high" ? "High" : "Tide";
-  const height = formatTideHeight(extreme.heightM ?? extreme.height);
-  const time = formatClock(extreme.time);
-  return '<span class="tide-point">' +
-    '<small>' + positionLabel + '</small>' +
-    '<strong>' + label + '</strong>' +
-    '<em>' + (height || "--") + (time ? " · " + time : "") + '</em>' +
+  return {{
+    label: type === "low" ? "Low" : type === "high" ? "High" : "Tide",
+    height: formatTideHeight(extreme.heightM ?? extreme.height),
+    time: formatClock(extreme.time)
+  }};
+}}
+
+function formatTideHeightCell(label, height, current = false) {{
+  return '<span class="tide-cell tide-height' + (current ? " tide-current" : "") + '">' +
+    '<small>' + label + ':</small><strong>' + (height || "--") + '</strong>' +
+  '</span>';
+}}
+
+function formatTideStateCell(label, time = "") {{
+  return '<span class="tide-cell tide-state">' +
+    escapeHtml(label) + (time ? " · " + time : "") +
   '</span>';
 }}
 
@@ -784,16 +790,16 @@ video {{ width:100%; background:#000; display:block; min-height:120px; }}
   color:#ddd;
 }}
 
-.tide-row {{ align-items:flex-start; flex-direction:column; gap:8px; }}
+.tide-row {{ align-items:flex-start; flex-direction:column; gap:6px; }}
 .tide-row > span {{ width:100%; text-align:left; }}
-.tide-timeline {{ display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1.15fr) auto minmax(0,1fr); align-items:center; gap:7px; }}
-.tide-point {{ display:flex; min-width:0; flex-direction:column; gap:2px; padding:8px; border:1px solid #34413e; border-radius:9px; background:#17201e; text-align:center; }}
-.tide-point small {{ color:#82918d; font-size:9px; letter-spacing:.06em; text-transform:uppercase; }}
-.tide-point strong {{ color:#f2f5f4; font-size:11px; line-height:1.2; }}
-.tide-point em {{ color:#aab6b3; font-size:9px; font-style:normal; line-height:1.25; }}
-.tide-now {{ border-color:#4b9a83; background:#183029; box-shadow:inset 0 0 0 1px rgba(92,224,155,.08); }}
-.tide-now em {{ color:#78e2bc; font-size:12px; font-weight:700; }}
-.tide-arrow {{ color:#60716d; font-size:12px; }}
+.tide-timeline {{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:3px 0; align-items:center; }}
+.tide-cell {{ min-width:0; padding:0 6px; text-align:center; }}
+.tide-cell:nth-child(3n+2),.tide-cell:nth-child(3n+3) {{ border-left:1px solid #34413e; }}
+.tide-height {{ display:flex; align-items:baseline; justify-content:center; gap:4px; white-space:nowrap; }}
+.tide-height small {{ color:#82918d; font-size:9px; }}
+.tide-height strong {{ color:#f2f5f4; font-size:11px; }}
+.tide-current strong {{ color:#78e2bc; }}
+.tide-state {{ color:#aab6b3; font-size:9px; line-height:1.25; }}
 .tide-inline-height {{ color:#78e2bc; }}
 
 .source-link {{
