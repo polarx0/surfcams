@@ -547,17 +547,8 @@ function renderTideChart(tide, previous, next) {
   const currentX = Math.max(0, Math.min(width, xForTime(Date.now())));
   const previousX = xForTime(previous.timeMs);
   const nextX = xForTime(next.timeMs);
-  const badgeTop = curveTop + 11;
-  const badgeBottom = curveBottom - 8;
-  const badgeY = height => Math.max(badgeTop, Math.min(badgeBottom, yForHeight(height)));
-  const previousBadgeY = badgeY(previous.height);
-  const nextBadgeY = badgeY(next.height);
-  let currentBadgeY = badgeY(currentHeight);
-  if ([[previousX, previousBadgeY], [nextX, nextBadgeY]].some(marker =>
-    Math.abs(currentX - marker[0]) < 24 && Math.abs(currentBadgeY - marker[1]) < 21
-  )) {
-    currentBadgeY = currentBadgeY > (badgeTop + badgeBottom) / 2 ? badgeTop : badgeBottom;
-  }
+  const extremeBadgeY = curveTop + 11;
+  const currentBadgeY = (curveTop + axisY) / 2;
   const ticks = renderTideTicks(windowStart, windowEnd, xForTime, axisY, [previousX, nextX]);
   const currentValue = formatTideNumber(currentHeight);
 
@@ -565,8 +556,8 @@ function renderTideChart(tide, previous, next) {
     '<svg class="tide-chart-svg" viewBox="0 0 320 108" role="img" aria-label="Tide chart, current height ' + currentValue + ' metres">' +
       '<path class="tide-area" d="' + areaPath + '"></path>' +
       '<path class="tide-curve" d="' + linePath + '"></path>' +
-      renderTideExtremeMarker(previous, previousX, previousBadgeY, curveTop, axisY) +
-      renderTideExtremeMarker(next, nextX, nextBadgeY, curveTop, axisY) +
+      renderTideExtremeMarker(previous, previousX, extremeBadgeY, curveTop, axisY) +
+      renderTideExtremeMarker(next, nextX, extremeBadgeY, curveTop, axisY) +
       renderTideCurrentMarker(currentValue, currentX, currentBadgeY, curveTop, axisY) +
       ticks +
     '</svg>' +
