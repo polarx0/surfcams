@@ -512,9 +512,9 @@ function tideExtremeDetails(extreme) {
 
 function renderTideChart(tide, previous, next) {
   const width = 320;
-  const curveTop = 34;
-  const curveBottom = 91;
-  const axisY = 94;
+  const curveTop = 16;
+  const curveBottom = 68;
+  const axisY = 80;
   const interval = next.timeMs - previous.timeMs;
   const currentHeight = Number(tide.heightM);
   if (!(interval > 0) || !Number.isFinite(currentHeight)) {
@@ -547,28 +547,44 @@ function renderTideChart(tide, previous, next) {
   const currentX = Math.max(0, Math.min(width, xForTime(Date.now())));
   const previousX = xForTime(previous.timeMs);
   const nextX = xForTime(next.timeMs);
+  const badgeTop = curveTop + 13;
+  const badgeBottom = curveBottom - 10;
+  const badgeY = height => Math.max(badgeTop, Math.min(badgeBottom, yForHeight(height)));
+  const previousBadgeY = badgeY(previous.height);
+  const nextBadgeY = badgeY(next.height);
+  let currentBadgeY = badgeY(currentHeight);
+  if ([[previousX, previousBadgeY], [nextX, nextBadgeY]].some(marker =>
+    Math.abs(currentX - marker[0]) < 28 && Math.abs(currentBadgeY - marker[1]) < 25
+  )) {
+    currentBadgeY = currentBadgeY > (badgeTop + badgeBottom) / 2 ? badgeTop : badgeBottom;
+  }
   const ticks = renderTideTicks(windowStart, windowEnd, xForTime, axisY, [previousX, nextX]);
   const currentValue = formatTideNumber(currentHeight);
 
   return '<span class="tide-chart">' +
-    '<svg class="tide-chart-svg" viewBox="0 0 320 126" role="img" aria-label="Tide chart, current height ' + currentValue + ' metres">' +
+    '<svg class="tide-chart-svg" viewBox="0 0 320 108" role="img" aria-label="Tide chart, current height ' + currentValue + ' metres">' +
       '<path class="tide-area" d="' + areaPath + '"></path>' +
-      renderTideExtremeMarker(previous, previousX, axisY) +
-      renderTideExtremeMarker(next, nextX, axisY) +
       '<path class="tide-curve" d="' + linePath + '"></path>' +
-      '<line class="tide-now-line" x1="' + graphNumber(currentX) + '" x2="' + graphNumber(currentX) + '" y1="18" y2="' + axisY + '"></line>' +
+      renderTideExtremeMarker(previous, previousX, previousBadgeY, curveTop, axisY) +
+      renderTideExtremeMarker(next, nextX, nextBadgeY, curveTop, axisY) +
+      renderTideCurrentMarker(currentValue, currentX, currentBadgeY, curveTop, axisY) +
       ticks +
     '</svg>' +
   '</span>';
 }
 
-function renderTideExtremeMarker(extreme, x, axisY) {
-  const labelX = Math.max(42, Math.min(278, x));
-  return '<line class="tide-extreme-guide" x1="' + graphNumber(x) + '" x2="' + graphNumber(x) + '" y1="19" y2="' + axisY + '"></line>' +
-    '<text class="tide-extreme-label" x="' + graphNumber(labelX) + '" y="107" text-anchor="middle">' +
-    '<tspan x="' + graphNumber(labelX) + '">' + extreme.label.toUpperCase() + ' · ' + formatTideHeight(extreme.height) + '</tspan>' +
-    '<tspan class="tide-extreme-time" x="' + graphNumber(labelX) + '" dy="12">' + extreme.time + '</tspan>' +
-  '</text>';
+function renderTideExtremeMarker(extreme, x, badgeY, lineTop, axisY) {
+  const markerX = Math.max(18, Math.min(302, x));
+  return '<line class="tide-extreme-guide" x1="' + graphNumber(x) + '" x2="' + graphNumber(x) + '" y1="' + lineTop + '" y2="' + axisY + '"></line>' +
+    '<circle class="tide-height-badge" cx="' + graphNumber(markerX) + '" cy="' + graphNumber(badgeY) + '" r="12"></circle>' +
+    '<text class="tide-height-label" x="' + graphNumber(markerX) + '" y="' + graphNumber(badgeY + 3) + '" text-anchor="middle">' + formatTideNumber(extreme.height) + 'm</text>' +
+    '<text class="tide-extreme-time" x="' + graphNumber(markerX) + '" y="102" text-anchor="middle">' + extreme.time + '</text>';
+}
+
+function renderTideCurrentMarker(value, x, badgeY, lineTop, axisY) {
+  return '<line class="tide-now-line" x1="' + graphNumber(x) + '" x2="' + graphNumber(x) + '" y1="' + lineTop + '" y2="' + axisY + '"></line>' +
+    '<circle class="tide-height-badge tide-height-badge-now" cx="' + graphNumber(x) + '" cy="' + graphNumber(badgeY) + '" r="12"></circle>' +
+    '<text class="tide-height-label tide-height-label-now" x="' + graphNumber(x) + '" y="' + graphNumber(badgeY + 3) + '" text-anchor="middle">' + value + 'm</text>';
 }
 
 function renderTideTicks(start, end, xForTime, axisY, excludedXs = []) {
@@ -578,8 +594,8 @@ function renderTideTicks(start, end, xForTime, axisY, excludedXs = []) {
   for (let time = first; time <= end; time += step) {
     const x = xForTime(time);
     if (excludedXs.some(markerX => Math.abs(x - markerX) < 34)) continue;
-    html += '<line class="tide-tick" x1="' + graphNumber(x) + '" x2="' + graphNumber(x) + '" y1="' + axisY + '" y2="101"></line>' +
-      '<text class="tide-tick-label" x="' + graphNumber(x) + '" y="119" text-anchor="middle">' + formatClock(time) + '</text>';
+    html += '<line class="tide-tick" x1="' + graphNumber(x) + '" x2="' + graphNumber(x) + '" y1="' + axisY + '" y2="87"></line>' +
+      '<text class="tide-tick-label" x="' + graphNumber(x) + '" y="102" text-anchor="middle">' + formatClock(time) + '</text>';
   }
   return html;
 }
@@ -891,21 +907,23 @@ video { width:100%; background:#000; display:block; min-height:120px; }
   color:#ddd;
 }
 
-.tide-row { align-items:flex-start; flex-direction:column; gap:2px; }
+.tide-row { align-items:flex-start; flex-direction:column; gap:0; }
 .tide-heading { display:flex; align-items:center; justify-content:space-between; width:100%; }
-.tide-heading > b { color:#8f9da9; font-size:11px; letter-spacing:.06em; text-transform:uppercase; }
-.tide-heading > span { display:flex; align-items:center; gap:5px; color:#8f9da9; }
+.tide-heading > span { display:flex; align-items:center; gap:5px; color:#ddd; }
 .tide-row > span { width:100%; text-align:left; }
 .tide-chart { display:block; overflow:hidden; font-variant-numeric:tabular-nums; }
-.tide-current { color:#aab6b3; font-size:12px; font-weight:800; letter-spacing:.02em; }
+.tide-current { color:#ddd; font-size:13px; font-weight:400; letter-spacing:0; }
 .tide-trend { color:#78e2bc; font-size:9px; font-style:normal; line-height:1; }
 .tide-trend.falling { color:#8ecbff; }
-.tide-chart-svg { display:block; width:100%; height:auto; overflow:visible; }
+.tide-chart-svg { display:block; width:100%; height:auto; margin-top:-2px; overflow:visible; }
 .tide-area { fill:rgba(126,183,207,.18); }
 .tide-curve { fill:none; stroke:#d9e3e0; stroke-width:2; vector-effect:non-scaling-stroke; }
 .tide-now-line { stroke:#78e2bc; stroke-width:1.25; vector-effect:non-scaling-stroke; }
 .tide-extreme-guide { stroke:#7f918c; stroke-width:1; stroke-dasharray:4 3 1 3; vector-effect:non-scaling-stroke; }
-.tide-extreme-label { fill:#aab6b3; font-size:8.5px; font-weight:700; letter-spacing:.02em; }
+.tide-height-badge { fill:#132522; stroke:#879792; stroke-width:1; vector-effect:non-scaling-stroke; }
+.tide-height-badge-now { stroke:#78e2bc; }
+.tide-height-label { fill:#d9e3e0; font-size:7.5px; font-weight:750; }
+.tide-height-label-now { fill:#8aebc9; }
 .tide-extreme-time { fill:#82918d; font-size:9px; font-weight:500; letter-spacing:0; }
 .tide-tick { stroke:#60716d; stroke-width:1; vector-effect:non-scaling-stroke; }
 .tide-tick-label { fill:#82918d; font-size:9px; }
