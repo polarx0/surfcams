@@ -565,14 +565,14 @@ function renderTideChart(tide, previous, next) {{
   const currentX = Math.max(0, Math.min(width, xForTime(Date.now())));
   const previousX = xForTime(previous.timeMs);
   const nextX = xForTime(next.timeMs);
-  const badgeTop = curveTop + 13;
-  const badgeBottom = curveBottom - 10;
+  const badgeTop = curveTop + 11;
+  const badgeBottom = curveBottom - 8;
   const badgeY = height => Math.max(badgeTop, Math.min(badgeBottom, yForHeight(height)));
   const previousBadgeY = badgeY(previous.height);
   const nextBadgeY = badgeY(next.height);
   let currentBadgeY = badgeY(currentHeight);
   if ([[previousX, previousBadgeY], [nextX, nextBadgeY]].some(marker =>
-    Math.abs(currentX - marker[0]) < 28 && Math.abs(currentBadgeY - marker[1]) < 25
+    Math.abs(currentX - marker[0]) < 24 && Math.abs(currentBadgeY - marker[1]) < 21
   )) {{
     currentBadgeY = currentBadgeY > (badgeTop + badgeBottom) / 2 ? badgeTop : badgeBottom;
   }}
@@ -594,15 +594,15 @@ function renderTideChart(tide, previous, next) {{
 function renderTideExtremeMarker(extreme, x, badgeY, lineTop, axisY) {{
   const markerX = Math.max(18, Math.min(302, x));
   return '<line class="tide-extreme-guide" x1="' + graphNumber(x) + '" x2="' + graphNumber(x) + '" y1="' + lineTop + '" y2="' + axisY + '"></line>' +
-    '<circle class="tide-height-badge" cx="' + graphNumber(markerX) + '" cy="' + graphNumber(badgeY) + '" r="12"></circle>' +
-    '<text class="tide-height-label" x="' + graphNumber(markerX) + '" y="' + graphNumber(badgeY + 3) + '" text-anchor="middle">' + formatTideNumber(extreme.height) + 'm</text>' +
+    '<circle class="tide-height-badge" cx="' + graphNumber(markerX) + '" cy="' + graphNumber(badgeY) + '" r="10"></circle>' +
+    '<text class="tide-height-label" x="' + graphNumber(markerX) + '" y="' + graphNumber(badgeY + 3) + '" text-anchor="middle">' + formatTideNumber(extreme.height) + '</text>' +
     '<text class="tide-extreme-time" x="' + graphNumber(markerX) + '" y="102" text-anchor="middle">' + extreme.time + '</text>';
 }}
 
 function renderTideCurrentMarker(value, x, badgeY, lineTop, axisY) {{
   return '<line class="tide-now-line" x1="' + graphNumber(x) + '" x2="' + graphNumber(x) + '" y1="' + lineTop + '" y2="' + axisY + '"></line>' +
-    '<circle class="tide-height-badge tide-height-badge-now" cx="' + graphNumber(x) + '" cy="' + graphNumber(badgeY) + '" r="12"></circle>' +
-    '<text class="tide-height-label tide-height-label-now" x="' + graphNumber(x) + '" y="' + graphNumber(badgeY + 3) + '" text-anchor="middle">' + value + 'm</text>';
+    '<circle class="tide-height-badge tide-height-badge-now" cx="' + graphNumber(x) + '" cy="' + graphNumber(badgeY) + '" r="10"></circle>' +
+    '<text class="tide-height-label tide-height-label-now" x="' + graphNumber(x) + '" y="' + graphNumber(badgeY + 3) + '" text-anchor="middle">' + value + '</text>';
 }}
 
 function renderTideTicks(start, end, xForTime, axisY, excludedXs = []) {{

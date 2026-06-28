@@ -161,6 +161,7 @@ async function handleForecast(request, env, ctx) {
       const tide = await getTideForSpot(spot, env, ctx);
       const tideScore = calculateTideScore(spotKey, data.energyKj, tide.heightM);
       const rating = calculateRating({
+        spotKey,
         waveHeight: data.wave?.heightM,
         swellHeight: data.swell?.heightM,
         swellPeriod: data.swell?.periodS,
@@ -168,6 +169,7 @@ async function handleForecast(request, env, ctx) {
         windEffect: data.wind?.effect,
         energyKj: data.energyKj,
         tideScore,
+        tideHeight: tide.heightM,
       });
       data.tide = formatTideResponse(tide, tideScore);
       data.rating = rating;
@@ -217,7 +219,7 @@ async function handleForecast(request, env, ctx) {
   const tide = await getTideForSpot(spot, env, ctx);
   const tideScore = calculateTideScore(spotKey, energyKj, tide.heightM);
 
-  const rating = calculateRating({ waveHeight, swellHeight, swellPeriod, windSpeed, windEffect, energyKj, tideScore });
+  const rating = calculateRating({ spotKey, waveHeight, swellHeight, swellPeriod, windSpeed, windEffect, energyKj, tideScore, tideHeight: tide.heightM });
   const now = Math.floor(Date.now() / 1000);
 
   const data = {
@@ -409,7 +411,10 @@ function calculateWindEffect(windDeg, offshoreDeg) {
   return "onshore";
 }
 
-function calculateRating({ waveHeight, swellHeight, swellPeriod, windSpeed, windEffect, energyKj, tideScore }) {
+function calculateRating({ spotKey, waveHeight, swellHeight, swellPeriod, windSpeed, windEffect, energyKj, tideScore, tideHeight }) {
+  if (isMatosinhosSpot(spotKey)) {
+    return calculateMatosinhosRating({ windSpeed, windEffect, energyKj, tideScore, tideHeight });
+  }
   let score = 1;
   const h = numericOr(swellHeight, waveHeight, 0);
   const p = numericOr(swellPeriod, 0);
@@ -438,8 +443,44 @@ function calculateRating({ waveHeight, swellHeight, swellPeriod, windSpeed, wind
   return Math.max(1, Math.min(5, Math.round(score)));
 }
 
+function calculateMatosinhosRating({ windSpeed, windEffect, energyKj, tideScore, tideHeight }) {
+  const energy = numericOr(energyKj, 0);
+  const wind = numericOr(windSpeed, 0);
+  const regularWindLimitMs = 20 / 3.6;
+  const offshoreWindLimitMs = 25 / 3.6;
+
+  // Below 100 kJ the Matosinhos recommendations consider the waves unrideable.
+  if (energy < 100) return 1;
+
+  let score = energy < 200 ? 2 : energy < 300 ? 3 : energy <= 400 ? 4 : energy <= 600 ? 3.5 : energy <= 800 ? 3 : 2;
+
+  if (windEffect === "offshore") {
+    score += wind <= regularWindLimitMs ? 0.5 : wind <= offshoreWindLimitMs ? 0 : -1;
+  } else if (windEffect === "cross-offshore") {
+    score += wind <= regularWindLimitMs ? 0.25 : -0.75;
+  } else if (windEffect === "cross-onshore") {
+    score += wind <= regularWindLimitMs ? -0.5 : -1.5;
+  } else if (windEffect === "onshore") {
+    score += wind <= regularWindLimitMs ? -0.75 : -1.75;
+  } else if (wind > regularWindLimitMs) {
+    score -= 0.5;
+  }
+
+  score += tideScore || 0;
+  let rating = Math.max(1, Math.min(5, Math.round(score)));
+  if (typeof tideHeight === "number" && tideHeight < 1.5) rating = Math.min(rating, 2);
+  if ((windEffect === "onshore" || windEffect === "cross-onshore") && wind > regularWindLimitMs) rating = Math.min(rating, 2);
+  if (wind > offshoreWindLimitMs) rating = Math.min(rating, 3);
+  return rating;
+}
+
 function calculateTideScore(spotKey, energyKj, tideHeightM) {
   if (typeof tideHeightM !== "number" || !Number.isFinite(tideHeightM)) return 0;
+  if (isMatosinhosSpot(spotKey)) {
+    if (tideHeightM < 1.5) return -1.5;
+    if (tideHeightM <= 3.0) return 0.5;
+    return -0.75;
+  }
   if (spotKey === "silvalde") {
     if (energyKj < 100) return inRange(tideHeightM, 0.0, 1.5, 0.2);
     if (energyKj < 300) return inRange(tideHeightM, 0.8, 1.8, 1.2);
@@ -454,6 +495,10 @@ function calculateTideScore(spotKey, energyKj, tideHeightM) {
     return inRange(tideHeightM, 0.0, 1.5, 0.0);
   }
   return 0;
+}
+
+function isMatosinhosSpot(spotKey) {
+  return spotKey === "matosinhos" || spotKey === "vagas";
 }
 
 function inRange(value, min, max, ideal) {
