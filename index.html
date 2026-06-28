@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="google-analytics-id" content="G-JW7WY9PQH7">
 <title>Norte Surf Cams</title>
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon.svg?v=20260628" type="image/svg+xml">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
 <script>
@@ -1011,7 +1011,7 @@ body { min-height:100vh; font-family:var(--font-ui); background:#0a1513; color:v
 body:before { display:none; }
 .header-bar { height:58px; padding:0 clamp(16px,3vw,40px); justify-content:flex-start; gap:20px; background:#0a1513; border-bottom:1px solid var(--line); }
 .brand { display:flex; align-items:center; gap:9px; font-size:14px; font-weight:700; }
-.brand-mark { color:var(--mint); font-size:18px; }
+.brand-mark { display:block; width:24px; height:24px; border-radius:6px; flex:0 0 auto; object-fit:contain; }
 .header-search { flex:1; max-width:300px; margin-left:8px; }
 .header-filters { display:flex; align-items:center; gap:6px; }
 .header-actions { display:flex; align-items:center; gap:16px; margin-left:auto; min-width:0; }
@@ -1062,7 +1062,10 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
 <body>
 
 <header class="header-bar">
-  <div class="brand"><span class="brand-mark">≈</span><span>Norte Surf Cams</span></div>
+  <div class="brand">
+    <img class="brand-mark" src="favicon.svg?v=20260628" alt="" aria-hidden="true">
+    <span>Norte Surf Cams</span>
+  </div>
   <div class="header-search">
     <label class="search-wrap"><span>⌕</span><input id="cam-search" type="search" placeholder="Find a spot…" aria-label="Find a surf spot" oninput="filterCams()"></label>
   </div>

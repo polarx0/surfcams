@@ -726,7 +726,7 @@ html = f"""<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Norte Surf Cams</title>
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon.svg?v=20260628" type="image/svg+xml">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 {js}
 <style>
@@ -749,6 +749,14 @@ body {{ margin:0; font-family:ui-sans-serif, system-ui, -apple-system, BlinkMacS
   font-size:14px;
   white-space:nowrap;
   overflow-x:auto;
+}}
+
+.brand-mark {{
+  display:block;
+  width:24px;
+  height:24px;
+  border-radius:6px;
+  flex:0 0 auto;
 }}
 
 .refresh-all-icon {{
@@ -934,6 +942,7 @@ a {{ color:#8ecbff; }}
 <body>
 
 <header class="header-bar">
+  <img class="brand-mark" src="favicon.svg?v=20260628" alt="" aria-hidden="true">
   <span class="header-line">Norte Surf Cams | 🟢 {len(online_names)} online | 🔴 {len(offline_names)} offline |</span>
   <button class="refresh-all-icon" onclick="refreshAll()" title="Refresh all">↻</button>
 </header>
