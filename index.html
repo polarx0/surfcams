@@ -512,8 +512,8 @@ function tideExtremeDetails(extreme) {
 
 function renderTideChart(tide, previous, next) {
   const width = 320;
-  const curveTop = 16;
-  const curveBottom = 76;
+  const curveTop = 13;
+  const curveBottom = 79;
   const axisY = 90;
   const interval = next.timeMs - previous.timeMs;
   const currentHeight = Number(tide.heightM);
@@ -547,14 +547,14 @@ function renderTideChart(tide, previous, next) {
   const currentX = Math.max(0, Math.min(width, xForTime(Date.now())));
   const previousX = xForTime(previous.timeMs);
   const nextX = xForTime(next.timeMs);
-  const highBadgeY = curveTop + 11;
+  const highBadgeY = curveTop + 14;
   const currentBadgeY = highBadgeY + 19;
   const lowBadgeY = currentBadgeY + 19;
   const ticks = renderTideTicks(windowStart, windowEnd, xForTime, axisY, [previousX, nextX]);
   const currentValue = formatTideNumber(currentHeight);
 
   return '<span class="tide-chart">' +
-    '<svg class="tide-chart-svg" viewBox="0 0 320 118" role="img" aria-label="Tide chart, current height ' + currentValue + ' metres">' +
+    '<svg class="tide-chart-svg" viewBox="0 7 320 108" role="img" aria-label="Tide chart, current height ' + currentValue + ' metres">' +
       '<path class="tide-area" d="' + areaPath + '"></path>' +
       '<path class="tide-curve" d="' + linePath + '"></path>' +
       renderTideExtremeMarker(previous, previousX, previous.type === "low" ? lowBadgeY : highBadgeY, curveTop, axisY) +
@@ -567,7 +567,7 @@ function renderTideChart(tide, previous, next) {
 
 function renderTideExtremeMarker(extreme, x, badgeY, lineTop, axisY) {
   const markerX = Math.max(18, Math.min(302, x));
-  const lineStart = extreme.type === "low" ? badgeY : lineTop;
+  const lineStart = extreme.type === "low" ? badgeY + 9 : lineTop;
   return '<line class="tide-extreme-guide" x1="' + graphNumber(x) + '" x2="' + graphNumber(x) + '" y1="' + graphNumber(lineStart) + '" y2="' + axisY + '"></line>' +
     '<circle class="tide-height-badge ' + (extreme.type === "low" ? "tide-height-badge-low" : "") + '" cx="' + graphNumber(markerX) + '" cy="' + graphNumber(badgeY) + '" r="9"></circle>' +
     '<text class="tide-height-label" x="' + graphNumber(markerX) + '" y="' + graphNumber(badgeY + 3) + '" text-anchor="middle">' + formatTideNumber(extreme.height) + '</text>' +
