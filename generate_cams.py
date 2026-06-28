@@ -502,36 +502,110 @@ function formatTideTimeline(tide) {{
       (currentHeight ? ' <strong class="tide-inline-height">(' + currentHeight + ')</strong>' : "");
   }}
 
-  return '<span class="tide-timeline">' +
-    formatTideHeightCell("Previous", previous.height) +
-    formatTideHeightCell("Now", currentHeight, true) +
-    formatTideHeightCell("Next", next.height) +
-    formatTideStateCell(previous.label, previous.time) +
-    formatTideStateCell(formatTidePhase(tide)) +
-    formatTideStateCell(next.label, next.time) +
-  '</span>';
+  return renderTideChart(tide, previous, next);
 }}
 
 function tideExtremeDetails(extreme) {{
   if (!extreme) return null;
   const type = String(extreme.type || "").toLowerCase();
+  const height = Number(extreme.heightM ?? extreme.height);
+  const timeMs = Date.parse(extreme.time || "");
+  if (!Number.isFinite(height) || !Number.isFinite(timeMs)) return null;
   return {{
+    type,
     label: type === "low" ? "Low" : type === "high" ? "High" : "Tide",
-    height: formatTideHeight(extreme.heightM ?? extreme.height),
-    time: formatClock(extreme.time)
+    height,
+    time: formatClock(extreme.time),
+    timeMs
   }};
 }}
 
-function formatTideHeightCell(label, height, current = false) {{
-  return '<span class="tide-cell tide-height' + (current ? " tide-current" : "") + '">' +
-    '<small>' + label + '</small><strong>' + (height || "--") + '</strong>' +
+function renderTideChart(tide, previous, next) {{
+  const width = 320;
+  const curveTop = 34;
+  const curveBottom = 91;
+  const axisY = 94;
+  const interval = next.timeMs - previous.timeMs;
+  const currentHeight = Number(tide.heightM);
+  if (!(interval > 0) || !Number.isFinite(currentHeight)) {{
+    return escapeHtml(formatTidePhase(tide)) + ' · ' + formatTideHeight(tide.heightM);
+  }}
+
+  const windowStart = previous.timeMs - interval * 0.35;
+  const windowEnd = next.timeMs + interval * 0.55;
+  const low = Math.min(previous.height, next.height);
+  const high = Math.max(previous.height, next.height);
+  const range = Math.max(0.1, high - low);
+  const midpoint = (low + high) / 2;
+  const amplitude = range / 2;
+  const previousIsHigh = previous.type === "high";
+  const xForTime = time => ((time - windowStart) / (windowEnd - windowStart)) * width;
+  const yForHeight = height => curveBottom - ((height - low) / range) * (curveBottom - curveTop);
+  const heightAt = time => {{
+    const phase = Math.PI * ((time - previous.timeMs) / interval);
+    return midpoint + (previousIsHigh ? amplitude : -amplitude) * Math.cos(phase);
+  }};
+
+  const points = Array.from({{ length: 65 }}, (_, index) => {{
+    const time = windowStart + (windowEnd - windowStart) * index / 64;
+    return [xForTime(time), yForHeight(heightAt(time))];
+  }});
+  const linePath = points.map((point, index) =>
+    (index ? "L" : "M") + graphNumber(point[0]) + " " + graphNumber(point[1])
+  ).join(" ");
+  const areaPath = linePath + " L " + width + " " + axisY + " L 0 " + axisY + " Z";
+  const currentX = Math.max(0, Math.min(width, xForTime(Date.now())));
+  const previousX = xForTime(previous.timeMs);
+  const nextX = xForTime(next.timeMs);
+  const previousY = yForHeight(previous.height);
+  const nextY = yForHeight(next.height);
+  const trend = tideDirectionFromExtremes(tide) || String(tide.state || "").toLowerCase();
+  const trendMark = trend === "falling" ? "▼" : trend === "rising" ? "▲" : "•";
+  const ticks = renderTideTicks(windowStart, windowEnd, xForTime, axisY);
+  const currentValue = formatTideNumber(currentHeight);
+
+  return '<span class="tide-chart">' +
+    '<span class="tide-chart-current"><strong>' + currentValue + '<small>m</small></strong>' +
+      '<i class="tide-trend ' + (trend === "falling" ? "falling" : "") + '">' + trendMark + '</i></span>' +
+    '<svg class="tide-chart-svg" viewBox="0 0 320 126" role="img" aria-label="Tide chart, current height ' + currentValue + ' metres">' +
+      '<path class="tide-area" d="' + areaPath + '"></path>' +
+      '<path class="tide-curve" d="' + linePath + '"></path>' +
+      '<line class="tide-now-line" x1="' + graphNumber(currentX) + '" x2="' + graphNumber(currentX) + '" y1="18" y2="' + axisY + '"></line>' +
+      renderTideExtremeLabel(previous, previousX, previousY) +
+      renderTideExtremeLabel(next, nextX, nextY) +
+      ticks +
+    '</svg>' +
   '</span>';
 }}
 
-function formatTideStateCell(label, time = "") {{
-  return '<span class="tide-cell tide-state">' +
-    escapeHtml(label) + (time ? " · " + time : "") +
-  '</span>';
+function renderTideExtremeLabel(extreme, x, y) {{
+  const labelX = Math.max(34, Math.min(286, x));
+  const labelY = Math.max(13, y - (extreme.type === "high" ? 25 : 31));
+  return '<text class="tide-extreme-label" x="' + graphNumber(labelX) + '" y="' + graphNumber(labelY) + '" text-anchor="middle">' +
+    '<tspan x="' + graphNumber(labelX) + '">' + extreme.time + '</tspan>' +
+    '<tspan class="tide-extreme-height" x="' + graphNumber(labelX) + '" dy="13">' + formatTideHeight(extreme.height) + '</tspan>' +
+  '</text>';
+}}
+
+function renderTideTicks(start, end, xForTime, axisY) {{
+  const step = 3 * 60 * 60 * 1000;
+  const first = Math.ceil(start / step) * step;
+  let html = "";
+  for (let time = first; time <= end; time += step) {{
+    const x = xForTime(time);
+    html += '<line class="tide-tick" x1="' + graphNumber(x) + '" x2="' + graphNumber(x) + '" y1="' + axisY + '" y2="101"></line>' +
+      '<text class="tide-tick-label" x="' + graphNumber(x) + '" y="119" text-anchor="middle">' + formatClock(time) + '</text>';
+  }}
+  return html;
+}}
+
+function graphNumber(value) {{
+  return Math.round(value * 10) / 10;
+}}
+
+function formatTideNumber(value) {{
+  const height = Number(value);
+  return Number.isFinite(height) ? height.toFixed(2).replace(/0$/, "").replace(/\.0$/, "") : "--";
 }}
 
 function formatTideHeight(value) {{
@@ -790,16 +864,23 @@ video {{ width:100%; background:#000; display:block; min-height:120px; }}
   color:#ddd;
 }}
 
-.tide-row {{ align-items:flex-start; flex-direction:column; gap:6px; }}
+.tide-row {{ align-items:flex-start; flex-direction:column; gap:5px; }}
+.tide-row > b {{ color:#8f9da9; font-size:11px; letter-spacing:.06em; text-transform:uppercase; }}
 .tide-row > span {{ width:100%; text-align:left; }}
-.tide-timeline {{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); align-items:center; font-variant-numeric:tabular-nums; }}
-.tide-cell {{ box-sizing:border-box; display:flex; min-width:0; min-height:16px; align-items:center; justify-content:center; padding:0 2px; text-align:center; }}
-.tide-cell:nth-child(3n+2),.tide-cell:nth-child(3n+3) {{ border-left:1px solid #34413e; }}
-.tide-height {{ gap:1px; white-space:nowrap; }}
-.tide-height small {{ color:#82918d; font-size:8px; font-weight:700; letter-spacing:0; text-transform:uppercase; }}
-.tide-height strong {{ color:#f2f5f4; font-size:10px; }}
-.tide-current strong {{ color:#78e2bc; }}
-.tide-state {{ min-height:18px; padding-top:3px; border-top:1px solid rgba(96,113,109,.22); color:#aab6b3; font-size:9px; line-height:1.15; white-space:nowrap; }}
+.tide-chart {{ display:block; overflow:hidden; font-variant-numeric:tabular-nums; }}
+.tide-chart-current {{ display:flex; align-items:flex-start; gap:10px; height:42px; padding-left:3px; }}
+.tide-chart-current strong {{ color:#f2f5f4; font-size:36px; line-height:1; letter-spacing:-.04em; }}
+.tide-chart-current strong small {{ margin-left:2px; color:#f2f5f4; font-size:18px; letter-spacing:0; }}
+.tide-trend {{ margin-top:5px; color:#78e2bc; font-size:16px; font-style:normal; line-height:1; }}
+.tide-trend.falling {{ color:#8ecbff; }}
+.tide-chart-svg {{ display:block; width:100%; height:auto; overflow:visible; }}
+.tide-area {{ fill:rgba(126,183,207,.18); }}
+.tide-curve {{ fill:none; stroke:#d9e3e0; stroke-width:2; vector-effect:non-scaling-stroke; }}
+.tide-now-line {{ stroke:#78e2bc; stroke-width:1.25; vector-effect:non-scaling-stroke; }}
+.tide-extreme-label {{ fill:#eef3f1; font-size:11px; font-weight:700; }}
+.tide-extreme-height {{ fill:#aab6b3; font-size:10px; font-weight:600; }}
+.tide-tick {{ stroke:#60716d; stroke-width:1; vector-effect:non-scaling-stroke; }}
+.tide-tick-label {{ fill:#82918d; font-size:9px; }}
 .tide-inline-height {{ color:#78e2bc; }}
 
 @media (max-width:700px) {{
