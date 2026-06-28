@@ -531,7 +531,7 @@ function tideExtremeDetails(extreme) {{
 function renderTideChart(tide, previous, next) {{
   const width = 320;
   const curveTop = 16;
-  const curveBottom = 78;
+  const curveBottom = 76;
   const axisY = 90;
   const interval = next.timeMs - previous.timeMs;
   const currentHeight = Number(tide.heightM);
@@ -566,8 +566,8 @@ function renderTideChart(tide, previous, next) {{
   const previousX = xForTime(previous.timeMs);
   const nextX = xForTime(next.timeMs);
   const highBadgeY = curveTop + 11;
-  const lowBadgeY = curveBottom;
-  const currentBadgeY = (highBadgeY + lowBadgeY) / 2;
+  const currentBadgeY = highBadgeY + 19;
+  const lowBadgeY = currentBadgeY + 19;
   const ticks = renderTideTicks(windowStart, windowEnd, xForTime, axisY, [previousX, nextX]);
   const currentValue = formatTideNumber(currentHeight);
 
