@@ -197,7 +197,17 @@ async function fetchForecast(spotKey) {
 function updateForecastInCard(card, data) {
   const starsEl = card.querySelector(".forecast-pill");
   const energyEl = card.querySelector(".energy-pill");
+  let nearshoreEnergyEl = card.querySelector(".nearshore-energy-pill");
   const windEl = card.querySelector(".wind-pill");
+
+  if (!nearshoreEnergyEl && energyEl) {
+    nearshoreEnergyEl = document.createElement("button");
+    nearshoreEnergyEl.className = "nearshore-energy-pill";
+    nearshoreEnergyEl.type = "button";
+    nearshoreEnergyEl.title = "Calculated nearshore energy";
+    nearshoreEnergyEl.onclick = () => showForecast(card.dataset.forecastKey || card.dataset.key);
+    energyEl.insertAdjacentElement("afterend", nearshoreEnergyEl);
+  }
 
   const rating = ratingFromData(data);
   if (starsEl) {
@@ -205,6 +215,7 @@ function updateForecastInCard(card, data) {
     starsEl.setAttribute("aria-label", formatRatingLabel(rating));
   }
   if (energyEl) energyEl.textContent = (data.energyKj ?? "--") + " kJ";
+  if (nearshoreEnergyEl) nearshoreEnergyEl.textContent = "shore " + (data.nearshoreEnergyKj ?? "--") + " kJ";
   if (windEl) windEl.textContent = ((data.wind && data.wind.speedMs != null) ? data.wind.speedMs : "--") + " m/s";
   card.dataset.rating = rating;
   card.classList.toggle("is-pumping", rating >= 4);
@@ -370,6 +381,7 @@ async function showForecast(spotKey) {
     '<div class="modal-stars" aria-label="' + formatRatingLabel(ratingFromData(data)) + '">' + renderStars(ratingFromData(data)) + '</div>' +
 
     '<div class="modal-row"><b>Energy</b><span>' + (data.energyKj ?? "--") + ' kJ</span></div>' +
+    '<div class="modal-row"><b>Nearshore energy</b><span>' + (data.nearshoreEnergyKj ?? "--") + ' kJ</span></div>' +
 
     '<div class="modal-row"><b>Wave</b><span>' +
       formatDirection(data.wave, true) +
@@ -1051,8 +1063,9 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
 .cam-footer { gap:7px; padding:8px 10px; color:var(--muted); font-size:10px; }
 .sep { display:none; }
 .token-info { display:none; }
-.forecast-pill,.energy-pill,.wind-pill { padding:4px 5px; border-radius:4px; background:rgba(255,255,255,.035); }
+.forecast-pill,.energy-pill,.nearshore-energy-pill,.wind-pill { padding:4px 5px; border-radius:4px; background:rgba(255,255,255,.035); }
 .forecast-pill { color:var(--sun); }
+.nearshore-energy-pill { color:#8fd8ca; }
 .rating-star { position:relative; display:inline-block; width:.95em; }
 .rating-star.empty,.rating-star.half { color:#64706e; }
 .rating-star.half:before { content:"★"; position:absolute; inset:0 auto 0 0; width:50%; overflow:hidden; color:var(--sun); }
