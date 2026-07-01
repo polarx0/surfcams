@@ -151,7 +151,7 @@ async function handleForecast(request, env, ctx) {
   if (!spot) return json({ error: "Unknown spot", usage: "/forecast?spot=matosinhos", available: Object.keys(SPOTS) }, 400);
 
   const cacheUrl = new URL(request.url);
-  cacheUrl.search = `?spot=${encodeURIComponent(spotKey)}&v=breakwater-exposure1`;
+  cacheUrl.search = `?spot=${encodeURIComponent(spotKey)}&v=breakwater-exposure2`;
   const cacheKey = new Request(cacheUrl.toString(), { method: "GET" });
   const cache = caches.default;
   const cached = await cache.match(cacheKey);
@@ -537,6 +537,18 @@ const BREAKWATER_EXPOSURE = {
   cabedelo: [
     { from: 300, to: 355, exposure: 0.60 },
     { from: 285, to: 300, exposure: 0.82 },
+  ],
+  espinho: [
+    { from: 300, to: 355, exposure: 0.80 },
+    { from: 285, to: 300, exposure: 0.90 },
+  ],
+  espinho_aerea: [
+    { from: 300, to: 355, exposure: 0.80 },
+    { from: 285, to: 300, exposure: 0.90 },
+  ],
+  silvalde: [
+    { from: 300, to: 355, exposure: 0.85 },
+    { from: 285, to: 300, exposure: 0.92 },
   ],
   barra_norte: [
     { from: 200, to: 250, exposure: 0.65 },
