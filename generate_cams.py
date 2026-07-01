@@ -391,21 +391,10 @@ async function fetchForecast(spotKey) {{
 function updateForecastInCard(card, data) {{
   const starsEl = card.querySelector(".forecast-pill");
   const energyEl = card.querySelector(".energy-pill");
-  let nearshoreEnergyEl = card.querySelector(".nearshore-energy-pill");
   const windEl = card.querySelector(".wind-pill");
-
-  if (!nearshoreEnergyEl && energyEl) {{
-    nearshoreEnergyEl = document.createElement("button");
-    nearshoreEnergyEl.className = "nearshore-energy-pill";
-    nearshoreEnergyEl.type = "button";
-    nearshoreEnergyEl.title = "Calculated nearshore energy";
-    nearshoreEnergyEl.onclick = () => showForecast(card.dataset.forecastKey || card.dataset.key);
-    energyEl.insertAdjacentElement("afterend", nearshoreEnergyEl);
-  }}
 
   if (starsEl) starsEl.textContent = data.stars || "☆☆☆☆☆";
   if (energyEl) energyEl.textContent = (data.energyKj ?? "--") + " kJ";
-  if (nearshoreEnergyEl) nearshoreEnergyEl.textContent = "shore " + (data.nearshoreEnergyKj ?? "--") + " kJ";
   if (windEl) windEl.textContent = ((data.wind && data.wind.speedMs != null) ? data.wind.speedMs : "--") + " m/s";
 }}
 
@@ -452,8 +441,7 @@ async function showForecast(spotKey) {{
     '<div class="modal-title">' + data.name + '</div>' +
     '<div class="modal-stars">' + (data.stars || "☆☆☆☆☆") + '</div>' +
 
-    '<div class="modal-row"><b>Energy</b><span>' + (data.energyKj ?? "--") + ' kJ</span></div>' +
-    '<div class="modal-row"><b>Nearshore energy</b><span>' + (data.nearshoreEnergyKj ?? "--") + ' kJ</span></div>' +
+    '<div class="modal-row"><b>Energy / Nearshore</b><span>' + (data.energyKj ?? "--") + ' kJ / ' + (data.nearshoreEnergyKj ?? "--") + ' kJ</span></div>' +
 
     '<div class="modal-row"><b>Wave</b><span>' +
       fmt(data.wave?.heightM, " m") + ' @ ' +
