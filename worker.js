@@ -151,7 +151,7 @@ async function handleForecast(request, env, ctx) {
   if (!spot) return json({ error: "Unknown spot", usage: "/forecast?spot=matosinhos", available: Object.keys(SPOTS) }, 400);
 
   const cacheUrl = new URL(request.url);
-  cacheUrl.search = `?spot=${encodeURIComponent(spotKey)}&v=nearshore-energy1`;
+  cacheUrl.search = `?spot=${encodeURIComponent(spotKey)}&v=breakwater-exposure1`;
   const cacheKey = new Request(cacheUrl.toString(), { method: "GET" });
   const cache = caches.default;
   const cached = await cache.match(cacheKey);
@@ -173,7 +173,7 @@ async function handleForecast(request, env, ctx) {
         tideHeight: tide.heightM,
       });
       data.tide = formatTideResponse(tide, tideScore);
-      data.nearshoreEnergyKj = calculateNearshoreEnergyKj(spotKey, data.energyKj, data.swell?.directionDeg);
+      Object.assign(data, calculateNearshoreEnergy(spotKey, data.energyKj, data.swell?.directionDeg));
       data.rating = rating;
       data.stars = stars(rating);
       data.servedAt = Math.floor(Date.now() / 1000);
@@ -217,7 +217,7 @@ async function handleForecast(request, env, ctx) {
   const windDirection = valueAt(weather.hourly?.wind_direction_10m, weatherIndex);
 
   const energyKj = calculateSurfEnergyKj(numericOr(swellHeight, waveHeight, 0), numericOr(swellPeriod, wavePeriod, 0));
-  const nearshoreEnergyKj = calculateNearshoreEnergyKj(spotKey, energyKj, swellDirection);
+  const nearshore = calculateNearshoreEnergy(spotKey, energyKj, swellDirection);
   const windEffect = calculateWindEffect(windDirection, spot.offshore);
   const tide = await getTideForSpot(spot, env, ctx);
   const tideScore = calculateTideScore(spotKey, energyKj, tide.heightM);
@@ -231,7 +231,7 @@ async function handleForecast(request, env, ctx) {
     stars: stars(rating),
     rating,
     energyKj,
-    nearshoreEnergyKj,
+    ...nearshore,
     wave: { heightM: round1(waveHeight), periodS: round1(wavePeriod), directionDeg: round0(waveDirection), directionText: compass(waveDirection) },
     swell: { heightM: round1(swellHeight), periodS: round1(swellPeriod), directionDeg: round0(swellDirection), directionText: compass(swellDirection) },
     wind: { speedMs: round1(windSpeed), directionDeg: round0(windDirection), directionText: compass(windDirection), effect: windEffect },
@@ -406,9 +406,13 @@ function closestCurrentIndex(times) {
 function valueAt(arr, idx) { return !arr || idx == null || idx < 0 || idx >= arr.length ? null : arr[idx]; }
 function numericOr(...values) { for (const value of values) if (typeof value === "number" && Number.isFinite(value)) return value; return 0; }
 function calculateSurfEnergyKj(heightM, periodS) { return !heightM || !periodS ? 0 : Math.round(heightM * heightM * periodS * 20); }
-function calculateNearshoreEnergyKj(spotKey, energyKj, swellDirection) {
-  const exposure = isMatosinhosSpot(spotKey) ? matosinhosSwellExposure(swellDirection) : 1;
-  return Math.round(numericOr(energyKj, 0) * exposure);
+function calculateNearshoreEnergy(spotKey, energyKj, swellDirection) {
+  const exposure = spotSwellExposure(spotKey, swellDirection);
+  return {
+    nearshoreEnergyKj: Math.round(numericOr(energyKj, 0) * exposure),
+    nearshoreExposurePct: Math.round(exposure * 100),
+    shelterLossPct: Math.round((1 - exposure) * 100),
+  };
 }
 function calculateWindEffect(windDeg, offshoreDeg) {
   if (typeof windDeg !== "number") return "unknown";
@@ -454,7 +458,7 @@ function calculateRating({ spotKey, waveHeight, swellHeight, swellPeriod, swellD
 function calculateMatosinhosRating({ windSpeed, windEffect, energyKj, swellDirection, tideScore, tideHeight }) {
   // The model point is offshore. Matosinhos' north breakwater shadows NW swell,
   // so only a fraction of that offshore energy reaches the beach.
-  const energy = calculateNearshoreEnergyKj("matosinhos", energyKj, swellDirection);
+  const energy = calculateNearshoreEnergy("matosinhos", energyKj, swellDirection).nearshoreEnergyKj;
   const wind = numericOr(windSpeed, 0);
   const regularWindLimitMs = 20 / 3.6;
   const offshoreWindLimitMs = 25 / 3.6;
@@ -484,14 +488,66 @@ function calculateMatosinhosRating({ windSpeed, windEffect, energyKj, swellDirec
   return rating;
 }
 
-function matosinhosSwellExposure(directionDeg) {
+function spotSwellExposure(spotKey, directionDeg) {
   if (typeof directionDeg !== "number" || !Number.isFinite(directionDeg)) return 1;
   const direction = ((directionDeg % 360) + 360) % 360;
-  if (direction >= 300 || direction <= 20) return 0.35;
-  if (direction >= 290) return 0.55;
-  if (direction >= 280) return 0.8;
+  const sectors = BREAKWATER_EXPOSURE[spotKey];
+  if (!sectors) return 1;
+  for (const sector of sectors) {
+    if (directionInSector(direction, sector.from, sector.to)) return sector.exposure;
+  }
   return 1;
 }
+
+function directionInSector(direction, from, to) {
+  return from <= to ? direction >= from && direction < to : direction >= from || direction < to;
+}
+
+// Directional nearshore transmission estimates. They model the geometric
+// shadow of nearby harbour walls; values should be refined against cameras.
+const BREAKWATER_EXPOSURE = {
+  matosinhos: [
+    { from: 300, to: 20, exposure: 0.35 },
+    { from: 290, to: 300, exposure: 0.55 },
+    { from: 280, to: 290, exposure: 0.80 },
+  ],
+  vagas: [
+    { from: 300, to: 20, exposure: 0.35 },
+    { from: 290, to: 300, exposure: 0.55 },
+    { from: 280, to: 290, exposure: 0.80 },
+  ],
+  leca: [
+    { from: 195, to: 235, exposure: 0.55 },
+    { from: 175, to: 195, exposure: 0.80 },
+    { from: 235, to: 255, exposure: 0.80 },
+  ],
+  leca_aterro: [
+    { from: 195, to: 235, exposure: 0.55 },
+    { from: 175, to: 195, exposure: 0.80 },
+    { from: 235, to: 255, exposure: 0.80 },
+  ],
+  ferrari: [
+    { from: 305, to: 355, exposure: 0.75 },
+    { from: 290, to: 305, exposure: 0.90 },
+  ],
+  azurara: [
+    { from: 300, to: 355, exposure: 0.65 },
+    { from: 285, to: 300, exposure: 0.85 },
+  ],
+  cabedelo: [
+    { from: 300, to: 355, exposure: 0.60 },
+    { from: 285, to: 300, exposure: 0.82 },
+  ],
+  barra_norte: [
+    { from: 200, to: 250, exposure: 0.65 },
+    { from: 180, to: 200, exposure: 0.85 },
+    { from: 250, to: 265, exposure: 0.85 },
+  ],
+  figueira_cabedelo: [
+    { from: 300, to: 355, exposure: 0.55 },
+    { from: 285, to: 300, exposure: 0.80 },
+  ],
+};
 
 function calculateTideScore(spotKey, energyKj, tideHeightM) {
   if (typeof tideHeightM !== "number" || !Number.isFinite(tideHeightM)) return 0;
