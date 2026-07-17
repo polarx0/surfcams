@@ -1,0 +1,65 @@
+name: Update Surf Cams
+
+on:
+  schedule:
+    - cron: "5,10,15,20,25,30,35,40,45,50,55,0 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-surf-cams-public-site
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out public website
+        uses: actions/checkout@v6
+        with:
+          path: public
+
+      - name: Check out private source
+        uses: actions/checkout@v6
+        with:
+          repository: polarx0/surfcams-source
+          token: ${{ secrets.SURFCAMS_SOURCE_TOKEN }}
+          persist-credentials: false
+          path: source
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install source dependencies
+        working-directory: source
+        run: pip install -r requirements.txt
+
+      - name: Generate website
+        working-directory: source
+        run: python generate_cams.py
+
+      - name: Validate generated website
+        working-directory: source
+        run: python validate_dist.py
+
+      - name: Synchronize generated website
+        run: rsync -a --delete --exclude='.git/' --exclude='.github/' source/dist/ public/
+
+      - name: Commit and publish changes
+        working-directory: public
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Generated website is unchanged."
+            exit 0
+          fi
+          git commit -m "Update cams"
+          git push
