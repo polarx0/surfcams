@@ -1,0 +1,2076 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="google-analytics-id" content="G-JW7WY9PQH7">
+<title>Norte Surf Cams</title>
+<link rel="icon" href="favicon.svg?v=20260628" type="image/svg+xml">
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+<script>
+const WORKER_URL = "https://surfcams.polarx0.workers.dev";
+const hlsInstances = {};
+const tokenTimers = {};
+const streamRefreshes = {};
+const forecastCache = {};
+const FAVORITES_STORAGE_KEY = "norte-surf-cam-favorites";
+let favoriteKeys = new Set();
+let bestCameraKeys = new Set();
+const TOKEN_LIFETIME_SECONDS = 300;
+const TOKEN_REFRESH_BUFFER_SECONDS = 75;
+const TOKEN_RETRY_SECONDS = 15;
+const AUTO_REFRESH_SECONDS = 180;
+const LONG_IDLE_SECONDS = 300;
+let pageHiddenAt = null;
+let idleReloadStarted = false;
+
+function formatDuration(seconds) {
+  const min = Math.floor(seconds / 60);
+  const sec = seconds % 60;
+  return min + "m " + String(sec).padStart(2, "0") + "s";
+}
+
+function destroyCam(videoId) {
+  const video = document.getElementById(videoId);
+
+  if (hlsInstances[videoId]) {
+    hlsInstances[videoId].destroy();
+    delete hlsInstances[videoId];
+  }
+
+  if (tokenTimers[videoId]) {
+    clearTimeout(tokenTimers[videoId]);
+    delete tokenTimers[videoId];
+  }
+
+  if (video) {
+    video.pause();
+    video.removeAttribute("src");
+    video.load();
+  }
+}
+
+function initCam(videoId, src) {
+  const video = document.getElementById(videoId);
+  if (!video || !src) return;
+
+  destroyCam(videoId);
+  video.dataset.stream = src;
+  video.muted = true;
+
+  if (video.canPlayType("application/vnd.apple.mpegurl")) {
+    video.src = src;
+    video.play().catch(() => {});
+    return;
+  }
+
+  if (window.Hls && Hls.isSupported()) {
+    const hls = new Hls();
+    hlsInstances[videoId] = hls;
+    hls.loadSource(src);
+    hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
+  }
+}
+
+function updateTokenInfo(videoId, generatedAt, servedAt) {
+  const video = document.getElementById(videoId);
+  const el = video?.closest(".cam")?.querySelector(".token-info");
+  if (!video) return;
+
+  function tick() {
+    const now = Math.floor(Date.now() / 1000);
+    const baseAge = Math.max(0, servedAt - generatedAt);
+    const age = baseAge + Math.max(0, now - servedAt);
+    const left = Math.max(0, TOKEN_LIFETIME_SECONDS - age);
+    if (el) el.textContent = "⏱ " + formatDuration(left);
+  }
+
+  tick();
+  if (tokenTimers[videoId]) clearTimeout(tokenTimers[videoId]);
+  const expiresAt = (generatedAt + TOKEN_LIFETIME_SECONDS) * 1000;
+  const refreshAt = expiresAt - TOKEN_REFRESH_BUFFER_SECONDS * 1000;
+  const delay = Math.max(TOKEN_RETRY_SECONDS * 1000, refreshAt - Date.now());
+  tokenTimers[videoId] = setTimeout(() => startOrRefreshCam(videoId), delay);
+}
+
+async function fetchFreshStream(camKey) {
+  const res = await fetch(
+    WORKER_URL + "/stream?cam=" + encodeURIComponent(camKey) + "&t=" + Date.now(),
+    { cache: "no-store" }
+  );
+
+  const data = await res.json();
+  if (!res.ok || !data.stream) throw new Error(data.error || "No stream returned");
+  return data;
+}
+
+async function startOrRefreshCam(videoId) {
+  if (streamRefreshes[videoId]) return streamRefreshes[videoId];
+
+  const video = document.getElementById(videoId);
+  const card = video?.closest(".cam");
+  const camKey = card?.dataset.key;
+  const directStream = card?.dataset.directStream;
+  const el = card?.querySelector(".token-info");
+  if (!video || !camKey) return;
+  video.dataset.started = "true";
+
+  if (directStream) {
+    initCam(videoId, directStream);
+    if (el) el.textContent = "⏱ live";
+    return;
+  }
+
+  streamRefreshes[videoId] = (async () => {
+    try {
+      if (el) el.textContent = "⏱ loading";
+      const data = await fetchFreshStream(camKey);
+      const now = Math.floor(Date.now() / 1000);
+      initCam(videoId, data.stream);
+      updateTokenInfo(videoId, data.generatedAt || now, data.servedAt || now);
+    } catch (e) {
+      console.error(e);
+      if (el) el.textContent = "⏱ failed";
+      if (tokenTimers[videoId]) clearTimeout(tokenTimers[videoId]);
+      tokenTimers[videoId] = setTimeout(() => startOrRefreshCam(videoId), TOKEN_RETRY_SECONDS * 1000);
+    } finally {
+      delete streamRefreshes[videoId];
+    }
+  })();
+
+  return streamRefreshes[videoId];
+}
+
+async function refreshCam(videoId) {
+  await startOrRefreshCam(videoId);
+}
+
+async function refreshAll() {
+  const videos = Array.from(document.querySelectorAll(".cam video"));
+  await Promise.allSettled(videos.map(video => startOrRefreshCam(video.id)));
+}
+
+async function refreshStartedCams() {
+  const videos = Array.from(document.querySelectorAll('.cam video[data-started="true"]'));
+  await Promise.allSettled(videos.map(video => startOrRefreshCam(video.id)));
+}
+
+function setupLazyCams() {
+  const videos = Array.from(document.querySelectorAll(".cam video"));
+  const rootMargin = window.matchMedia("(max-width: 700px)").matches
+    ? "120px 0px"
+    : "500px 0px";
+  if (!("IntersectionObserver" in window)) {
+    videos.slice(0, window.matchMedia("(max-width: 700px)").matches ? 4 : 6)
+      .forEach(video => startOrRefreshCam(video.id));
+    return;
+  }
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const video = entry.target;
+      observer.unobserve(video);
+      startOrRefreshCam(video.id);
+    });
+  }, { rootMargin });
+
+  videos.forEach(video => observer.observe(video));
+}
+
+
+function forecastCoordsForCard(card) {
+  return CAMERA_MAP_COORDS[card?.dataset.key] || MAP_COORDS[card?.dataset.forecastKey || card?.dataset.key];
+}
+
+function forecastCacheKey(card) {
+  return card?.dataset.key || card?.dataset.forecastKey;
+}
+
+async function fetchForecast(spotKey, coords, cacheKey = spotKey) {
+  const locationQuery = coords ? "&lat=" + encodeURIComponent(coords[0]) + "&lon=" + encodeURIComponent(coords[1]) : "";
+  const res = await fetch(
+    WORKER_URL + "/forecast?spot=" + encodeURIComponent(spotKey) + locationQuery + "&t=" + Date.now(),
+    { cache: "no-store" }
+  );
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Forecast failed");
+
+  forecastCache[cacheKey] = data;
+  return data;
+}
+
+function updateForecastInCard(card, data) {
+  const starsEl = card.querySelector(".forecast-pill");
+  const energyEl = card.querySelector(".energy-pill");
+  const windEl = card.querySelector(".wind-pill");
+
+
+  const rating = ratingFromData(data);
+  if (starsEl) {
+    starsEl.innerHTML = renderStars(rating);
+    starsEl.setAttribute("aria-label", formatRatingLabel(rating));
+  }
+  if (energyEl) energyEl.textContent = (data.energyKj ?? "--") + " kJ";
+  if (windEl) windEl.textContent = ((data.wind && data.wind.speedMs != null) ? data.wind.speedMs : "--") + " m/s";
+  card.dataset.rating = rating;
+  card.classList.toggle("is-pumping", rating >= 4);
+  updateDashboardStats();
+}
+
+function updateDashboardStats() {
+  const cards = Array.from(document.querySelectorAll(".cam"));
+  const liveCount = cards.length;
+  const totalCount = liveCount + document.querySelectorAll(".offline-item").length;
+  const liveStatusEl = document.getElementById("live-status-count");
+  const totalStatusEl = document.getElementById("total-camera-count");
+  const offlineCountEl = document.querySelector(".offline-count");
+  if (liveStatusEl) liveStatusEl.textContent = liveCount;
+  if (totalStatusEl) totalStatusEl.textContent = totalCount;
+  if (offlineCountEl) {
+    const offlineCount = document.querySelectorAll(".offline-item").length;
+    offlineCountEl.textContent = offlineCount + " unavailable";
+  }
+  const ranked = cards
+    .filter(card => card.dataset.rating !== undefined)
+    .map(card => ({
+      key: card.dataset.key,
+      rating: Number(card.dataset.rating || 0),
+      energy: parseFloat(card.querySelector(".energy-pill")?.textContent) || 0
+    }))
+    .sort((a, b) => b.rating - a.rating || b.energy - a.energy)
+    .slice(0, 3);
+  bestCameraKeys = new Set(ranked.map(item => item.key));
+  filterCams();
+}
+
+function filterCams() {
+  const query = (document.getElementById("cam-search")?.value || "").trim().toLowerCase();
+  const filter = document.querySelector(".filter-chip.active")?.dataset.filter || "all";
+  document.body.dataset.cameraFilter = filter;
+  let visible = 0;
+  document.querySelectorAll(".cam").forEach(card => {
+    const matchesSearch = (card.dataset.name || "").toLowerCase().includes(query);
+    const matchesFilter = filter === "all"
+      || (filter === "best" && bestCameraKeys.has(card.dataset.key))
+      || (filter === "favorites" && favoriteKeys.has(card.dataset.key));
+    card.hidden = !(matchesSearch && matchesFilter);
+    if (!card.hidden) visible++;
+  });
+  const empty = document.getElementById("empty-state");
+  if (empty) empty.hidden = visible !== 0;
+  updateCameraSectionHeading(filter, visible, query);
+}
+
+function setFilter(button) {
+  document.querySelectorAll(".filter-chip").forEach(item => item.classList.remove("active"));
+  button.classList.add("active");
+  filterCams();
+}
+
+function updateCameraSectionHeading(filter, visible, query) {
+  const titleEl = document.getElementById("camera-section-title-text");
+  const countEl = document.getElementById("camera-section-count");
+  if (!titleEl || !countEl) return;
+
+  const labels = {
+    all: "Online cameras",
+    favorites: "Favorite cameras",
+    best: "Best now"
+  };
+  titleEl.textContent = labels[filter] || labels.all;
+  if (query) {
+    countEl.textContent = visible + (visible === 1 ? " match" : " matches");
+  } else if (filter === "favorites") {
+    countEl.textContent = visible + (visible === 1 ? " favorite" : " favorites");
+  } else if (filter === "best") {
+    countEl.textContent = visible + " selected";
+  } else {
+    countEl.textContent = visible + " online";
+  }
+}
+
+function saveFavorites() {
+  try {
+    localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(Array.from(favoriteKeys)));
+  } catch (e) {
+    console.warn("Could not save favorites", e);
+  }
+}
+
+function updateFavoriteButton(card, button) {
+  const isFavorite = favoriteKeys.has(card.dataset.key);
+  card.classList.toggle("is-favorite", isFavorite);
+  button.textContent = isFavorite ? "★" : "☆";
+  button.classList.toggle("active", isFavorite);
+  button.setAttribute("aria-pressed", String(isFavorite));
+  button.setAttribute("aria-label", (isFavorite ? "Remove " : "Add ") + card.dataset.name + (isFavorite ? " from favorites" : " to favorites"));
+}
+
+function setupFavorites() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(FAVORITES_STORAGE_KEY) || "[]");
+    favoriteKeys = new Set(Array.isArray(stored) ? stored.filter(value => typeof value === "string") : []);
+  } catch (e) {
+    favoriteKeys = new Set();
+  }
+
+  document.querySelectorAll(".cam").forEach(card => {
+    const heading = card.querySelector("h2");
+    if (!heading || heading.querySelector(".favorite-toggle")) return;
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "favorite-toggle";
+    updateFavoriteButton(card, button);
+    button.addEventListener("click", () => {
+      if (favoriteKeys.has(card.dataset.key)) favoriteKeys.delete(card.dataset.key);
+      else favoriteKeys.add(card.dataset.key);
+      saveFavorites();
+      updateFavoriteButton(card, button);
+      filterCams();
+    });
+    heading.appendChild(button);
+  });
+}
+
+async function loadForecastForCard(card) {
+  const spotKey = card?.dataset.forecastKey || card?.dataset.key;
+  if (!spotKey) return;
+
+  try {
+    const data = await fetchForecast(spotKey, forecastCoordsForCard(card), forecastCacheKey(card));
+    updateForecastInCard(card, data);
+  } catch (e) {
+    console.error(e);
+    const starsEl = card.querySelector(".forecast-pill");
+    const energyEl = card.querySelector(".energy-pill");
+    const windEl = card.querySelector(".wind-pill");
+    if (starsEl) starsEl.textContent = "☆☆☆☆☆";
+    if (energyEl) energyEl.textContent = "-- kJ";
+    if (windEl) windEl.textContent = "-- m/s";
+  }
+}
+
+async function loadAllForecasts() {
+  const cards = Array.from(document.querySelectorAll(".forecast-card"));
+  for (const card of cards) {
+    await loadForecastForCard(card);
+  }
+}
+
+async function showForecast(spotKey) {
+  let data = forecastCache[spotKey];
+
+  if (!data) {
+    const card = document.querySelector('.forecast-card[data-key="' + spotKey + '"]');
+    await loadForecastForCard(card);
+    data = forecastCache[spotKey];
+  }
+
+  if (!data) return;
+
+  const modal = document.getElementById("forecast-modal");
+  const body = document.getElementById("forecast-modal-body");
+
+  body.innerHTML =
+    '<div class="modal-title">' + data.name + '</div>' +
+    '<div class="modal-stars" aria-label="' + formatRatingLabel(ratingFromData(data)) + '">' + renderStars(ratingFromData(data)) + '</div>' +
+
+    '<div class="modal-row"><b>Energy / Nearshore</b><span>' + (data.energyKj ?? "--") + ' kJ / ' + (data.nearshoreEnergyKj ?? "--") + ' kJ</span></div>' +
+    '<div class="modal-row"><b>Water</b><span>' + fmt(data.waterTemperatureC, " °C") + '</span></div>' +
+
+    '<div class="modal-row"><b>Wave</b><span>' +
+      formatDirection(data.wave, true) +
+      fmt(data.wave?.heightM, " m") + ' @ ' +
+      fmt(data.wave?.periodS, " s") + ' ' +
+      formatCompassDirection(data.wave?.directionDeg) +
+    '</span></div>' +
+
+    '<div class="modal-row"><b>Swell</b><span>' +
+      formatDirection(data.swell, true) +
+      fmt(data.swell?.heightM, " m") + ' @ ' +
+      fmt(data.swell?.periodS, " s") + ' ' +
+      formatCompassDirection(data.swell?.directionDeg) +
+    '</span></div>' +
+
+    '<div class="modal-row"><b>Wind</b><span>' +
+      formatDirection(data.wind, true) +
+      fmt(data.wind?.speedMs, " m/s") + ' ' +
+      formatCompassDirection(data.wind?.directionDeg) +
+    '</span></div>' +
+
+    '<div class="modal-row"><b>Effect</b><span>' +
+      (data.wind?.effect || "unknown") +
+    '</span></div>' +
+
+    '<div class="modal-row tide-row"><div class="tide-heading"><b>Tide</b><span>' +
+      formatTideCurrent(data.tide) +
+    '</span></div><span>' +
+      formatTideTimeline(data.tide) +
+    '</span></div>' +
+
+    '<div class="modal-row"><b>Updated</b><span>' +
+      formatUpdatedAgo(data) +
+    '</span></div>';
+
+  modal.classList.add("show");
+}
+
+function closeForecastModal() {
+  document.getElementById("forecast-modal").classList.remove("show");
+}
+
+async function showForecastForCard(button) {
+  const card = button?.closest(".forecast-card");
+  if (!card) return;
+  const cacheKey = forecastCacheKey(card);
+  if (!forecastCache[cacheKey]) await loadForecastForCard(card);
+  showForecastData(forecastCache[cacheKey]);
+}
+
+function setupPreciseForecastButtons() {
+  document.querySelectorAll(".forecast-pill,.energy-pill").forEach(button => {
+    button.onclick = () => showForecastForCard(button);
+  });
+}
+
+function showForecastData(data) {
+  if (!data) return;
+
+  const modal = document.getElementById("forecast-modal");
+  const body = document.getElementById("forecast-modal-body");
+
+  body.innerHTML =
+    '<div class="modal-title">' + data.name + '</div>' +
+    '<div class="modal-stars" aria-label="' + formatRatingLabel(ratingFromData(data)) + '">' + renderStars(ratingFromData(data)) + '</div>' +
+    '<div class="modal-row"><b>Energy / Nearshore</b><span>' + (data.energyKj ?? "--") + ' kJ / ' + (data.nearshoreEnergyKj ?? "--") + ' kJ</span></div>' +
+    '<div class="modal-row"><b>Water</b><span>' + fmt(data.waterTemperatureC, " °C") + '</span></div>' +
+    '<div class="modal-row"><b>Wave</b><span>' + formatDirection(data.wave, true) + fmt(data.wave?.heightM, " m") + ' @ ' + fmt(data.wave?.periodS, " s") + ' ' + formatCompassDirection(data.wave?.directionDeg) + '</span></div>' +
+    '<div class="modal-row"><b>Swell</b><span>' + formatDirection(data.swell, true) + fmt(data.swell?.heightM, " m") + ' @ ' + fmt(data.swell?.periodS, " s") + ' ' + formatCompassDirection(data.swell?.directionDeg) + '</span></div>' +
+    '<div class="modal-row"><b>Wind</b><span>' + formatDirection(data.wind, true) + fmt(data.wind?.speedMs, " m/s") + ' ' + formatCompassDirection(data.wind?.directionDeg) + '</span></div>' +
+    '<div class="modal-row"><b>Effect</b><span>' + (data.wind?.effect || "unknown") + '</span></div>' +
+    '<div class="modal-row tide-row"><div class="tide-heading"><b>Tide</b><span>' + formatTideCurrent(data.tide) + '</span></div><span>' + formatTideTimeline(data.tide) + '</span></div>' +
+    '<div class="modal-row"><b>Updated</b><span>' + formatUpdatedAgo(data) + '</span></div>';
+  modal.classList.add("show");
+}
+
+function fmt(value, suffix) {
+  return value == null ? "--" : value + suffix;
+}
+
+function normalizeRating(value) {
+  const rating = Number(value);
+  return Number.isFinite(rating) ? Math.max(0, Math.min(5, Math.round(rating * 2) / 2)) : 0;
+}
+
+function ratingFromData(data) {
+  if (Number.isFinite(Number(data?.rating))) return Number(data.rating);
+  return (data?.stars || "").split("★").length - 1;
+}
+
+function formatRatingLabel(value) {
+  return normalizeRating(value) + " out of 5 stars";
+}
+
+function renderStars(value) {
+  const rating = normalizeRating(value);
+  return Array.from({ length: 5 }, (_, index) => {
+    const remaining = rating - index;
+    if (remaining >= 1) return '<span class="rating-star full">★</span>';
+    if (remaining >= 0.5) return '<span class="rating-star half">☆</span>';
+    return '<span class="rating-star empty">☆</span>';
+  }).join("");
+}
+
+function formatDirection(item, followsFlow = false) {
+  const degrees = Number(item?.directionDeg);
+  if (!Number.isFinite(degrees)) return "";
+  const normalized = ((degrees % 360) + 360) % 360;
+  const arrowDegrees = followsFlow ? (normalized + 180) % 360 : normalized;
+  const compass = formatCompassDirection(normalized);
+  const source = compass ? "From " + compass + " · " : "";
+  const label = source + Math.round(normalized) + "°";
+  return '<span class="direction-icon" style="--direction:' + arrowDegrees + 'deg" title="' + label + '" aria-label="' + label + '">↑</span>';
+}
+
+function formatCompassDirection(degrees) {
+  const value = Number(degrees);
+  if (!Number.isFinite(value)) return "";
+  const points = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
+  const normalized = ((value % 360) + 360) % 360;
+  return points[Math.round(normalized / 22.5) % 16];
+}
+
+function formatUpdatedAgo(data) {
+  const timestamp = Number(data?.generatedAt) * 1000 || Date.parse(data?.updatedLocal || "");
+  if (!Number.isFinite(timestamp)) return "unknown";
+  const minutes = Math.max(0, Math.floor((Date.now() - timestamp) / 60000));
+  if (minutes < 1) return "just now";
+  return minutes + (minutes === 1 ? " minute ago" : " minutes ago");
+}
+
+function formatClock(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value).slice(0, 5);
+  return new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit" }).format(date);
+}
+
+function formatTideTimeline(tide) {
+  if (!tide) return "unknown";
+
+  const previous = tideExtremeDetails(tide.previousExtreme);
+  const next = tideExtremeDetails(tide.nextExtreme);
+
+  if (!previous || !next) {
+    return escapeHtml(formatTidePhase(tide));
+  }
+
+  return renderTideChart(tide, previous, next);
+}
+
+function formatTideCurrent(tide) {
+  if (!tide) return '<strong class="tide-current">--</strong>';
+  const trend = tideDirectionFromExtremes(tide) || String(tide.state || "").toLowerCase();
+  const trendMark = trend === "falling" ? "▼" : trend === "rising" ? "▲" : "•";
+  return '<strong class="tide-current">' + (formatTideHeight(tide.heightM) || "--") + '</strong>' +
+    '<i class="tide-trend ' + (trend === "falling" ? "falling" : "") + '">' + trendMark + '</i>';
+}
+
+function tideExtremeDetails(extreme) {
+  if (!extreme) return null;
+  const type = String(extreme.type || "").toLowerCase();
+  const height = Number(extreme.heightM ?? extreme.height);
+  const timeMs = Date.parse(extreme.time || "");
+  if (!Number.isFinite(height) || !Number.isFinite(timeMs)) return null;
+  return {
+    type,
+    label: type === "low" ? "Low" : type === "high" ? "High" : "Tide",
+    height,
+    time: formatClock(extreme.time),
+    timeMs
+  };
+}
+
+function renderTideChart(tide, previous, next) {
+  const width = 320;
+  const curveTop = 13;
+  const curveBottom = 79;
+  const axisY = 90;
+  const interval = next.timeMs - previous.timeMs;
+  const currentHeight = Number(tide.heightM);
+  if (!(interval > 0) || !Number.isFinite(currentHeight)) {
+    return escapeHtml(formatTidePhase(tide)) + ' · ' + formatTideHeight(tide.heightM);
+  }
+
+  const windowStart = previous.timeMs - interval * 0.35;
+  const windowEnd = next.timeMs + interval * 0.55;
+  const low = Math.min(previous.height, next.height);
+  const high = Math.max(previous.height, next.height);
+  const range = Math.max(0.1, high - low);
+  const midpoint = (low + high) / 2;
+  const amplitude = range / 2;
+  const previousIsHigh = previous.type === "high";
+  const xForTime = time => ((time - windowStart) / (windowEnd - windowStart)) * width;
+  const yForHeight = height => curveBottom - ((height - low) / range) * (curveBottom - curveTop);
+  const heightAt = time => {
+    const phase = Math.PI * ((time - previous.timeMs) / interval);
+    return midpoint + (previousIsHigh ? amplitude : -amplitude) * Math.cos(phase);
+  };
+
+  const points = Array.from({ length: 65 }, (_, index) => {
+    const time = windowStart + (windowEnd - windowStart) * index / 64;
+    return [xForTime(time), yForHeight(heightAt(time))];
+  });
+  const linePath = points.map((point, index) =>
+    (index ? "L" : "M") + graphNumber(point[0]) + " " + graphNumber(point[1])
+  ).join(" ");
+  const areaPath = linePath + " L " + width + " " + axisY + " L 0 " + axisY + " Z";
+  const currentX = Math.max(0, Math.min(width, xForTime(Date.now())));
+  const previousX = xForTime(previous.timeMs);
+  const nextX = xForTime(next.timeMs);
+  const highBadgeY = curveTop + 14;
+  const currentBadgeY = highBadgeY + 19;
+  const lowBadgeY = currentBadgeY + 19;
+  const ticks = renderTideTicks(windowStart, windowEnd, xForTime, axisY, [previousX, nextX]);
+  const currentValue = formatTideNumber(currentHeight);
+
+  return '<span class="tide-chart">' +
+    '<svg class="tide-chart-svg" viewBox="0 7 320 108" role="img" aria-label="Tide chart, current height ' + currentValue + ' metres">' +
+      '<path class="tide-area" d="' + areaPath + '"></path>' +
+      '<path class="tide-curve" d="' + linePath + '"></path>' +
+      renderTideExtremeMarker(previous, previousX, previous.type === "low" ? lowBadgeY : highBadgeY, curveTop, axisY) +
+      renderTideExtremeMarker(next, nextX, next.type === "low" ? lowBadgeY : highBadgeY, curveTop, axisY) +
+      renderTideCurrentMarker(currentValue, currentX, currentBadgeY, curveTop, axisY) +
+      ticks +
+    '</svg>' +
+  '</span>';
+}
+
+function renderTideExtremeMarker(extreme, x, badgeY, lineTop, axisY) {
+  const markerX = Math.max(18, Math.min(302, x));
+  const lineStart = extreme.type === "low" ? badgeY + 9 : lineTop;
+  return '<line class="tide-extreme-guide" x1="' + graphNumber(x) + '" x2="' + graphNumber(x) + '" y1="' + graphNumber(lineStart) + '" y2="' + axisY + '"></line>' +
+    '<circle class="tide-height-badge ' + (extreme.type === "low" ? "tide-height-badge-low" : "") + '" cx="' + graphNumber(markerX) + '" cy="' + graphNumber(badgeY) + '" r="9"></circle>' +
+    '<text class="tide-height-label" x="' + graphNumber(markerX) + '" y="' + graphNumber(badgeY + 3) + '" text-anchor="middle">' + formatTideNumber(extreme.height) + '</text>' +
+    '<text class="tide-extreme-time" x="' + graphNumber(markerX) + '" y="112" text-anchor="middle">' + extreme.time + '</text>';
+}
+
+function renderTideCurrentMarker(value, x, badgeY, lineTop, axisY) {
+  return '<line class="tide-now-line" x1="' + graphNumber(x) + '" x2="' + graphNumber(x) + '" y1="' + lineTop + '" y2="' + axisY + '"></line>' +
+    '<circle class="tide-height-badge tide-height-badge-now" cx="' + graphNumber(x) + '" cy="' + graphNumber(badgeY) + '" r="9"></circle>' +
+    '<text class="tide-height-label tide-height-label-now" x="' + graphNumber(x) + '" y="' + graphNumber(badgeY + 3) + '" text-anchor="middle">' + value + '</text>';
+}
+
+function renderTideTicks(start, end, xForTime, axisY, excludedXs = []) {
+  const step = 3 * 60 * 60 * 1000;
+  const first = Math.ceil(start / step) * step;
+  let html = "";
+  for (let time = first; time <= end; time += step) {
+    const x = xForTime(time);
+    if (excludedXs.some(markerX => Math.abs(x - markerX) < 34)) continue;
+    html += '<line class="tide-tick" x1="' + graphNumber(x) + '" x2="' + graphNumber(x) + '" y1="' + axisY + '" y2="97"></line>' +
+      '<text class="tide-tick-label" x="' + graphNumber(x) + '" y="112" text-anchor="middle">' + formatClock(time) + '</text>';
+  }
+  return html;
+}
+
+function graphNumber(value) {
+  return Math.round(value * 10) / 10;
+}
+
+function formatTideNumber(value) {
+  const height = Number(value);
+  return Number.isFinite(height) ? height.toFixed(2).replace(/0$/, "").replace(/\.0$/, "") : "--";
+}
+
+function formatTideHeight(value) {
+  const height = Number(value);
+  return Number.isFinite(height) ? height.toFixed(2).replace(/0$/, "").replace(/\.0$/, "") + " m" : "";
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, character => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  })[character]);
+}
+
+function formatTidePhase(tide) {
+  if (!tide) return "unknown";
+  const reportedPhase = String(tide.phase || tide.state || "").toLowerCase().replaceAll("_", "-");
+  const phase = tideDirectionFromExtremes(tide) || reportedPhase;
+  const labels = {
+    low: "Low",
+    "low-to-mid": "Low to mid",
+    "mid-to-high": "Mid to high",
+    high: "High",
+    "high-to-mid": "High to mid",
+    "mid-to-low": "Mid to low",
+    "low-rising": "Low →",
+    rising: null,
+    falling: null
+  };
+  const exactTime = phase === "low"
+    ? formatClock(tide.lowTime || tide.eventTime || tide.time)
+    : phase === "high"
+      ? formatClock(tide.highTime || tide.eventTime || tide.time)
+      : "";
+  if (labels[phase]) return labels[phase] + (exactTime ? " · " + exactTime : "");
+
+  const height = Number(tide.heightM);
+  if (!Number.isFinite(height)) return tide.state || "unknown";
+  const position = tidePosition(tide, height);
+
+  if (phase === "rising") {
+    if (position <= 0.08) return "Low";
+    if (position < 0.48) return "Low → Mid";
+    if (position <= 0.52) return "Mid";
+    if (position < 0.92) return "Mid → High";
+    return "High";
+  }
+
+  if (phase === "falling") {
+    if (position >= 0.92) return "High";
+    if (position > 0.52) return "High → Mid";
+    if (position >= 0.48) return "Mid";
+    if (position > 0.08) return "Mid → Low";
+    return "Low";
+  }
+
+  return tide.state || "unknown";
+}
+
+function tideDirectionFromExtremes(tide) {
+  const previousType = String(tide.previousExtreme?.type || "").toLowerCase();
+  const nextType = String(tide.nextExtreme?.type || "").toLowerCase();
+  if (previousType === "low" && nextType === "high") return "rising";
+  if (previousType === "high" && nextType === "low") return "falling";
+  return "";
+}
+
+function tidePosition(tide, height) {
+  const low = firstFinite(
+    extremeHeight(tide, "low"),
+    tide.lowHeightM,
+    tide.lowHeight,
+    tide.low?.heightM,
+    tide.low?.height,
+    tide.previousLow?.heightM,
+    tide.previousLow?.height,
+    tide.range?.lowM,
+    tide.range?.lowHeightM
+  );
+  const high = firstFinite(
+    extremeHeight(tide, "high"),
+    tide.highHeightM,
+    tide.highHeight,
+    tide.high?.heightM,
+    tide.high?.height,
+    tide.previousHigh?.heightM,
+    tide.previousHigh?.height,
+    tide.range?.highM,
+    tide.range?.highHeightM
+  );
+
+  if (Number.isFinite(low) && Number.isFinite(high) && high > low) {
+    return clamp01((height - low) / (high - low));
+  }
+
+  const suppliedPosition = Number(tide.normalizedHeight ?? tide.position);
+  if (Number.isFinite(suppliedPosition)) return clamp01(suppliedPosition);
+
+  return clamp01((height - 0.6) / (3.4 - 0.6));
+}
+
+function extremeHeight(tide, type) {
+  const extremes = [tide.previousExtreme, tide.nextExtreme];
+  const extreme = extremes.find(item =>
+    String(item?.type || "").toLowerCase() === type
+  );
+  return Number(extreme?.heightM ?? extreme?.height);
+}
+
+function firstFinite(...values) {
+  for (const value of values) {
+    const number = Number(value);
+    if (Number.isFinite(number)) return number;
+  }
+  return NaN;
+}
+
+function clamp01(value) {
+  return Math.max(0, Math.min(1, value));
+}
+
+function setupAnalytics() {
+  const measurementId = document.querySelector('meta[name="google-analytics-id"]')?.content?.trim();
+  if (!measurementId || !/^G-[A-Z0-9]+$/i.test(measurementId)) return;
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function() { window.dataLayer.push(arguments); };
+  window.gtag("js", new Date());
+  window.gtag("config", measurementId, { anonymize_ip: true });
+  const script = document.createElement("script");
+  script.async = true;
+  script.src = "https://www.googletagmanager.com/gtag/js?id=" + encodeURIComponent(measurementId);
+  document.head.appendChild(script);
+}
+
+function reloadAfterLongIdle() {
+  if (document.hidden || idleReloadStarted || !pageHiddenAt) return;
+  const idleSeconds = (Date.now() - pageHiddenAt) / 1000;
+  pageHiddenAt = null;
+  if (idleSeconds >= LONG_IDLE_SECONDS) {
+    idleReloadStarted = true;
+    window.location.reload();
+  } else if (idleSeconds >= 30) {
+    refreshStartedCams();
+  }
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) pageHiddenAt = Date.now();
+  else reloadAfterLongIdle();
+});
+window.addEventListener("focus", reloadAfterLongIdle);
+
+function setupSourceLinks() {
+  document.querySelectorAll(".source-link").forEach(link => {
+    const label = link.href.includes("beachcam.meo.pt") ? "Beachcam" : "Surftotal";
+    link.title = label;
+    link.setAttribute("aria-label", "Open " + label);
+  });
+}
+
+const MAP_COORDS = {
+  moledo:[41.850,-8.866], ancora:[41.813,-8.867], viana_castelo:[41.693,-8.846],
+  ofir:[41.512,-8.784], agucadoura:[41.431,-8.782], ferrari:[41.384,-8.774],
+  azurara:[41.342,-8.749], arvore:[41.329,-8.741], mindelo:[41.307,-8.738],
+  mindelo_meia_laranja:[41.305,-8.738], pedras:[41.270,-8.728], cabo:[41.233,-8.722],
+  leca_aterro:[41.217,-8.714], leca:[41.195,-8.708], matosinhos:[41.175,-8.692],
+  vagas:[41.173,-8.691], cabedelo:[41.140,-8.673], espinho:[41.007,-8.646],
+  espinho_aerea:[41.006,-8.646], silvalde:[40.987,-8.650], cortegaca_vila:[40.940,-8.656],
+  barra_norte:[40.642,-8.748], mira:[40.455,-8.802], figueira_cabedelo:[40.143,-8.866]
+};
+
+const CAMERA_MAP_COORDS = {
+  moledo:[41.851013,-8.866445],
+  ancora:[41.813264,-8.865076], bc_ancora:[41.813264,-8.865076],
+  viana_castelo:[41.676794,-8.829215], bc_viana_cabedelo:[41.676794,-8.829215],
+  bc_esposende:[41.547342,-8.792262], bc_esposende_foz:[41.533834,-8.782639],
+  ofir:[41.518473,-8.787816], bc_ofir:[41.518473,-8.787816], bc_apulia:[41.485108,-8.765486],
+  agucadoura:[41.428691,-8.782981], ferrari:[41.384,-8.774],
+  bc_caxinas:[41.36301,-8.757554], azurara:[41.339649,-8.744169], arvore:[41.329,-8.741],
+  mindelo:[41.307,-8.738], mindelo_meia_laranja:[41.310177,-8.739669],
+  pedras:[41.249024,-8.72527], cabo:[41.218943,-8.715248],
+  leca_aterro:[41.210791,-8.715285], bc_leca_aterro:[41.210791,-8.715285],
+  leca:[41.189583,-8.705884], bc_leca:[41.189583,-8.705884],
+  matosinhos:[41.17654,-8.692741], bc_matosinhos:[41.17654,-8.692741], vagas:[41.173,-8.691],
+  bc_homem_do_leme:[41.160153,-8.685651], bc_carneiro:[41.14831,-8.675676],
+  cabedelo:[41.14,-8.673], canide:[41.112614,-8.663351],
+  espinho:[41.007032,-8.646093], espinho_aerea:[41.007032,-8.646093], bc_espinho:[41.007032,-8.646093],
+  silvalde:[40.99767,-8.646644], bc_silvalde:[40.99767,-8.646644],
+  bc_esmoriz:[40.955999,-8.651872], cortegaca_vila:[40.935478,-8.659365], bc_furadouro:[40.875153,-8.676797],
+  bc_torreira:[40.737101,-8.722407], bc_sao_jacinto:[40.676259,-8.74517],
+  barra_norte:[40.642,-8.748], bc_barra:[40.636117,-8.748775], bc_costa_nova:[40.620073,-8.752624],
+  mira:[40.455642,-8.802621], bc_mira:[40.455642,-8.802621], bc_tocha:[40.329393,-8.841991],
+  bc_murtinheira:[40.209177,-8.897205], bc_figueira_buarcos:[40.160407,-8.869425],
+  bc_figueira_panoramica:[40.153,-8.869],
+  figueira_cabedelo:[40.135956,-8.86271], bc_figueira_cabedelo:[40.135956,-8.86271]
+};
+
+function setupMapLinks() {
+  document.querySelectorAll(".forecast-card").forEach(card => {
+    const coords = CAMERA_MAP_COORDS[card.dataset.key] || MAP_COORDS[card.dataset.forecastKey || card.dataset.key];
+    const heading = card.querySelector("h2") || card.querySelector(".offline-name");
+    if (!coords || !heading || heading.querySelector(".map-title-link")) return;
+    const link = document.createElement("button");
+    link.type = "button";
+    link.className = "map-title-link";
+    link.textContent = card.dataset.name || heading.textContent.trim();
+    link.title = "Open camera location in maps";
+    link.setAttribute("aria-label", link.textContent + ": open location in maps");
+    heading.childNodes.forEach(node => { if (node.nodeType === Node.TEXT_NODE) node.remove(); });
+    heading.prepend(link);
+    link.addEventListener("click", event => openMapMenu(event, link.textContent, coords));
+  });
+}
+
+function openMapMenu(event, name, coords) {
+  event.stopPropagation();
+  document.querySelector(".map-menu")?.remove();
+  const [lat, lon] = coords;
+  const point = lat + "," + lon;
+  const providers = [
+    ["Google Maps", "https://www.google.com/maps/search/?api=1&query=" + point],
+    ["Apple Maps", "https://maps.apple.com/?q=" + encodeURIComponent(name) + "&ll=" + point],
+    ["OpenStreetMap", "https://www.openstreetmap.org/?mlat=" + lat + "&mlon=" + lon + "#map=16/" + lat + "/" + lon],
+    ["Waze", "https://www.waze.com/ul?ll=" + point + "&navigate=yes"]
+  ];
+  const menu = document.createElement("div");
+  menu.className = "map-menu";
+  menu.innerHTML = '<div class="map-menu-name"></div><div class="map-menu-coords"></div>';
+  menu.querySelector(".map-menu-name").textContent = name;
+  menu.querySelector(".map-menu-coords").textContent = point;
+  providers.forEach(([label, href]) => {
+    const item = document.createElement("a");
+    item.href = href;
+    item.target = "_blank";
+    item.rel = "noopener noreferrer";
+    item.textContent = label;
+    menu.appendChild(item);
+  });
+  document.body.appendChild(menu);
+  const rect = event.currentTarget.getBoundingClientRect();
+  menu.style.left = Math.min(rect.left, window.innerWidth - menu.offsetWidth - 8) + "px";
+  menu.style.top = Math.min(rect.bottom + 6, window.innerHeight - menu.offsetHeight - 8) + "px";
+  setTimeout(() => document.addEventListener("click", () => menu.remove(), { once:true }), 0);
+}
+
+window.addEventListener("load", () => {
+  setupAnalytics();
+  setupFavorites();
+  setupPreciseForecastButtons();
+  setupMapLinks();
+  setupSourceLinks();
+  updateDashboardStats();
+  setupLazyCams();
+  loadAllForecasts();
+  setInterval(refreshStartedCams, AUTO_REFRESH_SECONDS * 1000);
+  setInterval(loadAllForecasts, 60 * 60 * 1000);
+});
+</script>
+
+<style>
+body { margin:0; font-family:ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background:#111; color:#eee; }
+
+.header-bar {
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:4px;
+  padding:10px 12px;
+  background:#1b1b1b;
+  position:sticky;
+  top:0;
+  z-index:10;
+}
+
+.header-line {
+  color:#ddd;
+  font-size:14px;
+  white-space:nowrap;
+  overflow-x:auto;
+}
+
+.refresh-all-icon {
+  width:20px;
+  height:20px;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:#8ecbff;
+  font-size:18px;
+  cursor:pointer;
+}
+
+.grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; padding:8px; }
+.cam { background:#222; border-radius:10px; overflow:hidden; }
+.cam h2 { margin:0; padding:8px 10px; font-size:14px; line-height:1.2; }
+.map-title-link { min-width:0; overflow:hidden; padding:0; border:0; background:transparent; color:inherit; font:inherit; font-weight:inherit; text-align:left; text-overflow:ellipsis; white-space:nowrap; cursor:pointer; text-decoration:underline; text-decoration-color:transparent; text-underline-offset:3px; transition:color .15s,text-decoration-color .15s; }
+.map-title-link:hover,.map-title-link:focus-visible { color:#8ecbff; text-decoration-color:currentColor; outline:none; }
+.map-title-link::after { content:" ↗"; font-size:.8em; opacity:.65; }
+.map-menu { position:fixed; z-index:1200; display:grid; min-width:190px; padding:8px; border:1px solid #3b4946; border-radius:9px; background:#18201f; box-shadow:0 12px 32px rgba(0,0,0,.45); color:#eee; font-size:12px; }
+.map-menu-name { padding:4px 7px 1px; font-weight:700; }
+.map-menu-coords { padding:0 7px 6px; color:#93a5a1; font-size:10px; font-variant-numeric:tabular-nums; }
+.map-menu a { padding:7px; border-radius:5px; color:#8ecbff; text-decoration:none; }
+.map-menu a:hover,.map-menu a:focus-visible { background:rgba(142,203,255,.1); outline:none; }
+video { width:100%; background:#000; display:block; min-height:120px; }
+
+.cam-footer {
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:4px;
+  padding:7px 8px;
+  font-size:11px;
+  white-space:nowrap;
+  overflow-x:auto;
+}
+
+.sep { color:#666; flex-shrink:0; }
+.token-info { color:#ddd; flex-shrink:0; }
+.wind-pill { color:#ddd; flex-shrink:0; }
+.forecast-pill,
+.energy-pill {
+  padding:0;
+  margin:0;
+  border:0;
+  background:transparent;
+  color:#ffd36a;
+  font:inherit;
+  cursor:pointer;
+  flex-shrink:0;
+}
+.energy-pill { color:#ddd; }
+
+.refresh-icon {
+  width:14px;
+  height:14px;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:#8ecbff;
+  font-size:13px;
+  cursor:pointer;
+  flex-shrink:0;
+}
+.forecast-modal {
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.72);
+  z-index:999;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+
+.forecast-modal.show {
+  display:flex;
+}
+
+.forecast-modal-content {
+  position:relative;
+  width:min(360px, 92vw);
+  background:#1f1f1f;
+  border-radius:14px;
+  padding:18px;
+  color:#eee;
+  box-shadow:0 10px 35px rgba(0,0,0,0.5);
+}
+
+.modal-close {
+  position:absolute;
+  top:8px;
+  right:10px;
+  background:transparent;
+  color:#aaa;
+  border:0;
+  font-size:24px;
+  cursor:pointer;
+}
+
+.modal-title {
+  font-size:18px;
+  font-weight:bold;
+  margin-bottom:6px;
+}
+
+.modal-stars {
+  color:#ffd36a;
+  font-size:20px;
+  margin-bottom:14px;
+}
+
+.modal-row {
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  padding:7px 0;
+  border-top:1px solid #333;
+  font-size:13px;
+}
+
+.modal-row span {
+  text-align:right;
+  color:#ddd;
+}
+
+.tide-row { align-items:flex-start; flex-direction:column; gap:0; }
+.tide-heading { display:flex; align-items:center; justify-content:space-between; width:100%; }
+.tide-heading > span { display:flex; align-items:center; gap:5px; color:#ddd; }
+.tide-row > span { width:100%; text-align:left; }
+.tide-chart { display:block; overflow:hidden; font-variant-numeric:tabular-nums; }
+.tide-current { color:#ddd; font-size:13px; font-weight:400; letter-spacing:0; }
+.tide-trend { color:#78e2bc; font-size:9px; font-style:normal; line-height:1; }
+.tide-trend.falling { color:#8ecbff; }
+.tide-chart-svg { display:block; width:100%; height:auto; margin-top:-2px; overflow:visible; }
+.tide-area { fill:rgba(126,183,207,.18); }
+.tide-curve { fill:none; stroke:#d9e3e0; stroke-width:2; vector-effect:non-scaling-stroke; }
+.tide-now-line { stroke:#78e2bc; stroke-width:1.25; vector-effect:non-scaling-stroke; }
+.tide-extreme-guide { stroke:#7f918c; stroke-width:1; stroke-dasharray:4 3 1 3; vector-effect:non-scaling-stroke; }
+.tide-height-badge { fill:#132522; stroke:#879792; stroke-width:1; vector-effect:non-scaling-stroke; }
+.tide-height-badge-low { fill:rgba(126,183,207,.38); stroke:#8eb4c4; }
+.tide-height-badge-now { stroke:#78e2bc; }
+.tide-height-label { fill:#d9e3e0; font-size:6.5px; font-weight:400; }
+.tide-height-label-now { fill:#8aebc9; }
+.tide-extreme-time { fill:#82918d; font-size:9px; font-weight:500; letter-spacing:0; }
+.tide-tick { stroke:#60716d; stroke-width:1; vector-effect:non-scaling-stroke; }
+.tide-tick-label { fill:#82918d; font-size:9px; }
+@media (max-width:700px) {
+  .forecast-modal { padding:10px; }
+  .forecast-modal-content { box-sizing:border-box; width:min(360px, calc(100vw - 20px)); }
+}
+
+.source-link {
+  color:#8ecbff;
+  text-decoration:none;
+  flex-shrink:0;
+}
+
+a { color:#8ecbff; }
+.bad { padding:12px; color:#ffb3b3; }
+
+.camera-section,.offline-section { max-width:1400px; margin:0 auto; padding:0 clamp(16px,3vw,40px); }
+.camera-section { padding-top:18px; }
+.offline-section { padding-bottom:22px; }
+.camera-heading,.offline-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:0 0 8px; color:var(--muted); font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+.camera-count,.offline-count { color:#60716d; font-weight:600; letter-spacing:0; text-transform:none; }
+.offline-list { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; padding:0; }
+.offline-item {
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  gap:8px;
+  min-width:0;
+  padding:10px;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:8px;
+  color:var(--muted);
+  font-size:11px;
+}
+.offline-item.is-pumping { border-color:rgba(132,224,198,.3); }
+.offline-main {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+}
+.offline-main:before {
+  content:"";
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:#5d6a67;
+  flex:0 0 auto;
+}
+.offline-name {
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.offline-item .source-link {
+  position:absolute;
+  right:10px;
+  bottom:11px;
+  font-size:10px;
+}
+.offline-stats {
+  display:flex;
+  align-items:center;
+  gap:6px;
+  min-width:0;
+  padding-right:64px;
+}
+.offline-stats .forecast-pill,
+.offline-stats .energy-pill,
+.offline-stats .wind-pill {
+  font-size:10px;
+}
+
+.footer-credit {
+  padding:12px 18px 30px;
+  font-size:12px;
+  color:#999;
+  text-align:center;
+}
+.footer-credit p { margin:6px 0; }
+.coffee-link { display:inline-flex; align-items:center; margin-top:10px; padding:9px 13px; border:1px solid rgba(132,224,198,.35); border-radius:10px; color:#08211d; background:var(--mint); font-weight:750; text-decoration:none; }
+
+@media (max-width:600px) {
+  .header-line { font-size:11px; }
+  .refresh-all-icon { width:18px; height:18px; font-size:15px; }
+
+  .grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; padding:6px; }
+  .cam h2 { font-size:11px; padding:6px 7px; }
+  .cam-footer { font-size:9px; gap:3px; padding:6px 5px; }
+  .refresh-icon { width:12px; height:12px; font-size:11px; }
+  .source-link { font-size:9px; }
+  video { min-height:90px; }
+}
+
+/* 2026 dashboard refresh */
+:root { color-scheme:dark; --font-ui:ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; --ink:#edf3f2; --muted:#8b9b98; --panel:#101f1d; --line:rgba(210,235,230,.1); --mint:#8ad7c2; --sun:#eec36b; }
+* { box-sizing:border-box; }
+body { min-height:100vh; font-family:var(--font-ui); background:#0a1513; color:var(--ink); }
+body:before { display:none; }
+.header-bar { height:58px; padding:0 clamp(16px,3vw,40px); justify-content:flex-start; gap:20px; background:#0a1513; border-bottom:1px solid var(--line); }
+.brand { display:flex; align-items:center; gap:9px; font-size:14px; font-weight:700; }
+.brand-mark { display:block; width:24px; height:24px; border-radius:6px; flex:0 0 auto; object-fit:contain; }
+.header-search { flex:1; max-width:300px; margin-left:8px; }
+.header-filters { display:flex; align-items:center; gap:6px; }
+.header-actions { display:flex; align-items:center; gap:16px; margin-left:auto; min-width:0; }
+.live-status { display:flex; align-items:center; gap:4px; color:var(--muted); font-size:12px; white-space:nowrap; }
+.live-status:before { content:""; width:7px; height:7px; border-radius:50%; background:#5ce09b; box-shadow:0 0 0 5px rgba(92,224,155,.1); }
+.refresh-all-icon { display:inline-grid; place-items:center; width:14px; height:14px; padding:0; border:0; background:transparent; color:var(--mint); font-size:13px; line-height:1; cursor:pointer; transition:opacity .2s; }
+.refresh-all-icon:hover { opacity:.72; }
+.search-wrap { position:relative; width:100%; }
+.search-wrap span { position:absolute; left:11px; top:8px; color:var(--muted); }
+#cam-search { width:100%; height:34px; padding:0 12px 0 32px; border:1px solid var(--line); border-radius:6px; outline:none; background:var(--panel); color:var(--ink); font:12px var(--font-ui); }
+#cam-search:focus { border-color:var(--mint); box-shadow:0 0 0 3px rgba(132,224,198,.09); }
+.filter-chip { height:34px; padding:0 12px; border:1px solid var(--line); border-radius:6px; background:transparent; color:var(--muted); cursor:pointer; font:12px var(--font-ui); }
+.filter-chip.active { border-color:var(--mint); background:var(--mint); color:#08211d; font-weight:700; }
+.grid { max-width:1440px; margin:0 auto; padding:0 clamp(16px,3vw,40px) 40px; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+.cam { position:relative; background:var(--panel); border:1px solid var(--line); border-radius:8px; transition:background .2s, border-color .2s, box-shadow .2s; }
+.cam:hover { border-color:rgba(132,224,198,.3); }
+.cam.is-favorite { background:#13221f; border-color:rgba(132,224,198,.16); box-shadow:inset 0 1px 0 rgba(238,195,107,.04); }
+body[data-camera-filter="all"] .cam.is-favorite { background:#152520; border-color:rgba(132,224,198,.22); box-shadow:inset 0 1px 0 rgba(238,195,107,.06); }
+.cam.is-favorite:hover { border-color:rgba(132,224,198,.34); box-shadow:inset 0 1px 0 rgba(238,195,107,.08); }
+.cam.is-pumping:before { content:"GOOD NOW"; position:absolute; top:42px; right:8px; z-index:2; padding:5px 7px; border-radius:7px; background:var(--mint); color:#06201b; font-size:9px; font-weight:900; letter-spacing:.08em; }
+.cam h2 { display:flex; align-items:center; gap:8px; padding:8px 10px; font-size:12px; font-weight:600; letter-spacing:0; }
+.favorite-toggle { display:grid; place-items:center; width:24px; height:24px; margin:-4px -4px -4px auto; padding:0; border:0; background:transparent; color:var(--muted); font-size:18px; line-height:1; cursor:pointer; }
+.favorite-toggle:hover,.favorite-toggle.active { color:var(--sun); }
+video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
+.cam-footer { gap:7px; padding:8px 10px; color:var(--muted); font-size:10px; }
+.sep { display:none; }
+.token-info { display:none; }
+.forecast-pill,.energy-pill,.wind-pill { padding:4px 5px; border-radius:4px; background:rgba(255,255,255,.035); }
+.forecast-pill { color:var(--sun); }
+.rating-star { position:relative; display:inline-block; width:.95em; }
+.rating-star.empty,.rating-star.half { color:#64706e; }
+.rating-star.half:before { content:"★"; position:absolute; inset:0 auto 0 0; width:50%; overflow:hidden; color:var(--sun); }
+.energy-pill,.wind-pill,.token-info { color:#c5d7d4; }
+.source-link { margin-left:auto; color:var(--mint); }
+.refresh-icon { color:var(--mint); }
+.forecast-modal { backdrop-filter:blur(8px); }
+.forecast-modal-content { width:min(420px,92vw); padding:24px; border:1px solid var(--line); background:#102421; border-radius:20px; }
+.modal-row { padding:11px 0; border-color:var(--line); }
+.direction-icon { display:inline-grid; place-items:center; width:22px; height:22px; margin-right:7px; border:1px solid var(--line); border-radius:50%; color:var(--mint); font-size:13px; line-height:1; transform:rotate(var(--direction)); vertical-align:middle; }
+.footer-credit { max-width:1400px; margin:0 auto; }
+#empty-state { margin:10px auto 50px; color:var(--muted); text-align:center; }
+[hidden] { display:none !important; }
+@media (max-width:980px) { .grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:980px) { .offline-list { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:700px) { .header-bar { display:grid; grid-template-columns:minmax(0,1fr) auto; height:auto; min-height:52px; padding:8px 10px; gap:8px 10px; } .brand { min-width:0; } .brand-mark { width:22px; height:22px; border-radius:5px; } .header-actions { grid-column:2; grid-row:1; justify-self:end; gap:8px; width:max-content; margin-left:0; } .live-status { font-size:11px; } .live-status:before { width:6px; height:6px; box-shadow:none; } .refresh-all-icon { width:14px; height:14px; font-size:13px; } .header-search { grid-column:1; grid-row:2; width:100%; max-width:none; margin-left:0; } .header-filters { grid-column:2; grid-row:2; justify-self:end; gap:3px; } .filter-chip { height:34px; padding:0 5px; font-size:10px; } .camera-section { padding:12px 10px 0; } .grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; padding:0 10px 28px; } .cam h2 { min-width:0; padding:7px 8px; font-size:10px; } .cam h2 > span:not(.favorite-toggle) { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } .cam-footer { gap:3px; padding:6px 5px; font-size:8px; overflow-x:auto; } .forecast-pill,.energy-pill,.nearshore-energy-pill,.wind-pill { padding:3px; } .source-link { margin-left:auto; } video { min-height:0; } .offline-section { padding:0 10px 18px; } .offline-list { grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; } .camera-heading,.offline-heading { margin-bottom:7px; } .offline-item { gap:6px; padding:7px; } .offline-stats { flex-wrap:nowrap; gap:3px; padding-right:58px; } .offline-item .source-link { right:7px; bottom:10px; margin-left:0; font-size:9px; } }
+</style>
+</head>
+<body>
+
+<header class="header-bar">
+  <div class="brand">
+    <img class="brand-mark" src="favicon.svg?v=20260628" alt="" aria-hidden="true">
+    <span>Norte Surf Cams</span>
+  </div>
+  <div class="header-search">
+    <label class="search-wrap"><span>⌕</span><input id="cam-search" type="search" placeholder="Find a spot…" aria-label="Find a surf spot" oninput="filterCams()"></label>
+  </div>
+  <div class="header-filters">
+    <button class="filter-chip active" data-filter="all" onclick="setFilter(this)">All cameras</button>
+    <button class="filter-chip" data-filter="favorites" onclick="setFilter(this)">Favorites</button>
+    <button class="filter-chip" data-filter="best" onclick="setFilter(this)">Best now</button>
+  </div>
+  <div class="header-actions">
+    <span class="live-status"><span id="live-status-count">31</span>/<span id="total-camera-count">37</span> online</span>
+    <button class="refresh-icon refresh-all-icon" onclick="refreshAll()" title="Refresh all cameras">↻</button>
+  </div>
+</header>
+
+<section class="camera-section" aria-labelledby="camera-section-title">
+  <div class="camera-heading" id="camera-section-title">
+    <span id="camera-section-title-text">Online cameras</span>
+    <span class="camera-count" id="camera-section-count">31 online</span>
+  </div>
+</section>
+
+<p id="empty-state" hidden>No spots found. Try another search.</p>
+<div class="grid">
+<!-- ONLINE_CAMS_START -->
+
+<div class="cam forecast-card" data-name="Moledo HD" data-key="moledo" data-forecast-key="moledo">
+  <h2>Moledo HD</h2>
+  <video id="video0" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('moledo')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('moledo')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video0')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://surftotal.com/camaras-report/minho/moledo" target="_blank">Surftotal</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Vila Praia de Âncora HD" data-key="ancora" data-forecast-key="ancora">
+  <h2>Vila Praia de Âncora HD</h2>
+  <video id="video1" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('ancora')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('ancora')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video1')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://surftotal.com/camaras-report/minho/vila-praia-ancora" target="_blank">Surftotal</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Vila Praia de Âncora | Beachcam" data-key="bc_ancora" data-forecast-key="ancora" data-direct-stream="https://video-auth1.iol.pt/beachcam/bcvilapraiadeancora/playlist.m3u8">
+  <h2>Vila Praia de Âncora | Beachcam</h2>
+  <video id="video2" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('ancora')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('ancora')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video2')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/vila-praia-de-ancora/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Viana do Castelo HD" data-key="viana_castelo" data-forecast-key="viana_castelo">
+  <h2>Viana do Castelo HD</h2>
+  <video id="video3" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('viana_castelo')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('viana_castelo')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video3')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://surftotal.com/camaras-report/minho/viana-do-castelo-hd" target="_blank">Surftotal</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Viana do Castelo | Cabedelo" data-key="bc_viana_cabedelo" data-forecast-key="viana_castelo" data-direct-stream="https://video-auth1.iol.pt/beachcam/bccabedeloviana/playlist.m3u8">
+  <h2>Viana do Castelo | Cabedelo</h2>
+  <video id="video4" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('viana_castelo')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('viana_castelo')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video4')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/viana-do-castelo-cabedelo/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Esposende" data-key="bc_esposende" data-forecast-key="ofir" data-direct-stream="https://video-auth1.iol.pt/beachcam/bcesposende/playlist.m3u8">
+  <h2>Esposende</h2>
+  <video id="video5" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('ofir')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('ofir')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video5')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/esposende/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Esposende | Foz do Cávado" data-key="bc_esposende_foz" data-forecast-key="ofir" data-direct-stream="https://video-auth1.iol.pt/beachcam/bcfarolesposende/playlist.m3u8">
+  <h2>Esposende | Foz do Cávado</h2>
+  <video id="video6" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('ofir')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('ofir')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video6')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/esposende-foz-do-cavado/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Ofir | Beachcam" data-key="bc_ofir" data-forecast-key="ofir" data-direct-stream="https://video-auth1.iol.pt/beachcam/bcofir/playlist.m3u8">
+  <h2>Ofir | Beachcam</h2>
+  <video id="video7" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('ofir')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('ofir')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video7')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/ofir/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Ofir" data-key="ofir" data-forecast-key="ofir">
+  <h2>Ofir</h2>
+  <video id="video8" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('ofir')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('ofir')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video8')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://surftotal.com/camaras-report/minho/ofir" target="_blank">Surftotal</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Apúlia" data-key="bc_apulia" data-forecast-key="ofir" data-direct-stream="https://video-auth1.iol.pt/beachcam/bcapulia/playlist.m3u8">
+  <h2>Apúlia</h2>
+  <video id="video9" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('ofir')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('ofir')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video9')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/apulia/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Aguçadoura HD" data-key="agucadoura" data-forecast-key="agucadoura">
+  <h2>Aguçadoura HD</h2>
+  <video id="video10" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('agucadoura')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('agucadoura')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video10')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/agucadoura" target="_blank">Surftotal</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Póvoa de Varzim - Ferrari HD" data-key="ferrari" data-forecast-key="ferrari">
+  <h2>Póvoa de Varzim - Ferrari HD</h2>
+  <video id="video11" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('ferrari')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('ferrari')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video11')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/povoa-de-varzim-ferrari" target="_blank">Surftotal</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Vila do Conde | Caxinas" data-key="bc_caxinas" data-forecast-key="azurara" data-direct-stream="https://video-auth1.iol.pt/beachcam/bccaxinas/playlist.m3u8">
+  <h2>Vila do Conde | Caxinas</h2>
+  <video id="video12" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('azurara')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('azurara')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video12')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/caxinas-macaco-17/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Azurara HD" data-key="azurara" data-forecast-key="azurara">
+  <h2>Azurara HD</h2>
+  <video id="video13" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('azurara')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('azurara')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video13')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/azurara" target="_blank">Surftotal</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Mindelo" data-key="mindelo" data-forecast-key="mindelo">
+  <h2>Mindelo</h2>
+  <video id="video14" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('mindelo')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('mindelo')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video14')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo" target="_blank">Surftotal</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Mindelo meia laranja HD" data-key="mindelo_meia_laranja" data-forecast-key="mindelo_meia_laranja">
+  <h2>Mindelo meia laranja HD</h2>
+  <video id="video15" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('mindelo_meia_laranja')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('mindelo_meia_laranja')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video15')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo-meia-laranja" target="_blank">Surftotal</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Cabo do Mundo HD" data-key="cabo" data-forecast-key="cabo">
+  <h2>Cabo do Mundo HD</h2>
+  <video id="video16" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('cabo')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('cabo')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video16')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabo-do-mundo-hd" target="_blank">Surftotal</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Leça da Palmeira | Panorâmica Aterro" data-key="bc_leca_aterro" data-forecast-key="leca_aterro" data-direct-stream="https://video-auth1.iol.pt/beachcam/bcfarolleca/playlist.m3u8">
+  <h2>Leça da Palmeira | Panorâmica Aterro</h2>
+  <video id="video17" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('leca_aterro')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('leca_aterro')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video17')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/leca-da-palmeira-panoraminca-aterro/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Leça da Palmeira HD" data-key="leca" data-forecast-key="leca">
+  <h2>Leça da Palmeira HD</h2>
+  <video id="video18" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('leca')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('leca')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video18')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-da-palmeira" target="_blank">Surftotal</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Leça da Palmeira | Beachcam" data-key="bc_leca" data-forecast-key="leca" data-direct-stream="https://video-auth1.iol.pt/beachcam/lecadapalmeira/playlist.m3u8">
+  <h2>Leça da Palmeira | Beachcam</h2>
+  <video id="video19" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('leca')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('leca')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video19')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/leca-da-palmeira/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Matosinhos | Beachcam" data-key="bc_matosinhos" data-forecast-key="matosinhos" data-direct-stream="https://video-auth1.iol.pt/beachcam/matosinhos/playlist.m3u8">
+  <h2>Matosinhos | Beachcam</h2>
+  <video id="video20" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('matosinhos')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('matosinhos')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video20')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/praia-de-matosinhos/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Matosinhos HD" data-key="matosinhos" data-forecast-key="matosinhos">
+  <h2>Matosinhos HD</h2>
+  <video id="video21" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('matosinhos')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('matosinhos')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video21')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-hd" target="_blank">Surftotal</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Matosinhos - Vagas Bar HD" data-key="vagas" data-forecast-key="vagas">
+  <h2>Matosinhos - Vagas Bar HD</h2>
+  <video id="video22" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('vagas')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('vagas')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video22')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-vagas-bar" target="_blank">Surftotal</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Porto | Homem do Leme" data-key="bc_homem_do_leme" data-forecast-key="matosinhos" data-direct-stream="https://video-auth1.iol.pt/beachcam/bchomemdoleme/playlist.m3u8">
+  <h2>Porto | Homem do Leme</h2>
+  <video id="video23" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('matosinhos')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('matosinhos')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video23')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/porto-homem-do-leme/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Porto | Carneiro" data-key="bc_carneiro" data-forecast-key="matosinhos" data-direct-stream="https://video-auth1.iol.pt/beachcam/bccarneiro/playlist.m3u8">
+  <h2>Porto | Carneiro</h2>
+  <video id="video24" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('matosinhos')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('matosinhos')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video24')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/porto-carneiro/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Praia Canide Norte/Sul" data-key="canide" data-forecast-key="cabedelo" data-direct-stream="https://video-auth1.iol.pt/beachcam/bccanidelo/playlist.m3u8">
+  <h2>Praia Canide Norte/Sul</h2>
+  <video id="video25" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('cabedelo')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('cabedelo')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video25')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/praia-canide-norte-sul/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Espinho | Panorâmica" data-key="bc_espinho" data-forecast-key="espinho" data-direct-stream="https://video-auth1.iol.pt/beachcam/espinho/playlist.m3u8">
+  <h2>Espinho | Panorâmica</h2>
+  <video id="video26" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('espinho')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('espinho')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video26')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/praia-de-espinho/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Espinho HD" data-key="espinho" data-forecast-key="espinho">
+  <h2>Espinho HD</h2>
+  <video id="video27" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('espinho')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('espinho')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video27')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-hd" target="_blank">Surftotal</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Espinho vista aérea HD" data-key="espinho_aerea" data-forecast-key="espinho_aerea">
+  <h2>Espinho vista aérea HD</h2>
+  <video id="video28" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('espinho_aerea')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('espinho_aerea')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video28')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-vista-aerea" target="_blank">Surftotal</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Espinho | Silvalde Beachcam" data-key="bc_silvalde" data-forecast-key="silvalde" data-direct-stream="https://video-auth1.iol.pt/beachcam/bcsilvade/playlist.m3u8">
+  <h2>Espinho | Silvalde Beachcam</h2>
+  <video id="video29" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('silvalde')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('silvalde')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video29')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/espinho-silvalde/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Espinho - Silvalde HD" data-key="silvalde" data-forecast-key="silvalde">
+  <h2>Espinho - Silvalde HD</h2>
+  <video id="video30" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('silvalde')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('silvalde')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video30')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-silvalde" target="_blank">Surftotal</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Esmoriz" data-key="bc_esmoriz" data-forecast-key="silvalde" data-direct-stream="https://video-auth1.iol.pt/beachcam/esmoriz/playlist.m3u8">
+  <h2>Esmoriz</h2>
+  <video id="video31" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('silvalde')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('silvalde')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video31')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/esmoriz/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Cortegaça (Vila do Surf) HD" data-key="cortegaca_vila" data-forecast-key="cortegaca_vila">
+  <h2>Cortegaça (Vila do Surf) HD</h2>
+  <video id="video32" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('cortegaca_vila')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('cortegaca_vila')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video32')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://surftotal.com/camaras-report/aveiro/cortegaca-hd" target="_blank">Surftotal</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Furadouro" data-key="bc_furadouro" data-forecast-key="cortegaca_vila" data-direct-stream="https://video-auth1.iol.pt/beachcam/furadouro/playlist.m3u8">
+  <h2>Furadouro</h2>
+  <video id="video33" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('cortegaca_vila')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('cortegaca_vila')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video33')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/furadouro/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Praia da Torreira" data-key="bc_torreira" data-forecast-key="barra_norte" data-direct-stream="https://video-auth1.iol.pt/beachcam/torreira/playlist.m3u8">
+  <h2>Praia da Torreira</h2>
+  <video id="video34" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('barra_norte')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('barra_norte')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video34')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/praia-da-torreira/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Praia de São Jacinto | Barra" data-key="bc_sao_jacinto" data-forecast-key="barra_norte" data-direct-stream="https://video-auth1.iol.pt/beachcam/bcfarolbarra/playlist.m3u8">
+  <h2>Praia de São Jacinto | Barra</h2>
+  <video id="video35" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('barra_norte')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('barra_norte')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video35')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/praia-de-sao-jacinto-barra/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Praia da Barra | Beachcam" data-key="bc_barra" data-forecast-key="barra_norte" data-direct-stream="https://video-auth1.iol.pt/beachcam/aveiro/playlist.m3u8">
+  <h2>Praia da Barra | Beachcam</h2>
+  <video id="video36" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('barra_norte')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('barra_norte')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video36')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/praia-da-barra/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Costa Nova" data-key="bc_costa_nova" data-forecast-key="barra_norte" data-direct-stream="https://video-auth1.iol.pt/beachcam/costanova/playlist.m3u8">
+  <h2>Costa Nova</h2>
+  <video id="video37" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('barra_norte')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('barra_norte')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video37')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/costa-nova/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Praia de Mira | Beachcam" data-key="bc_mira" data-forecast-key="mira" data-direct-stream="https://video-auth1.iol.pt/beachcam/bcmira/playlist.m3u8">
+  <h2>Praia de Mira | Beachcam</h2>
+  <video id="video38" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('mira')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('mira')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video38')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/praia-de-mira/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Praia da Tocha" data-key="bc_tocha" data-forecast-key="mira" data-direct-stream="https://video-auth1.iol.pt/beachcam/bctocha/playlist.m3u8">
+  <h2>Praia da Tocha</h2>
+  <video id="video39" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('mira')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('mira')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video39')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/praia-da-tocha/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Murtinheira" data-key="bc_murtinheira" data-forecast-key="figueira_cabedelo" data-direct-stream="https://video-auth1.iol.pt/beachcam/bcmurtinheira/playlist.m3u8">
+  <h2>Murtinheira</h2>
+  <video id="video40" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('figueira_cabedelo')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('figueira_cabedelo')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video40')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/murtinheira/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Figueira da Foz | Buarcos" data-key="bc_figueira_buarcos" data-forecast-key="figueira_cabedelo" data-direct-stream="https://video-auth1.iol.pt/beachcam/bcfigueiradois/playlist.m3u8">
+  <h2>Figueira da Foz | Buarcos</h2>
+  <video id="video41" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('figueira_cabedelo')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('figueira_cabedelo')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video41')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/figueira-da-foz-tamargueira/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Figueira da Foz | Panorâmica" data-key="bc_figueira_panoramica" data-forecast-key="figueira_cabedelo" data-direct-stream="https://video-auth1.iol.pt/beachcam/figueiradafoz/playlist.m3u8">
+  <h2>Figueira da Foz | Panorâmica</h2>
+  <video id="video42" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('figueira_cabedelo')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('figueira_cabedelo')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video42')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/figueira-da-foz-cabedelo-buarcos/" target="_blank">Beachcam</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Praia do Cabedelo (Figueira da Foz)" data-key="figueira_cabedelo" data-forecast-key="figueira_cabedelo">
+  <h2>Praia do Cabedelo (Figueira da Foz)</h2>
+  <video id="video43" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('figueira_cabedelo')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('figueira_cabedelo')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video43')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://surftotal.com/camaras-report/figueira-da-foz/praia-do-cabedelo-hd" target="_blank">Surftotal</a>
+  </div>
+</div>
+
+<div class="cam forecast-card" data-name="Figueira da Foz | Cabedelo Beachcam" data-key="bc_figueira_cabedelo" data-forecast-key="figueira_cabedelo" data-direct-stream="https://video-auth1.iol.pt/beachcam/bcfigueiracabeledo/playlist.m3u8">
+  <h2>Figueira da Foz | Cabedelo Beachcam</h2>
+  <video id="video44" controls autoplay muted playsinline preload="none"></video>
+  <div class="cam-footer">
+    <button class="forecast-pill" onclick="showForecast('figueira_cabedelo')" title="Forecast">☆☆☆☆☆</button>
+    <span class="sep">|</span>
+    <button class="energy-pill" onclick="showForecast('figueira_cabedelo')" title="Forecast energy">-- kJ</button>
+    <span class="sep">|</span>
+    <span class="wind-pill">-- m/s</span>
+    <span class="sep">|</span>
+    <button class="refresh-icon" onclick="refreshCam('video44')" title="Refresh">↻</button>
+    <span class="sep">|</span>
+    <a class="source-link" href="https://beachcam.meo.pt/livecams/figueira-da-foz-cabedelo/" target="_blank">Beachcam</a>
+  </div>
+</div>
+<!-- ONLINE_CAMS_END -->
+</div>
+
+<section class="offline-section" aria-labelledby="offline-title">
+  <div class="offline-heading" id="offline-title">
+    <span>Offline cameras</span>
+    <span class="offline-count">6 unavailable</span>
+  </div>
+  <div class="offline-list">
+<!-- OFFLINE_CAMS_START -->
+
+<div class="offline-item forecast-card" data-name="Praia de Árvore - Areal HD" data-key="arvore" data-forecast-key="arvore">
+  <div class="offline-main">
+    <span class="offline-name">Praia de Árvore - Areal HD</span>
+    <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/praia-da-arvore-areal" target="_blank">Surftotal</a>
+  </div>
+  <div class="offline-stats">
+    <button class="forecast-pill" onclick="showForecast('arvore')" title="Forecast">☆☆☆☆☆</button>
+    <button class="energy-pill" onclick="showForecast('arvore')" title="Forecast energy">-- kJ</button>
+    <span class="wind-pill">-- m/s</span>
+  </div>
+</div>
+
+<div class="offline-item forecast-card" data-name="Pedras do Corgo - Melanina HD" data-key="pedras" data-forecast-key="pedras">
+  <div class="offline-main">
+    <span class="offline-name">Pedras do Corgo - Melanina HD</span>
+    <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/pedras-do-corgo" target="_blank">Surftotal</a>
+  </div>
+  <div class="offline-stats">
+    <button class="forecast-pill" onclick="showForecast('pedras')" title="Forecast">☆☆☆☆☆</button>
+    <button class="energy-pill" onclick="showForecast('pedras')" title="Forecast energy">-- kJ</button>
+    <span class="wind-pill">-- m/s</span>
+  </div>
+</div>
+
+<div class="offline-item forecast-card" data-name="Leça - L'Kodak (Aterro) HD" data-key="leca_aterro" data-forecast-key="leca_aterro">
+  <div class="offline-main">
+    <span class="offline-name">Leça - L'Kodak (Aterro) HD</span>
+    <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-kodak-aterro" target="_blank">Surftotal</a>
+  </div>
+  <div class="offline-stats">
+    <button class="forecast-pill" onclick="showForecast('leca_aterro')" title="Forecast">☆☆☆☆☆</button>
+    <button class="energy-pill" onclick="showForecast('leca_aterro')" title="Forecast energy">-- kJ</button>
+    <span class="wind-pill">-- m/s</span>
+  </div>
+</div>
+
+<div class="offline-item forecast-card" data-name="Cabedelo do Porto" data-key="cabedelo" data-forecast-key="cabedelo">
+  <div class="offline-main">
+    <span class="offline-name">Cabedelo do Porto</span>
+    <a class="source-link" href="https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabedelo-do-porto" target="_blank">Surftotal</a>
+  </div>
+  <div class="offline-stats">
+    <button class="forecast-pill" onclick="showForecast('cabedelo')" title="Forecast">☆☆☆☆☆</button>
+    <button class="energy-pill" onclick="showForecast('cabedelo')" title="Forecast energy">-- kJ</button>
+    <span class="wind-pill">-- m/s</span>
+  </div>
+</div>
+
+<div class="offline-item forecast-card" data-name="Praia da Barra Norte HD" data-key="barra_norte" data-forecast-key="barra_norte">
+  <div class="offline-main">
+    <span class="offline-name">Praia da Barra Norte HD</span>
+    <a class="source-link" href="https://surftotal.com/camaras-report/aveiro/praia-da-barra-norte-hd" target="_blank">Surftotal</a>
+  </div>
+  <div class="offline-stats">
+    <button class="forecast-pill" onclick="showForecast('barra_norte')" title="Forecast">☆☆☆☆☆</button>
+    <button class="energy-pill" onclick="showForecast('barra_norte')" title="Forecast energy">-- kJ</button>
+    <span class="wind-pill">-- m/s</span>
+  </div>
+</div>
+
+<div class="offline-item forecast-card" data-name="Mira" data-key="mira" data-forecast-key="mira">
+  <div class="offline-main">
+    <span class="offline-name">Mira</span>
+    <a class="source-link" href="https://surftotal.com/camaras-report/aveiro/mira" target="_blank">Surftotal</a>
+  </div>
+  <div class="offline-stats">
+    <button class="forecast-pill" onclick="showForecast('mira')" title="Forecast">☆☆☆☆☆</button>
+    <button class="energy-pill" onclick="showForecast('mira')" title="Forecast energy">-- kJ</button>
+    <span class="wind-pill">-- m/s</span>
+  </div>
+</div>
+<!-- OFFLINE_CAMS_END -->
+
+  </div>
+</section>
+
+<hr style="margin:20px 12px;border-color:#333">
+
+<div class="footer-credit">
+  <p>Cameras courtesy of <a href="https://surftotal.com" target="_blank" rel="noopener noreferrer">Surftotal</a> and <a href="https://beachcam.meo.pt" target="_blank" rel="noopener noreferrer">Beachcam</a>.</p>
+  <p>Marine and weather data by <a href="https://open-meteo.com" target="_blank" rel="noopener noreferrer">Open-Meteo</a>. Tide data by <a href="https://tidecheck.com" target="_blank" rel="noopener noreferrer">TideCheck</a>.</p>
+  <a class="coffee-link" href="https://buymeacoffee.com/polarx01" target="_blank" rel="noopener noreferrer">☕ Buy me a coffee</a>
+</div>
+<div id="forecast-modal" class="forecast-modal" onclick="closeForecastModal()">
+  <div class="forecast-modal-content" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeForecastModal()">×</button>
+    <div id="forecast-modal-body"></div>
+  </div>
+</div>
+
+</body>
+</html>

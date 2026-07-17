@@ -1,0 +1,134 @@
+{
+  "generated_at": 1781856680,
+  "generated_at_human": "08:11:20",
+  "streams": {
+    "Aguçadoura HD": {
+      "name": "Aguçadoura HD",
+      "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/agucadoura",
+      "stream": "https://stream.surftotal.com/portugal/agucadoura/index.m3u8?token=MTc4MTg1NjY4MS41MjcxOGE0MDMwYzE2NjMzYjNhOGVmOGIyZWFmNGI2YTk4ODZmODQzYWNkMDIwY2NjMTJjYzA0NjM5YzY3ZGY1&time=1781856681",
+      "online": true,
+      "stream_time": 1781856681,
+      "stream_time_human": "08:11:21"
+    },
+    "Póvoa de Varzim - Ferrari HD": {
+      "name": "Póvoa de Varzim - Ferrari HD",
+      "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/povoa-de-varzim-ferrari",
+      "stream": "https://stream.surftotal.com/portugal/ferrari/index.m3u8?token=MTc4MTg1NjY4Mi4zZjQ4YjA4MmIyYTMwNjUwYTUzMzg5Nzk2ZTljOWY2NWYwZDNiZmM4MjM0MWZlMjdlN2ZmMzNiNjE5MzZjY2Vm&time=1781856682",
+      "online": true,
+      "stream_time": 1781856682,
+      "stream_time_human": "08:11:22"
+    },
+    "Azurara HD": {
+      "name": "Azurara HD",
+      "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/azurara",
+      "stream": "https://stream.surftotal.com/portugal/azurara/index.m3u8?token=MTc4MTg1NjY4My5hMmUzZmY2OTg1NTU2Y2E3YzI2NTdhMDdiZGE1NWRmMTQ0ZTdiZjg3N2Q2MTc0M2ExNTliNDY5YWQyNTgzNjVl&time=1781856683",
+      "online": true,
+      "stream_time": 1781856683,
+      "stream_time_human": "08:11:23"
+    },
+    "Praia de Árvore - Areal HD": {
+      "name": "Praia de Árvore - Areal HD",
+      "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/praia-da-arvore-areal",
+      "stream": null,
+      "online": false,
+      "stream_time": null,
+      "stream_time_human": "unknown"
+    },
+    "Mindelo": {
+      "name": "Mindelo",
+      "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo",
+      "stream": "https://stream.surftotal.com/portugal/mindelo/index.m3u8?token=MTc4MTg1NjY4Ni43MTBlYmNkYjEwN2RmOWU0ZTRiZDQ1YmU2OTExYWVhN2I4M2VmYzZmODIwM2YxNzkxOGQyMGEzZWNiZDhhYWMw&time=1781856686",
+      "online": true,
+      "stream_time": 1781856686,
+      "stream_time_human": "08:11:26"
+    },
+    "Mindelo meia laranja HD": {
+      "name": "Mindelo meia laranja HD",
+      "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/mindelo-meia-laranja",
+      "stream": "https://stream.surftotal.com/portugal/meialaranja/index.m3u8?token=MTc4MTg1NjY4Ny42NWQxZTMyYWIyOWRiYTgzYTc5ZjY4OTUzZmRmNzZhMmI1Y2M5Nzg4OWI4YjcxZjVkMjdiMDMyZmI0MzYyN2Rm&time=1781856687",
+      "online": true,
+      "stream_time": 1781856687,
+      "stream_time_human": "08:11:27"
+    },
+    "Pedras do Corgo - Melanina HD": {
+      "name": "Pedras do Corgo - Melanina HD",
+      "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/pedras-do-corgo",
+      "stream": null,
+      "online": false,
+      "stream_time": null,
+      "stream_time_human": "unknown"
+    },
+    "Cabo do Mundo HD": {
+      "name": "Cabo do Mundo HD",
+      "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabo-do-mundo-hd",
+      "stream": null,
+      "online": false,
+      "stream_time": null,
+      "stream_time_human": "unknown"
+    },
+    "Leça - L'Kodak (Aterro) HD": {
+      "name": "Leça - L'Kodak (Aterro) HD",
+      "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-kodak-aterro",
+      "stream": null,
+      "online": false,
+      "stream_time": null,
+      "stream_time_human": "unknown"
+    },
+    "Leça da Palmeira HD": {
+      "name": "Leça da Palmeira HD",
+      "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/leca-da-palmeira",
+      "stream": "https://stream.surftotal.com/portugal/lecabardooscar/index.m3u8?token=MTc4MTg1NjY5Mi5mZmNkNjIxNTI3ZDFmMTFkZmZlOWE1MDVjNDE4ZTc2ZjVjMGEzZjY0NjdlMWRjNjBhMjhjMTllNzllOTE4NDQ5&time=1781856692",
+      "online": true,
+      "stream_time": 1781856692,
+      "stream_time_human": "08:11:32"
+    },
+    "Matosinhos HD": {
+      "name": "Matosinhos HD",
+      "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-hd",
+      "stream": "https://stream.surftotal.com/portugal/matosinhos/index.m3u8?token=MTc4MTg1NjY5My4xOTMxMjkwNmM5NmJlNDM0ODAxNzg0OGEwZGI4NmQyOTEwODgzOGRmODkyNGNlYjI3YTAwYTg1YTBjYjhmN2Y3&time=1781856693",
+      "online": true,
+      "stream_time": 1781856693,
+      "stream_time_human": "08:11:33"
+    },
+    "Matosinhos - Vagas Bar HD": {
+      "name": "Matosinhos - Vagas Bar HD",
+      "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/matosinhos-vagas-bar",
+      "stream": "https://stream.surftotal.com/portugal/matosas1/index.m3u8?token=MTc4MTg1NjY5NC4xYjU3YmNiNTZjYmJhYmY2YmQ5ZTllOWEyYjgyNTllZDA2OTk4YmU0ODk1MmY5NWEyNzUxMTE2YWMzY2RlNjEw&time=1781856694",
+      "online": true,
+      "stream_time": 1781856694,
+      "stream_time_human": "08:11:34"
+    },
+    "Cabedelo do Porto": {
+      "name": "Cabedelo do Porto",
+      "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/cabedelo-do-porto",
+      "stream": null,
+      "online": false,
+      "stream_time": null,
+      "stream_time_human": "unknown"
+    },
+    "Espinho HD": {
+      "name": "Espinho HD",
+      "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-hd",
+      "stream": "https://stream.surftotal.com/portugal/espinho/index.m3u8?token=MTc4MTg1NjY5Ny5mZGU5YWZkZWEwMWViOWZiMjkzYzZjZWQ2MDYzN2VhMzMwYzZiZWUyZDYxZThkMTBiZDdlNzhlNmUxNjZkMWUx&time=1781856697",
+      "online": true,
+      "stream_time": 1781856697,
+      "stream_time_human": "08:11:37"
+    },
+    "Espinho vista aérea HD": {
+      "name": "Espinho vista aérea HD",
+      "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-vista-aerea",
+      "stream": "https://stream.surftotal.com/portugal/casinoespinho/index.m3u8?token=MTc4MTg1NjY5OC40M2Y1MTU0MzBmY2UzN2UyNWJjZWM1YTUyNmQ1ZDYxOGRkMzM2NWM1YTI3OWZhZjQyMTIzMzVkNGM0NGMyODc2&time=1781856698",
+      "online": true,
+      "stream_time": 1781856698,
+      "stream_time_human": "08:11:38"
+    },
+    "Espinho - Silvalde HD": {
+      "name": "Espinho - Silvalde HD",
+      "page": "https://surftotal.com/camaras-report/grande-porto-douro-litoral/espinho-silvalde",
+      "stream": "https://stream.surftotal.com/portugal/cagas/index.m3u8?token=MTc4MTg1NjY5OS5jYTAwYzIyMzBkOGMxYWEwNTQ4MGUxMTdhMThjOTJmZjM0NTU2NTUxYzA5NmE5ZjI5Y2RiMjBmMGI5YzJkMzdj&time=1781856699",
+      "online": true,
+      "stream_time": 1781856699,
+      "stream_time_human": "08:11:39"
+    }
+  }
+}
