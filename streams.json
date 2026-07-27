@@ -98,11 +98,11 @@
     },
     "matosinhos": {
       "name": "Matosinhos HD",
-      "status": "online"
+      "status": "offline"
     },
     "vagas": {
       "name": "Matosinhos - Vagas Bar HD",
-      "status": "online"
+      "status": "offline"
     },
     "bc_homem_do_leme": {
       "name": "Porto | Homem do Leme",
@@ -126,11 +126,11 @@
     },
     "espinho": {
       "name": "Espinho HD",
-      "status": "online"
+      "status": "offline"
     },
     "espinho_aerea": {
       "name": "Espinho vista aérea HD",
-      "status": "online"
+      "status": "offline"
     },
     "bc_silvalde": {
       "name": "Espinho | Silvalde Beachcam",
