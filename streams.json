@@ -66,7 +66,7 @@
     },
     "mindelo_meia_laranja": {
       "name": "Mindelo meia laranja HD",
-      "status": "online"
+      "status": "offline"
     },
     "pedras": {
       "name": "Pedras do Corgo - Melanina HD",
@@ -98,7 +98,7 @@
     },
     "matosinhos": {
       "name": "Matosinhos HD",
-      "status": "offline"
+      "status": "online"
     },
     "vagas": {
       "name": "Matosinhos - Vagas Bar HD",
