@@ -6,7 +6,7 @@
     },
     "ancora": {
       "name": "Vila Praia de Âncora HD",
-      "status": "online"
+      "status": "offline"
     },
     "bc_ancora": {
       "name": "Vila Praia de Âncora | Beachcam",
@@ -34,7 +34,7 @@
     },
     "ofir": {
       "name": "Ofir",
-      "status": "online"
+      "status": "offline"
     },
     "bc_apulia": {
       "name": "Apúlia",
@@ -42,11 +42,11 @@
     },
     "agucadoura": {
       "name": "Aguçadoura HD",
-      "status": "online"
+      "status": "offline"
     },
     "ferrari": {
       "name": "Póvoa de Varzim - Ferrari HD",
-      "status": "online"
+      "status": "offline"
     },
     "bc_caxinas": {
       "name": "Vila do Conde | Caxinas",
@@ -54,11 +54,11 @@
     },
     "azurara": {
       "name": "Azurara HD",
-      "status": "online"
+      "status": "offline"
     },
     "arvore": {
       "name": "Praia de Árvore - Areal HD",
-      "status": "online"
+      "status": "offline"
     },
     "mindelo": {
       "name": "Mindelo",
@@ -66,7 +66,7 @@
     },
     "mindelo_meia_laranja": {
       "name": "Mindelo meia laranja HD",
-      "status": "online"
+      "status": "offline"
     },
     "pedras": {
       "name": "Pedras do Corgo - Melanina HD",
@@ -74,7 +74,7 @@
     },
     "cabo": {
       "name": "Cabo do Mundo HD",
-      "status": "online"
+      "status": "offline"
     },
     "leca_aterro": {
       "name": "Leça - L'Kodak (Aterro) HD",
@@ -86,7 +86,7 @@
     },
     "leca": {
       "name": "Leça da Palmeira HD",
-      "status": "online"
+      "status": "offline"
     },
     "bc_leca": {
       "name": "Leça da Palmeira | Beachcam",
@@ -98,11 +98,11 @@
     },
     "matosinhos": {
       "name": "Matosinhos HD",
-      "status": "online"
+      "status": "offline"
     },
     "vagas": {
       "name": "Matosinhos - Vagas Bar HD",
-      "status": "online"
+      "status": "offline"
     },
     "bc_homem_do_leme": {
       "name": "Porto | Homem do Leme",
@@ -126,11 +126,11 @@
     },
     "espinho": {
       "name": "Espinho HD",
-      "status": "online"
+      "status": "offline"
     },
     "espinho_aerea": {
       "name": "Espinho vista aérea HD",
-      "status": "online"
+      "status": "offline"
     },
     "bc_silvalde": {
       "name": "Espinho | Silvalde Beachcam",
@@ -146,7 +146,7 @@
     },
     "cortegaca_vila": {
       "name": "Cortegaça (Vila do Surf) HD",
-      "status": "online"
+      "status": "offline"
     },
     "bc_furadouro": {
       "name": "Furadouro",
@@ -198,7 +198,7 @@
     },
     "figueira_cabedelo": {
       "name": "Praia do Cabedelo (Figueira da Foz)",
-      "status": "online"
+      "status": "offline"
     },
     "bc_figueira_cabedelo": {
       "name": "Figueira da Foz | Cabedelo Beachcam",
