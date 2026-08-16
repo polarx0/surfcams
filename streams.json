@@ -14,7 +14,7 @@
     },
     "viana_castelo": {
       "name": "Viana do Castelo HD",
-      "status": "offline"
+      "status": "online"
     },
     "bc_viana_cabedelo": {
       "name": "Viana do Castelo | Cabedelo",
@@ -42,7 +42,7 @@
     },
     "agucadoura": {
       "name": "Aguçadoura HD",
-      "status": "online"
+      "status": "offline"
     },
     "ferrari": {
       "name": "Póvoa de Varzim - Ferrari HD",
