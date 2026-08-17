@@ -46,7 +46,7 @@
     },
     "ferrari": {
       "name": "Póvoa de Varzim - Ferrari HD",
-      "status": "offline"
+      "status": "online"
     },
     "bc_caxinas": {
       "name": "Vila do Conde | Caxinas",
@@ -138,7 +138,7 @@
     },
     "silvalde": {
       "name": "Espinho - Silvalde HD",
-      "status": "online"
+      "status": "offline"
     },
     "bc_esmoriz": {
       "name": "Esmoriz",
