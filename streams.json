@@ -46,7 +46,7 @@
     },
     "ferrari": {
       "name": "Póvoa de Varzim - Ferrari HD",
-      "status": "online"
+      "status": "offline"
     },
     "bc_caxinas": {
       "name": "Vila do Conde | Caxinas",
@@ -130,7 +130,7 @@
     },
     "espinho_aerea": {
       "name": "Espinho vista aérea HD",
-      "status": "online"
+      "status": "offline"
     },
     "bc_silvalde": {
       "name": "Espinho | Silvalde Beachcam",
@@ -198,7 +198,7 @@
     },
     "figueira_cabedelo": {
       "name": "Praia do Cabedelo (Figueira da Foz)",
-      "status": "online"
+      "status": "offline"
     },
     "bc_figueira_cabedelo": {
       "name": "Figueira da Foz | Cabedelo Beachcam",
