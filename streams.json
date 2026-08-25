@@ -34,7 +34,7 @@
     },
     "ofir": {
       "name": "Ofir",
-      "status": "online"
+      "status": "offline"
     },
     "bc_apulia": {
       "name": "Apúlia",
@@ -46,7 +46,7 @@
     },
     "ferrari": {
       "name": "Póvoa de Varzim - Ferrari HD",
-      "status": "online"
+      "status": "offline"
     },
     "bc_caxinas": {
       "name": "Vila do Conde | Caxinas",
@@ -54,7 +54,7 @@
     },
     "azurara": {
       "name": "Azurara HD",
-      "status": "online"
+      "status": "offline"
     },
     "arvore": {
       "name": "Praia de Árvore - Areal HD",
