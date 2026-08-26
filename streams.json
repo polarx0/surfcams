@@ -86,7 +86,7 @@
     },
     "leca": {
       "name": "Leça da Palmeira HD",
-      "status": "online"
+      "status": "offline"
     },
     "bc_leca": {
       "name": "Leça da Palmeira | Beachcam",
@@ -138,7 +138,7 @@
     },
     "silvalde": {
       "name": "Espinho - Silvalde HD",
-      "status": "offline"
+      "status": "online"
     },
     "bc_esmoriz": {
       "name": "Esmoriz",
