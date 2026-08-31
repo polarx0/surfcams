@@ -14,7 +14,7 @@
     },
     "viana_castelo": {
       "name": "Viana do Castelo HD",
-      "status": "offline"
+      "status": "online"
     },
     "bc_viana_cabedelo": {
       "name": "Viana do Castelo | Cabedelo",
@@ -46,7 +46,7 @@
     },
     "ferrari": {
       "name": "Póvoa de Varzim - Ferrari HD",
-      "status": "online"
+      "status": "offline"
     },
     "bc_caxinas": {
       "name": "Vila do Conde | Caxinas",
