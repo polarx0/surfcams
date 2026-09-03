@@ -14,7 +14,7 @@
     },
     "viana_castelo": {
       "name": "Viana do Castelo HD",
-      "status": "offline"
+      "status": "online"
     },
     "bc_viana_cabedelo": {
       "name": "Viana do Castelo | Cabedelo",
@@ -74,7 +74,7 @@
     },
     "cabo": {
       "name": "Cabo do Mundo HD",
-      "status": "online"
+      "status": "offline"
     },
     "leca_aterro": {
       "name": "Leça - L'Kodak (Aterro) HD",
