@@ -98,7 +98,7 @@
     },
     "matosinhos": {
       "name": "Matosinhos HD",
-      "status": "online"
+      "status": "offline"
     },
     "vagas": {
       "name": "Matosinhos - Vagas Bar HD",
@@ -198,7 +198,7 @@
     },
     "figueira_cabedelo": {
       "name": "Praia do Cabedelo (Figueira da Foz)",
-      "status": "online"
+      "status": "offline"
     },
     "bc_figueira_cabedelo": {
       "name": "Figueira da Foz | Cabedelo Beachcam",
