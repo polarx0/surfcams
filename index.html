@@ -1314,6 +1314,8 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
 .latest-updates h3 { margin:0 0 6px; color:var(--ink); font-size:12px; font-weight:600; }
 .latest-updates ul { margin:0 0 12px; padding-left:20px; }
 .latest-updates li + li { margin-top:4px; }
+.latest-updates .updates-more { border-top:1px solid var(--line); }
+.latest-updates .updates-more > summary { color:var(--mint); }
 @media (max-width:700px) { .latest-updates { padding:0 10px; } }
 </style>
 </head>
@@ -2132,14 +2134,36 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
 </section>
 
 <details class="latest-updates">
-  <summary>Latest update: Sep 8 — smarter camera loading and lower traffic usage</summary>
+  <summary>Latest update: Sep 8, 2026 — smarter camera loading and lower traffic usage</summary>
   <h3>Latest updates</h3>
   <ul>
-    <li>Sep 8 — Improved camera loading to reduce unnecessary traffic</li>
-    <li>Sep 8 — Favorites and selected tab persist after reload</li>
-    <li>Sep 8 — Offscreen/background cameras stop streaming</li>
-    <li>Sep 8 — Mobile streaming optimized</li>
+    <li>Sep 8, 2026 — Improved camera loading to reduce unnecessary traffic</li>
+    <li>Sep 8, 2026 — Favorites and selected tab persist after reload</li>
+    <li>Sep 8, 2026 — Offscreen/background cameras stop streaming</li>
+    <li>Sep 8, 2026 — Mobile streaming optimized</li>
+    <li>Jul 27, 2026 — Cleaner offline camera cards</li>
+    <li>Jul 27, 2026 — Fixed incorrect offline status for the Ferrari camera</li>
+    <li>Jul 27, 2026 — Improved availability checks for Homem do Leme, Carneiro and Beachcam Ofir</li>
+    <li>Jul 24, 2026 — Corrected tide data source attribution</li>
+    <li>Jul 3, 2026 — Added sea temperature to surf statistics</li>
+    <li>Jul 3, 2026 — Added precise camera locations and location-specific forecasts</li>
   </ul>
+  <!-- Keep older entries in batches of up to ten; nest another More block for the next batch. -->
+  <details class="updates-more">
+    <summary>More</summary>
+    <ul>
+      <li>Jul 1, 2026 — Refined shelter profiles for Espinho and Silvalde</li>
+      <li>Jul 1, 2026 — Added calculated nearshore wave energy</li>
+      <li>Jun 28, 2026 — Refined surf ratings for Matosinhos</li>
+      <li>Jun 28, 2026 — Added a visual tide chart</li>
+      <li>Jun 26, 2026 — Added a browser tab icon</li>
+      <li>Jun 26, 2026 — Made favorite camera cards easier to spot</li>
+      <li>Jun 25, 2026 — Added more regional Beachcam cameras</li>
+      <li>Jun 25, 2026 — Arranged offline cameras in two columns on mobile</li>
+      <li>Jun 24, 2026 — Improved the mobile header and camera grid</li>
+      <li>Jun 23, 2026 — Added top-three camera selection and half-star ratings</li>
+    </ul>
+  </details>
 </details>
 
 <hr style="margin:20px 12px;border-color:#333">
