@@ -67,6 +67,7 @@ function stopCam(video) {
 }
 
 function cameraRootMargin() {
+  if (window.matchMedia("(max-width: 700px)").matches) return 0;
   const card = document.querySelector(".grid > .cam:not([hidden])");
   if (!card) return 0;
   const rowGap = parseFloat(getComputedStyle(card.parentElement).rowGap) || 0;
@@ -74,10 +75,11 @@ function cameraRootMargin() {
 }
 
 function isCamNearViewport(video, margin = cameraRootMargin()) {
+  if (document.visibilityState !== "visible" || idleReloadStarted) return false;
   if (video.closest(".cam")?.hidden || !video.getClientRects().length) return false;
   const rect = video.getBoundingClientRect();
-  return rect.bottom >= -margin && rect.top <= window.innerHeight + margin
-    && rect.right >= 0 && rect.left <= window.innerWidth;
+  return rect.bottom > -margin && rect.top < window.innerHeight + margin
+    && rect.right > 0 && rect.left < window.innerWidth;
 }
 
 function syncLazyCams() {
@@ -161,6 +163,7 @@ async function fetchFreshStream(camKey, signal) {
 }
 
 async function startOrRefreshCam(videoId) {
+  if (!lazyCamsReady) return;
   const video = document.getElementById(videoId);
   const card = video?.closest(".cam");
   const camKey = card?.dataset.key;
@@ -225,6 +228,7 @@ async function refreshStartedCams() {
 }
 
 function setupLazyCams() {
+  if (lazyCamsReady) return;
   lazyCamsReady = true;
   // Also cover layout/breakpoint changes and browsers without IntersectionObserver.
   let pending = false;
@@ -321,10 +325,10 @@ function filterCams() {
     card.hidden = !(matchesSearch && matchesFilter);
     if (!card.hidden) visible++;
   });
-  syncLazyCams();
   const empty = document.getElementById("empty-state");
   if (empty) empty.hidden = visible !== 0;
   updateCameraSectionHeading(filter, visible, query);
+  syncLazyCams();
 }
 
 function setFilter(button) {
@@ -873,6 +877,7 @@ function reloadAfterLongIdle() {
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) pageHiddenAt = Date.now();
   else reloadAfterLongIdle();
+  syncLazyCams();
 });
 window.addEventListener("focus", reloadAfterLongIdle);
 
