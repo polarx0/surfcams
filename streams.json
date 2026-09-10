@@ -34,7 +34,7 @@
     },
     "ofir": {
       "name": "Ofir",
-      "status": "offline"
+      "status": "online"
     },
     "bc_apulia": {
       "name": "Apúlia",
@@ -42,11 +42,11 @@
     },
     "agucadoura": {
       "name": "Aguçadoura HD",
-      "status": "offline"
+      "status": "online"
     },
     "ferrari": {
       "name": "Póvoa de Varzim - Ferrari HD",
-      "status": "offline"
+      "status": "online"
     },
     "bc_caxinas": {
       "name": "Vila do Conde | Caxinas",
@@ -54,7 +54,7 @@
     },
     "azurara": {
       "name": "Azurara HD",
-      "status": "offline"
+      "status": "online"
     },
     "arvore": {
       "name": "Praia de Árvore - Areal HD",
@@ -198,7 +198,7 @@
     },
     "figueira_cabedelo": {
       "name": "Praia do Cabedelo (Figueira da Foz)",
-      "status": "offline"
+      "status": "online"
     },
     "bc_figueira_cabedelo": {
       "name": "Figueira da Foz | Cabedelo Beachcam",
