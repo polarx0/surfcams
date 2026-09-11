@@ -1007,6 +1007,51 @@ function openMapMenu(event, name, coords) {
   setTimeout(() => document.addEventListener("click", () => menu.remove(), { once:true }), 0);
 }
 
+function setupFeedbackForm() {
+  const form = document.getElementById("feedback-form");
+  const status = document.getElementById("feedback-status");
+  if (!form || !status) return;
+  form.addEventListener("submit", async event => {
+    event.preventDefault();
+    if (form.dataset.sending === "true") return;
+    const message = form.elements.message.value.trim();
+    const contact = form.elements.contact.value.trim();
+    if (message.length < 10 || message.length > 2000) {
+      status.textContent = "Message must be 10–2000 characters.";
+      return;
+    }
+    if (contact.length > 200) {
+      status.textContent = "Contact must be 200 characters or fewer.";
+      return;
+    }
+    form.dataset.sending = "true";
+    form.elements.submit.disabled = true;
+    status.textContent = "Sending…";
+    try {
+      const response = await fetch(WORKER_URL + "/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: form.elements.type.value,
+          message,
+          contact,
+          page: window.location.href,
+          clientTime: new Date().toISOString(),
+          website: form.elements.website.value,
+        }),
+      });
+      if (!response.ok) throw new Error("feedback request failed");
+      status.textContent = "Thanks — your message was sent.";
+      form.reset();
+    } catch (error) {
+      status.textContent = "Could not send feedback. Please try again.";
+    } finally {
+      form.dataset.sending = "false";
+      form.elements.submit.disabled = false;
+    }
+  });
+}
+
 window.addEventListener("load", () => {
   setupAnalytics();
   setupFavorites();
@@ -1014,6 +1059,7 @@ window.addEventListener("load", () => {
   setupPreciseForecastButtons();
   setupMapLinks();
   setupSourceLinks();
+  setupFeedbackForm();
   updateDashboardStats();
   setupLazyCams();
   loadAllForecasts();
@@ -1350,6 +1396,18 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
 .latest-updates .updates-more { border-top:1px solid var(--line); }
 .latest-updates .updates-more > summary { color:var(--mint); }
 @media (max-width:700px) { .latest-updates { padding:0 10px; } }
+.feedback { max-width:1440px; margin:0 auto 12px; padding:0 clamp(16px,3vw,40px); color:var(--muted); font-size:12px; }
+.feedback summary { padding:10px 0; cursor:pointer; color:var(--ink); }
+.feedback summary::marker { color:var(--mint); }
+.feedback-form { display:grid; gap:8px; max-width:620px; padding:4px 0 12px; }
+.feedback-form label { display:grid; gap:4px; }
+.feedback-form select,.feedback-form textarea,.feedback-form input { box-sizing:border-box; width:100%; border:1px solid var(--line); border-radius:4px; background:#181818; color:var(--ink); padding:7px 8px; font:inherit; }
+.feedback-form textarea { min-height:90px; resize:vertical; }
+.feedback-form button { width:max-content; border:1px solid var(--mint); border-radius:4px; background:transparent; color:var(--mint); padding:7px 12px; cursor:pointer; font:inherit; }
+.feedback-form button:disabled { opacity:.55; cursor:wait; }
+.feedback-status { min-height:1.4em; margin:0; }
+.feedback-honeypot { position:absolute; left:-10000px; width:1px; height:1px; overflow:hidden; }
+@media (max-width:700px) { .feedback { padding:0 10px; } }
 </style>
 </head>
 <body>
@@ -2175,9 +2233,12 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
 </section>
 
 <details class="latest-updates">
-  <summary>Latest update: Sep 8, 2026 — smarter camera loading and lower traffic usage</summary>
+  <summary>Latest update: Sep 11, 2026 — better surf ratings, mobile video fixes and feedback</summary>
   <h3>Latest updates</h3>
   <ul>
+    <li>Sep 11, 2026 — Surf ratings now account for nearshore wave energy</li>
+    <li>Sep 11, 2026 — Fixed black video after rotating a camera on mobile</li>
+    <li>Sep 11, 2026 — Added feedback and suggestions form</li>
     <li>Sep 8, 2026 — Improved camera loading to reduce unnecessary traffic</li>
     <li>Sep 8, 2026 — Favorites and selected tab persist after reload</li>
     <li>Sep 8, 2026 — Offscreen/background cameras stop streaming</li>
@@ -2205,6 +2266,30 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
       <li>Jun 23, 2026 — Added top-three camera selection and half-star ratings</li>
     </ul>
   </details>
+</details>
+
+<details class="feedback">
+  <summary>Feedback &amp; suggestions</summary>
+  <form id="feedback-form" class="feedback-form" novalidate>
+    <label>Type
+      <select name="type" required>
+        <option value="feedback">Feedback</option>
+        <option value="suggestion">Suggestion</option>
+        <option value="bug">Bug report</option>
+      </select>
+    </label>
+    <label>Message
+      <textarea name="message" minlength="10" maxlength="2000" required></textarea>
+    </label>
+    <label>Contact <span>Contact is optional and will only be used to reply to your feedback.</span>
+      <input name="contact" maxlength="200" placeholder="Email or Telegram">
+    </label>
+    <label class="feedback-honeypot" aria-hidden="true">Website
+      <input name="website" tabindex="-1" autocomplete="off">
+    </label>
+    <button type="submit" name="submit">Send feedback</button>
+    <p id="feedback-status" class="feedback-status" role="status" aria-live="polite"></p>
+  </form>
 </details>
 
 <hr style="margin:20px 12px;border-color:#333">
