@@ -1386,10 +1386,12 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
 
 /* Compact release notes; native disclosure keeps this independent of camera logic. */
 .latest-updates { max-width:1440px; margin:0 auto 12px; padding:0 clamp(16px,3vw,40px); color:var(--muted); font-size:12px; line-height:1.6; }
-.latest-updates summary { padding:12px 0; cursor:pointer; }
-.latest-updates summary::marker { color:var(--mint); }
-.latest-updates summary:hover { color:var(--ink); }
-.latest-updates summary:focus-visible { outline:2px solid var(--mint); outline-offset:4px; border-radius:4px; }
+.latest-updates summary, .feedback summary { cursor:pointer; color:var(--muted); }
+.latest-updates summary { padding:12px 0; }
+.feedback summary { padding:10px 0; }
+.latest-updates summary::marker, .feedback summary::marker { color:var(--mint); }
+.latest-updates summary:hover, .feedback summary:hover { color:var(--ink); }
+.latest-updates summary:focus-visible, .feedback summary:focus-visible { outline:2px solid var(--mint); outline-offset:4px; border-radius:4px; }
 .latest-updates h3 { margin:0 0 6px; color:var(--ink); font-size:12px; font-weight:600; }
 .latest-updates ul { margin:0 0 12px; padding-left:20px; }
 .latest-updates li + li { margin-top:4px; }
@@ -1397,8 +1399,6 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
 .latest-updates .updates-more > summary { color:var(--mint); }
 @media (max-width:700px) { .latest-updates { padding:0 10px; } }
 .feedback { max-width:1440px; margin:0 auto 12px; padding:0 clamp(16px,3vw,40px); color:var(--muted); font-size:12px; }
-.feedback summary { padding:10px 0; cursor:pointer; color:var(--ink); }
-.feedback summary::marker { color:var(--mint); }
 .feedback-form { display:grid; gap:8px; max-width:620px; padding:4px 0 12px; }
 .feedback-form label { display:grid; gap:4px; }
 .feedback-form select,.feedback-form textarea,.feedback-form input { box-sizing:border-box; width:100%; border:1px solid var(--line); border-radius:4px; background:#181818; color:var(--ink); padding:7px 8px; font:inherit; }
