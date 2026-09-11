@@ -17,6 +17,8 @@ const streamControllers = {};
 let lazyCamsReady = false;
 let cameraObserver = null;
 let observedCameraMargin = null;
+const nativeFullscreenVideos = new WeakSet();
+const orientationProtectedVideos = new WeakSet();
 const forecastCache = {};
 const FAVORITES_STORAGE_KEY = "norte-surf-cam-favorites";
 const FILTER_STORAGE_KEY = "norte-surf-cam-filter";
@@ -76,7 +78,13 @@ function cameraRootMargin() {
 
 function isCamNearViewport(video, margin = cameraRootMargin()) {
   if (document.visibilityState !== "visible" || idleReloadStarted) return false;
-  if (video.closest(".cam")?.hidden || !video.getClientRects().length) return false;
+  if (video.closest(".cam")?.hidden) return false;
+  // Mobile fullscreen can leave the inline video offscreen during rotation.
+  const fullscreen = document.fullscreenElement || document.webkitFullscreenElement;
+  if (fullscreen === video || fullscreen?.contains(video)
+      || nativeFullscreenVideos.has(video) || orientationProtectedVideos.has(video)
+      || video.webkitDisplayingFullscreen) return true;
+  if (!video.getClientRects().length) return false;
   const rect = video.getBoundingClientRect();
   return rect.bottom > -margin && rect.top < window.innerHeight + margin
     && rect.right > 0 && rect.left < window.innerWidth;
@@ -242,6 +250,31 @@ function setupLazyCams() {
   };
   window.addEventListener("scroll", scheduleSync, { passive: true });
   window.addEventListener("resize", scheduleSync);
+  window.addEventListener("orientationchange", scheduleSync);
+  window.addEventListener("orientationchange", () => {
+    document.querySelectorAll('.cam video[data-started="true"]').forEach(video => orientationProtectedVideos.add(video));
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      document.querySelectorAll(".cam video").forEach(video => orientationProtectedVideos.delete(video));
+      syncLazyCams();
+    }));
+  });
+  document.addEventListener("fullscreenchange", syncLazyCams);
+  document.addEventListener("webkitfullscreenchange", syncLazyCams);
+  document.querySelectorAll(".cam video").forEach(video => {
+    video.addEventListener("webkitbeginfullscreen", () => {
+      nativeFullscreenVideos.add(video);
+      syncLazyCams();
+    });
+    video.addEventListener("webkitendfullscreen", () => {
+      nativeFullscreenVideos.delete(video);
+      syncLazyCams();
+    });
+    video.addEventListener("webkitpresentationmodechanged", () => {
+      if (video.webkitDisplayingFullscreen) nativeFullscreenVideos.add(video);
+      else nativeFullscreenVideos.delete(video);
+      syncLazyCams();
+    });
+  });
   syncLazyCams();
 }
 
