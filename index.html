@@ -24,6 +24,11 @@ const FAVORITES_STORAGE_KEY = "norte-surf-cam-favorites";
 const FILTER_STORAGE_KEY = "norte-surf-cam-filter";
 let favoriteKeys = new Set();
 let bestCameraKeys = new Set();
+// Page memory only: never persist or send the user's location.
+let nearbyLocation = null;
+let nearbyLocationPending = false;
+let nearbyLocationMessage = "";
+let appliedNearbyLimit = null;
 const TOKEN_LIFETIME_SECONDS = 300;
 const TOKEN_REFRESH_BUFFER_SECONDS = 75;
 const TOKEN_RETRY_SECONDS = 15;
@@ -245,6 +250,11 @@ function setupLazyCams() {
     pending = true;
     requestAnimationFrame(() => {
       pending = false;
+      if (document.body.dataset.cameraFilter === "nearby" && nearbyLocation
+          && appliedNearbyLimit !== nearbyCameraLimit()) {
+        filterCams();
+        return;
+      }
       syncLazyCams();
     });
   };
@@ -345,21 +355,104 @@ function updateDashboardStats() {
   filterCams();
 }
 
+function nearbyCameraLimit() {
+  return window.matchMedia("(max-width: 700px)").matches ? 6 : 9;
+}
+
+function validNearbyCoords(coords) {
+  return Array.isArray(coords) && coords.length === 2
+    && coords.every(Number.isFinite)
+    && Math.abs(coords[0]) <= 90 && Math.abs(coords[1]) <= 180;
+}
+
+function haversineDistanceKm(from, to) {
+  const radians = degrees => degrees * Math.PI / 180;
+  const a = Math.sin(radians(to[0] - from[0]) / 2) ** 2
+    + Math.cos(radians(from[0])) * Math.cos(radians(to[0]))
+    * Math.sin(radians(to[1] - from[1]) / 2) ** 2;
+  return 6371 * 2 * Math.asin(Math.sqrt(Math.min(1, Math.max(0, a))));
+}
+
+function nearestCameras() {
+  if (!nearbyLocation) return new Map();
+  return new Map(Array.from(document.querySelectorAll(".cam"))
+    .map(card => ({ card, coords: forecastCoordsForCard(card) }))
+    .filter(item => validNearbyCoords(item.coords))
+    .map(item => ({ card: item.card, distance: haversineDistanceKm(nearbyLocation, item.coords) }))
+    .sort((a, b) => a.distance - b.distance)
+    .slice(0, nearbyCameraLimit())
+    .map((item, index) => [item.card, { distance: item.distance, order: index }]));
+}
+
+function formatNearbyDistance(distance) {
+  return (distance < 10 ? distance.toFixed(1) : Math.round(distance)) + " km";
+}
+
+function requestNearbyLocation() {
+  if (nearbyLocation || nearbyLocationPending) return;
+  nearbyLocationPending = true;
+  nearbyLocationMessage = "";
+  const finish = (coords, error) => {
+    nearbyLocationPending = false;
+    if (validNearbyCoords(coords)) {
+      nearbyLocation = coords;
+      nearbyLocationMessage = "";
+    } else {
+      nearbyLocationMessage = error?.code === 1
+        ? "Location access is needed to show nearby cameras. Your location is used only in your browser and is not stored or sent anywhere."
+        : "Could not determine your location. Your location is never stored or sent anywhere.";
+    }
+    // A late result must not reactivate Nearby after the user switches away.
+    if (document.querySelector(".filter-chip.active")?.dataset.filter === "nearby") filterCams();
+  };
+  try {
+    navigator.geolocation.getCurrentPosition(
+      position => finish([position.coords.latitude, position.coords.longitude]),
+      error => finish(null, error),
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 }
+    );
+  } catch (error) {
+    finish(null, error);
+  }
+}
+
 function filterCams() {
   const query = (document.getElementById("cam-search")?.value || "").trim().toLowerCase();
   const filter = document.querySelector(".filter-chip.active")?.dataset.filter || "all";
   document.body.dataset.cameraFilter = filter;
+  const nearby = filter === "nearby" ? nearestCameras() : new Map();
+  appliedNearbyLimit = filter === "nearby" ? nearbyCameraLimit() : null;
   let visible = 0;
   document.querySelectorAll(".cam").forEach(card => {
+    const nearest = nearby.get(card);
+    // CSS ordering preserves the original DOM order for all other filters.
+    card.style.order = nearest ? String(nearest.order) : "";
+    let distanceLabel = card.querySelector(".nearby-distance");
+    if (nearest && !distanceLabel) {
+      distanceLabel = document.createElement("small");
+      distanceLabel.className = "nearby-distance";
+      card.querySelector("h2")?.appendChild(distanceLabel);
+    }
+    if (distanceLabel) {
+      distanceLabel.hidden = !nearest;
+      distanceLabel.textContent = nearest ? formatNearbyDistance(nearest.distance) : "";
+    }
     const matchesSearch = (card.dataset.name || "").toLowerCase().includes(query);
     const matchesFilter = filter === "all"
       || (filter === "best" && bestCameraKeys.has(card.dataset.key))
-      || (filter === "favorites" && favoriteKeys.has(card.dataset.key));
+      || (filter === "favorites" && favoriteKeys.has(card.dataset.key))
+      || (filter === "nearby" && nearby.has(card));
     card.hidden = !(matchesSearch && matchesFilter);
     if (!card.hidden) visible++;
   });
   const empty = document.getElementById("empty-state");
-  if (empty) empty.hidden = visible !== 0;
+  if (empty) {
+    empty.hidden = visible !== 0;
+    empty.textContent = filter === "nearby"
+      ? nearbyLocationMessage || (nearbyLocationPending ? "Finding nearby cameras…"
+        : "No nearby spots found. Try another search.")
+      : "No spots found. Try another search.";
+  }
   updateCameraSectionHeading(filter, visible, query);
   syncLazyCams();
 }
@@ -367,11 +460,14 @@ function filterCams() {
 function setFilter(button) {
   document.querySelectorAll(".filter-chip").forEach(item => item.classList.remove("active"));
   button.classList.add("active");
+  nearbyLocationMessage = "";
   try {
-    localStorage.setItem(FILTER_STORAGE_KEY, button.dataset.filter);
+    // Reload always starts at All if Nearby was the last manually selected filter.
+    localStorage.setItem(FILTER_STORAGE_KEY, button.dataset.filter === "nearby" ? "all" : button.dataset.filter);
   } catch (e) {
     console.warn("Could not save camera filter", e);
   }
+  if (button.dataset.filter === "nearby") requestNearbyLocation();
   filterCams();
 }
 
@@ -396,14 +492,15 @@ function updateCameraSectionHeading(filter, visible, query) {
   const labels = {
     all: "Online cameras",
     favorites: "Favorite cameras",
-    best: "Best now"
+    best: "Best now",
+    nearby: "Nearby cameras"
   };
   titleEl.textContent = labels[filter] || labels.all;
   if (query) {
     countEl.textContent = visible + (visible === 1 ? " match" : " matches");
   } else if (filter === "favorites") {
     countEl.textContent = visible + (visible === 1 ? " favorite" : " favorites");
-  } else if (filter === "best") {
+  } else if (filter === "best" || filter === "nearby") {
     countEl.textContent = visible + " selected";
   } else {
     countEl.textContent = visible + " online";
@@ -1351,6 +1448,7 @@ body:before { display:none; }
 #cam-search:focus { border-color:var(--mint); box-shadow:0 0 0 3px rgba(132,224,198,.09); }
 .filter-chip { height:34px; padding:0 12px; border:1px solid var(--line); border-radius:6px; background:transparent; color:var(--muted); cursor:pointer; font:12px var(--font-ui); }
 .filter-chip.active { border-color:var(--mint); background:var(--mint); color:#08211d; font-weight:700; }
+.nearby-distance { flex-shrink:0; color:var(--muted); font-size:10px; font-weight:400; white-space:nowrap; }
 .grid { max-width:1440px; margin:0 auto; padding:0 clamp(16px,3vw,40px) 40px; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
 .cam { position:relative; background:var(--panel); border:1px solid var(--line); border-radius:8px; transition:background .2s, border-color .2s, box-shadow .2s; }
 .cam:hover { border-color:rgba(132,224,198,.3); }
@@ -1424,6 +1522,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
     <button class="filter-chip active" data-filter="all" onclick="setFilter(this)">All cameras</button>
     <button class="filter-chip" data-filter="favorites" onclick="setFilter(this)">Favorites</button>
     <button class="filter-chip" data-filter="best" onclick="setFilter(this)">Best now</button>
+    <button class="filter-chip" data-filter="nearby" onclick="setFilter(this)">Nearby</button>
   </div>
   <div class="header-actions">
     <span class="live-status"><span id="live-status-count">41</span>/<span id="total-camera-count">51</span> online</span>
@@ -1438,7 +1537,7 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
   </div>
 </section>
 
-<p id="empty-state" hidden>No spots found. Try another search.</p>
+<p id="empty-state" role="status" aria-live="polite" hidden>No spots found. Try another search.</p>
 <div class="grid">
 <!-- ONLINE_CAMS_START -->
 
@@ -2233,9 +2332,11 @@ video { aspect-ratio:16/9; min-height:0; object-fit:cover; }
 </section>
 
 <details class="latest-updates">
-  <summary>Latest update: Sep 11, 2026 — better surf ratings, mobile video fixes and feedback</summary>
+  <summary>Latest update: Sep 19, 2026 — find the nearest live cameras with Nearby</summary>
   <h3>Latest updates</h3>
   <ul>
+    <li>Sep 19, 2026 — Added Nearby to show the closest available cameras with distance labels</li>
+    <li>Sep 19, 2026 — Location stays in your browser and is never stored or sent anywhere</li>
     <li>Sep 11, 2026 — Surf ratings now account for nearshore wave energy</li>
     <li>Sep 11, 2026 — Fixed black video after rotating a camera on mobile</li>
     <li>Sep 11, 2026 — Added feedback and suggestions form</li>
