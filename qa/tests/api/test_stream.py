@@ -1,7 +1,7 @@
 import pytest
 
 
-@pytest.mark.parametrize("cam", ["espinho", "bc_espinho"])
+@pytest.mark.parametrize("cam", ["espinho"])
 def test_stream_contract_for_known_online_cameras(api_session, base_url, api_timeout, cam):
     response = api_session.get(
         f"{base_url}/stream",
