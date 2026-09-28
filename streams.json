@@ -130,7 +130,7 @@
     },
     "espinho_aerea": {
       "name": "Espinho vista aérea HD",
-      "status": "online"
+      "status": "offline"
     },
     "bc_silvalde": {
       "name": "Espinho | Silvalde Beachcam",
@@ -138,7 +138,7 @@
     },
     "silvalde": {
       "name": "Espinho - Silvalde HD",
-      "status": "online"
+      "status": "offline"
     },
     "bc_esmoriz": {
       "name": "Esmoriz",
@@ -162,7 +162,7 @@
     },
     "barra_norte": {
       "name": "Praia da Barra Norte HD",
-      "status": "online"
+      "status": "offline"
     },
     "bc_barra": {
       "name": "Praia da Barra | Beachcam",
@@ -198,7 +198,7 @@
     },
     "figueira_cabedelo": {
       "name": "Praia do Cabedelo (Figueira da Foz)",
-      "status": "online"
+      "status": "offline"
     },
     "bc_figueira_cabedelo": {
       "name": "Figueira da Foz | Cabedelo Beachcam",
