@@ -2,7 +2,7 @@
   "cameras": {
     "moledo": {
       "name": "Moledo HD",
-      "status": "online"
+      "status": "offline"
     },
     "ancora": {
       "name": "Vila Praia de Âncora HD",
