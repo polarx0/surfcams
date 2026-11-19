@@ -2,7 +2,7 @@
   "cameras": {
     "moledo": {
       "name": "Moledo HD",
-      "status": "offline"
+      "status": "online"
     },
     "ancora": {
       "name": "Vila Praia de Âncora HD",
@@ -30,7 +30,7 @@
     },
     "bc_ofir": {
       "name": "Ofir | Beachcam",
-      "status": "offline"
+      "status": "online"
     },
     "ofir": {
       "name": "Ofir",
